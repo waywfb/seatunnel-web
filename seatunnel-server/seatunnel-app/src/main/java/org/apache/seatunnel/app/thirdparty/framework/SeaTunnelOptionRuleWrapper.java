@@ -40,6 +40,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,9 +78,26 @@ public class SeaTunnelOptionRuleWrapper {
             @NonNull List<RequiredOption> requiredList,
             @NonNull String name) {
         FormLocale locale = new FormLocale();
-        List<AbstractFormOption> optionFormOptions = wrapperOptionOptions(name, optionList, locale);
         List<AbstractFormOption> requiredFormOptions =
                 wrapperRequiredOptions(name, requiredList, locale);
+
+        Set<String> requiredFields =
+                requiredFormOptions.stream()
+                        .map(AbstractFormOption::getField)
+                        .collect(Collectors.toSet());
+
+        List<AbstractFormOption> optionFormOptions = wrapperOptionOptions(name, optionList, locale);
+        Set<String> seenOptionFields = new HashSet<>();
+        List<AbstractFormOption> deduplicatedOptionFormOptions = new ArrayList<>();
+        for (AbstractFormOption formOption : optionFormOptions) {
+            if (seenOptionFields.add(formOption.getField())) {
+                deduplicatedOptionFormOptions.add(formOption);
+            }
+        }
+        List<AbstractFormOption> filteredOptionFormOptions =
+                deduplicatedOptionFormOptions.stream()
+                        .filter(o -> !requiredFields.contains(o.getField()))
+                        .collect(Collectors.toList());
 
         FormStructureBuilder formStructureBuilder = FormStructure.builder().name(name);
 
@@ -88,9 +106,9 @@ public class SeaTunnelOptionRuleWrapper {
                     requiredFormOptions.toArray(new AbstractFormOption[1]));
         }
 
-        if (!CollectionUtils.isEmpty(optionFormOptions)) {
+        if (!CollectionUtils.isEmpty(filteredOptionFormOptions)) {
             formStructureBuilder.addFormOption(
-                    optionFormOptions.toArray(new AbstractFormOption[1]));
+                    filteredOptionFormOptions.toArray(new AbstractFormOption[1]));
         }
 
         formStructureBuilder.withLocale(locale);
