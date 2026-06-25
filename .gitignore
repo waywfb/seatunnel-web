@@ -53,3 +53,12 @@ spark-warehouse
 /seatunnel-ui/node_modules
 /seatunnel-ui/node_modules/*
 /seatunnel-web-it/profile/*
+seatunnel-server/seatunnel-app/src/main/resources/application.yml
+.gitignore
+.codegraph
+.opencode
+.opencode/*
+.opencode/*
+.codegraph/*
+.vscode/*
+.vscode/

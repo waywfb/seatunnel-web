@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Configuration;
 public class SeatunnelAccessControllerConfig {
 
     @Value(
-            "${seatunnel-web.access-controller-class:org.apache.seatunnel.app.permission.SeatunnelAccessControllerDefaultImpl org.apache.seatunnel.app.permission.DefaultSeatunnelAccessController}")
+            "${seatunnel-web.access-controller-class:org.apache.seatunnel.app.permission.SeatunnelAccessControllerDefaultImpl}")
     private String accessControllerClassName;
 
     @Bean
