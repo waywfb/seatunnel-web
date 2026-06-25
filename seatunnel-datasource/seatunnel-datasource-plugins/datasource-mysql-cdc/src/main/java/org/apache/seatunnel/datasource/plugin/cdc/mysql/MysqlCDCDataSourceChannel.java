@@ -75,7 +75,7 @@ public class MysqlCDCDataSourceChannel implements DataSourceChannel {
         try {
             return this.getDataBaseNames(requestParams);
         } catch (SQLException e) {
-            throw new DataSourcePluginException("get databases failed", e);
+            throw new DataSourcePluginException("获取数据库列表失败", e);
         }
     }
 
@@ -109,38 +109,48 @@ public class MysqlCDCDataSourceChannel implements DataSourceChannel {
         try (Connection connection = init(requestParams);
                 Statement statement = connection.createStatement()) {
 
-            try (ResultSet resultSet = statement.executeQuery("SHOW MASTER STATUS"); ) {
+            // MySQL 8.4+ 移除了 SHOW MASTER STATUS，改用 SHOW BINARY LOG STATUS
+            // 此处先尝试新语法，失败时回退到旧语法
+            String binlogFile = null;
+            try (ResultSet resultSet = statement.executeQuery("SHOW BINARY LOG STATUS")) {
                 if (resultSet.next()) {
-                    String binlogFile = resultSet.getString("File");
-                    if (StringUtils.isBlank(binlogFile)) {
-                        throw new DataSourcePluginException("binlog must be enabled");
+                    binlogFile = resultSet.getString("File");
+                }
+            } catch (SQLException e) {
+                // 兼容 MySQL 8.0 及更早版本
+                try (ResultSet resultSet = statement.executeQuery("SHOW MASTER STATUS")) {
+                    if (resultSet.next()) {
+                        binlogFile = resultSet.getString("File");
                     }
-                } else {
-                    throw new DataSourcePluginException("binlog must be enabled");
                 }
             }
+            if (StringUtils.isBlank(binlogFile)) {
+                throw new DataSourcePluginException("binlog 必须开启");
+            }
 
+            // 检查 binlog_format 必须为 ROW
             try (ResultSet resultSet =
                     statement.executeQuery("SHOW VARIABLES LIKE 'binlog_format'")) {
                 if (resultSet.next()) {
                     String binlogFormat = resultSet.getString("Value");
                     if (!"ROW".equalsIgnoreCase(binlogFormat)) {
-                        throw new DataSourcePluginException("binlog_format must be ROW");
+                        throw new DataSourcePluginException("binlog_format 必须为 ROW");
                     }
                 } else {
-                    throw new DataSourcePluginException("binlog_format must be ROW");
+                    throw new DataSourcePluginException("binlog_format 必须为 ROW");
                 }
             }
 
+            // 检查 binlog_row_image 必须为 FULL
             try (ResultSet resultSet =
                     statement.executeQuery("SHOW VARIABLES LIKE 'binlog_row_image'")) {
                 if (resultSet.next()) {
                     String binlogRowImage = resultSet.getString("Value");
                     if (!"FULL".equalsIgnoreCase(binlogRowImage)) {
-                        throw new DataSourcePluginException("binlog_row_image must be FULL");
+                        throw new DataSourcePluginException("binlog_row_image 必须为 FULL");
                     }
                 } else {
-                    throw new DataSourcePluginException("binlog_row_image must be FULL");
+                    throw new DataSourcePluginException("binlog_row_image 必须为 FULL");
                 }
             }
             return true;
@@ -151,10 +161,18 @@ public class MysqlCDCDataSourceChannel implements DataSourceChannel {
     }
 
     protected Connection init(Map<String, String> requestParams) throws SQLException {
-        if (null == requestParams.get(MysqlCDCOptionRule.BASE_URL.key())) {
-            throw new DataSourcePluginException("Jdbc url is null");
-        }
         String url = requestParams.get(MysqlCDCOptionRule.BASE_URL.key());
+        if (StringUtils.isBlank(url)) {
+            String host = requestParams.get(MysqlCDCOptionRule.HOST.key());
+            String port = requestParams.get(MysqlCDCOptionRule.PORT.key());
+            if (StringUtils.isBlank(host)) {
+                throw new DataSourcePluginException("Either base-url or host must be provided");
+            }
+            if (StringUtils.isBlank(port)) {
+                port = String.valueOf(MysqlCDCOptionRule.PORT.defaultValue());
+            }
+            url = "jdbc:mysql://" + host + ":" + port + "/";
+        }
 
         Properties info = new java.util.Properties();
         info.put("autoDeserialize", "false");
@@ -165,6 +183,10 @@ public class MysqlCDCDataSourceChannel implements DataSourceChannel {
             info.put("user", requestParams.get(MysqlCDCOptionRule.USERNAME.key()));
             info.put("password", requestParams.get(MysqlCDCOptionRule.PASSWORD.key()));
         }
+        if (null != requestParams.get(MysqlCDCOptionRule.SERVER_TIME_ZONE.key())) {
+            info.put(
+                    "serverTimezone", requestParams.get(MysqlCDCOptionRule.SERVER_TIME_ZONE.key()));
+        }
         return DriverManager.getConnection(url, info);
     }
 
@@ -173,7 +195,7 @@ public class MysqlCDCDataSourceChannel implements DataSourceChannel {
         try (Connection connection = init(requestParams);
                 PreparedStatement statement = connection.prepareStatement("SHOW DATABASES;");
                 ResultSet re = statement.executeQuery()) {
-            // filter system databases
+            // 过滤系统数据库
             while (re.next()) {
                 String dbName = re.getString("database");
                 if (StringUtils.isNotBlank(dbName) && isNotSystemDatabase(dbName)) {
@@ -211,7 +233,7 @@ public class MysqlCDCDataSourceChannel implements DataSourceChannel {
             }
             return tableNames;
         } catch (SQLException e) {
-            throw new DataSourcePluginException("get table names failed", e);
+            throw new DataSourcePluginException("获取表名列表失败", e);
         }
     }
 
@@ -238,7 +260,7 @@ public class MysqlCDCDataSourceChannel implements DataSourceChannel {
                 tableFields.add(tableField);
             }
         } catch (SQLException e) {
-            throw new DataSourcePluginException("get table fields failed", e);
+            throw new DataSourcePluginException("获取表字段信息失败", e);
         }
         return tableFields;
     }
