@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent } from 'vue'
+import { defineComponent, watch } from 'vue'
 import {
   NFormItemGi,
   NGrid,
@@ -51,14 +51,24 @@ const DynamicFormItem = defineComponent({
   setup(props) {
     const { t, te } = useI18n()
 
-    if (props.locales) {
-      useI18n().mergeLocaleMessage('zh_CN', {
-        i18n: (props.locales as any).zh_CN
-      })
-      useI18n().mergeLocaleMessage('en_US', {
-        i18n: (props.locales as any).en_US
-      })
+    const mergeFormLocales = (locales: any) => {
+      if (locales?.zh_CN && Object.keys(locales.zh_CN).length > 0) {
+        useI18n().mergeLocaleMessage('zh_CN', {
+          i18n: locales.zh_CN
+        })
+      }
+      if (locales?.en_US && Object.keys(locales.en_US).length > 0) {
+        useI18n().mergeLocaleMessage('en_US', {
+          i18n: locales.en_US
+        })
+      }
     }
+
+    mergeFormLocales(props.locales)
+
+    watch(() => props.locales, (newLocales) => {
+      mergeFormLocales(newLocales)
+    }, { deep: true })
 
     const formatClass = (name: string, modelField: string) => {
       return name.indexOf('[') >= 0

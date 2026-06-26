@@ -30,6 +30,8 @@ import { useFormStructure } from '@/components/dynamic-form/use-form-structure'
 import type { FormRules } from 'naive-ui'
 import type { ResponseBasic } from '@/service/types'
 
+const localesCache = new Map<string, any>()
+
 export function useForm(type: string) {
   const { t } = useI18n()
   const router = useRouter()
@@ -61,6 +63,9 @@ export function useForm(type: string) {
   const getFormItems = async (value: string) => {
     if (formStructuresStore.getItem(value)) {
       state.formStructure = formStructuresStore.getItem(value) as StructureItem[]
+      if (localesCache.has(value)) {
+        state.locales = localesCache.get(value)
+      }
       return
     }
 
@@ -75,6 +80,7 @@ export function useForm(type: string) {
         useFormValidate(res.forms, state.detailForm, t)
       )
       state.locales = res.locales
+      localesCache.set(value, res.locales)
       state.formStructure = useFormStructure(
         res.apis ? useFormRequest(res.apis, res.forms) : res.forms
       ) as any
