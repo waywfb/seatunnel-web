@@ -62,3 +62,4 @@ seatunnel-server/seatunnel-app/src/main/resources/application.yml
 .codegraph/*
 .vscode/*
 .vscode/
+node_modules/*

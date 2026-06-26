@@ -23,16 +23,10 @@ import org.apache.seatunnel.api.configuration.Options;
 public class MysqlOptionRule {
 
     public static final Option<String> HOST =
-            Options.key("host")
-                    .stringType()
-                    .noDefaultValue()
-                    .withDescription("数据库服务器主机名或 IP 地址。");
+            Options.key("host").stringType().noDefaultValue().withDescription("数据库服务器主机名或 IP 地址。");
 
     public static final Option<Integer> PORT =
-            Options.key("port")
-                    .intType()
-                    .defaultValue(3306)
-                    .withDescription("数据库服务器端口。");
+            Options.key("port").intType().defaultValue(3306).withDescription("数据库服务器端口。");
 
     public static final Option<String> URL =
             Options.key("url")

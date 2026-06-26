@@ -198,11 +198,16 @@ public class MysqlJdbcDataSourceChannel implements DataSourceChannel {
 
     private String buildJdbcUrl(Map<String, String> requestParams, String databaseName) {
         if (StringUtils.isNotBlank(requestParams.get(MysqlOptionRule.URL.key()))) {
-            String url = JdbcUtils.replaceDatabase(
-                    requestParams.get(MysqlOptionRule.URL.key()), databaseName);
+            String url =
+                    JdbcUtils.replaceDatabase(
+                            requestParams.get(MysqlOptionRule.URL.key()), databaseName);
             if (!url.contains("serverTimezone")) {
-                url = url + (url.contains("?") ? "&" : "?") + "serverTimezone="
-                        + requestParams.getOrDefault(MysqlOptionRule.SERVER_TIME_ZONE.key(), "Asia/Shanghai");
+                url =
+                        url
+                                + (url.contains("?") ? "&" : "?")
+                                + "serverTimezone="
+                                + requestParams.getOrDefault(
+                                        MysqlOptionRule.SERVER_TIME_ZONE.key(), "Asia/Shanghai");
             }
             return url;
         }
@@ -210,13 +215,17 @@ public class MysqlJdbcDataSourceChannel implements DataSourceChannel {
         checkNotNull(requestParams.get(MysqlOptionRule.HOST.key()), "host cannot be null");
         String host = requestParams.get(MysqlOptionRule.HOST.key());
         String port = requestParams.getOrDefault(MysqlOptionRule.PORT.key(), "3306");
-        String timeZone = requestParams.getOrDefault(MysqlOptionRule.SERVER_TIME_ZONE.key(), "Asia/Shanghai");
+        String timeZone =
+                requestParams.getOrDefault(MysqlOptionRule.SERVER_TIME_ZONE.key(), "Asia/Shanghai");
         String url = String.format("jdbc:mysql://%s:%s", host, port);
         if (StringUtils.isNotBlank(databaseName)) {
             url = url + "/" + databaseName;
         }
-        url = url + "?useSSL=false&serverTimezone=" + timeZone
-                + "&useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true";
+        url =
+                url
+                        + "?useSSL=false&serverTimezone="
+                        + timeZone
+                        + "&useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true";
         return url;
     }
 }

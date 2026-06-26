@@ -42,9 +42,7 @@ public class MysqlDataSourceConfig {
 
     public static final OptionRule OPTION_RULE =
             OptionRule.builder()
-                    .required(
-                            MysqlOptionRule.USER,
-                            MysqlOptionRule.PASSWORD)
+                    .required(MysqlOptionRule.USER, MysqlOptionRule.PASSWORD)
                     .optional(
                             MysqlOptionRule.HOST,
                             MysqlOptionRule.PORT,
