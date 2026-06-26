@@ -101,6 +101,7 @@ const TaskSettingModal = defineComponent({
                 model={state.model}
                 formStructure={state.formStructure}
                 name={state.formName}
+                locales={state.formLocales}
               />
             )}
           </NForm>

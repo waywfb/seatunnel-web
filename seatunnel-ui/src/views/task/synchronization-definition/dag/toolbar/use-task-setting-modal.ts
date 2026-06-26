@@ -55,6 +55,7 @@ export function useTaskSettingModal(ctx: SetupContext<'cancelModal'[]>) {
     },
     saving: false,
     formStructure: ref([]),
+    formLocales: ref({}),
     formName: ref(''),
     loading: false
   })
@@ -104,6 +105,7 @@ export function useTaskSettingModal(ctx: SetupContext<'cancelModal'[]>) {
           return item
         })
       state.formName = res.name
+      state.formLocales = res.locales || {}
       Object.assign(state.model, useFormField(forms))
       Object.assign(state.rules, useFormValidate(forms, state.model, t))
       state.formStructure = useFormStructure(
