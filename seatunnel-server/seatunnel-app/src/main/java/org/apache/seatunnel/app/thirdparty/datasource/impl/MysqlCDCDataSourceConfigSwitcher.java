@@ -64,6 +64,8 @@ public class MysqlCDCDataSourceConfigSwitcher extends AbstractDataSourceConfigSw
 
     private static final String SCHEMA = "schema";
 
+    private static final String URL_KEY = "url";
+
     @Override
     public String getDataSourceName() {
         return "MYSQL-CDC";
@@ -83,6 +85,7 @@ public class MysqlCDCDataSourceConfigSwitcher extends AbstractDataSourceConfigSw
         if (PluginType.SOURCE.equals(pluginType)) {
             excludedKeys.add(DATABASE_NAMES);
             excludedKeys.add(TABLE_NAMES);
+            excludedKeys.add(URL_KEY);
             if (businessMode.equals(DATA_INTEGRATION)) {
                 excludedKeys.add(FORMAT_KEY);
             }
@@ -111,7 +114,25 @@ public class MysqlCDCDataSourceConfigSwitcher extends AbstractDataSourceConfigSw
             PluginType pluginType,
             Config connectorConfig) {
         if (PluginType.SOURCE.equals(pluginType)) {
-            // Add table-names
+            // 从数据源配置自动构造 JDBC URL
+            if (!connectorConfig.hasPath(URL_KEY)) {
+                String url = null;
+                if (dataSourceInstanceConfig.hasPath("host")) {
+                    String host = dataSourceInstanceConfig.getString("host");
+                    int port =
+                            dataSourceInstanceConfig.hasPath("port")
+                                    ? dataSourceInstanceConfig.getInt("port")
+                                    : 3306;
+                    url = String.format("jdbc:mysql://%s:%d/", host, port);
+                } else if (dataSourceInstanceConfig.hasPath("base-url")) {
+                    url = dataSourceInstanceConfig.getString("base-url");
+                }
+                if (url != null) {
+                    connectorConfig =
+                            connectorConfig.withValue(URL_KEY, ConfigValueFactory.fromAnyRef(url));
+                }
+            }
+
             Config config = ConfigFactory.empty();
             config = config.withValue(FACTORY, ConfigValueFactory.fromAnyRef("Mysql"));
             connectorConfig = connectorConfig.withValue(CATALOG, config.root());

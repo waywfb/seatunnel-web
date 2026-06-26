@@ -16,7 +16,7 @@
  */
 
 export default {
-  login_to_sea_tunnel: '登录 SeaTunnel',
+  login_to_sea_tunnel: '登录',
   login: '登录',
   username: '用户名',
   password: '密码',
