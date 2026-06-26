@@ -113,8 +113,24 @@ public abstract class BaseJdbcDataSourceConfigSwitcher extends AbstractDataSourc
             PluginType pluginType,
             Config connectorConfig) {
 
+        // 若数据源未配置 url 或 url 为空，则尝试从 host+port 自动生成
+        String existingUrl =
+                dataSourceInstanceConfig.hasPath(URL_KEY)
+                        ? dataSourceInstanceConfig.getString(URL_KEY)
+                        : "";
+        if (existingUrl.isEmpty()) {
+            String generatedUrl = generateJdbcUrl(dataSourceInstanceConfig);
+            if (generatedUrl != null) {
+                dataSourceInstanceConfig =
+                        dataSourceInstanceConfig.withValue(
+                                URL_KEY, ConfigValueFactory.fromAnyRef(generatedUrl));
+            }
+        }
+
         // 替换url中的database
-        if (dataSourceOption.getDatabases().size() == 1) {
+        if (dataSourceOption.getDatabases().size() == 1
+                && dataSourceInstanceConfig.hasPath(URL_KEY)
+                && !dataSourceInstanceConfig.getString(URL_KEY).isEmpty()) {
             String databaseName = dataSourceOption.getDatabases().get(0);
             String url = dataSourceInstanceConfig.getString(URL_KEY);
             String newUrl = replaceDatabaseNameInUrl(url, databaseName);
@@ -260,5 +276,9 @@ public abstract class BaseJdbcDataSourceConfigSwitcher extends AbstractDataSourc
 
     protected String replaceDatabaseNameInUrl(String url, String databaseName) {
         return url;
+    }
+
+    protected String generateJdbcUrl(Config dataSourceInstanceConfig) {
+        return null;
     }
 }

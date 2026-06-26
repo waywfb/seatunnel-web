@@ -17,6 +17,8 @@
 
 package org.apache.seatunnel.app.thirdparty.datasource.impl;
 
+import org.apache.seatunnel.shade.com.typesafe.config.Config;
+
 import org.apache.seatunnel.app.thirdparty.datasource.DataSourceConfigSwitcher;
 
 import com.google.auto.service.AutoService;
@@ -39,6 +41,27 @@ public class MysqlDatasourceConfigSwitcher extends BaseJdbcDataSourceConfigSwitc
 
     protected boolean isSupportToggleCase() {
         return true;
+    }
+
+    @Override
+    protected String generateJdbcUrl(Config dataSourceInstanceConfig) {
+        if (dataSourceInstanceConfig.hasPath("host")) {
+            String host = dataSourceInstanceConfig.getString("host");
+            int port =
+                    dataSourceInstanceConfig.hasPath("port")
+                            ? dataSourceInstanceConfig.getInt("port")
+                            : 3306;
+            String timeZone =
+                    dataSourceInstanceConfig.hasPath("server-time-zone")
+                            ? dataSourceInstanceConfig.getString("server-time-zone")
+                            : "Asia/Shanghai";
+            return String.format(
+                    "jdbc:mysql://%s:%d?useSSL=false&serverTimezone=%s"
+                            + "&useUnicode=true&characterEncoding=utf-8"
+                            + "&allowPublicKeyRetrieval=true",
+                    host, port, timeZone);
+        }
+        return null;
     }
 
     @Override
