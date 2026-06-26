@@ -161,14 +161,32 @@ public class MysqlCDCDataSourceConfigSwitcher extends AbstractDataSourceConfigSw
         } else {
             throw new UnsupportedOperationException("Unsupported plugin type: " + pluginType);
         }
-        return super.mergeDatasourceConfig(
-                dataSourceInstanceConfig,
-                virtualTableDetail,
-                dataSourceOption,
-                selectTableFields,
-                businessMode,
-                pluginType,
-                connectorConfig);
+        Config result =
+                super.mergeDatasourceConfig(
+                        dataSourceInstanceConfig,
+                        virtualTableDetail,
+                        dataSourceOption,
+                        selectTableFields,
+                        businessMode,
+                        pluginType,
+                        connectorConfig);
+
+        if (PluginType.SOURCE.equals(pluginType)
+                && result.hasPath("server-time-zone")
+                && result.hasPath(URL_KEY)) {
+            String url = result.getString(URL_KEY);
+            String serverTimeZone = result.getString("server-time-zone");
+            if (!url.contains("serverTimezone")) {
+                String separator = url.contains("?") ? "&" : "?";
+                result =
+                        result.withValue(
+                                URL_KEY,
+                                ConfigValueFactory.fromAnyRef(
+                                        url + separator + "serverTimezone=" + serverTimeZone));
+            }
+        }
+
+        return result;
     }
 
     private Config generateDebeziumFormatSchema() {
