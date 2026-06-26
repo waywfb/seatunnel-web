@@ -24,6 +24,7 @@ import type { InputEdge, NodeType } from '../types'
 
 export function addNode(graph: Graph, cell: Cell.Metadata) {
   const id = uuid(String(new Date().getTime()))
+  const rawCell = cell as any
   const nodeShape = {
     id,
     ...cell,
@@ -39,7 +40,7 @@ export function addNode(graph: Graph, cell: Cell.Metadata) {
       isError: false,
       name: cell.label,
       pluginId: id,
-      connectorType: cell.node === 'transform' ? cell.label : ''
+      connectorType: rawCell.connectorType !== undefined ? rawCell.connectorType : (cell.node === 'transform' ? cell.label : '')
     }
   } as Cell.Metadata
   ;(graph as Graph).addNode(nodeShape)

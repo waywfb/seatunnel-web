@@ -34,6 +34,25 @@ const SynchronizationDefinitionDag = defineComponent({
     }
     const { t, locale } = useI18n()
     const { state, detailInit, onDelete, onSave } = useDagDetail()
+
+    const getNodeLabel = (type: string, name: string) => {
+      if (type === 'source') return t('project.synchronization_instance.source')
+      if (type === 'sink') return t('project.synchronization_instance.sink')
+      if (type === 'transform') {
+        const map: Record<string, string> = {
+          Copy: t('project.synchronization_definition.transform_copy'),
+          FieldMapper: t('project.synchronization_definition.transform_field_mapper'),
+          FilterRowKind: t('project.synchronization_definition.transform_filter_row_kind'),
+          Replace: t('project.synchronization_definition.transform_replace'),
+          Sql: t('project.synchronization_definition.transform_sql'),
+          JsonPath: t('project.synchronization_definition.transform_json_path'),
+          MultiFieldSplit: t('project.synchronization_definition.transform_multi_field_split')
+        }
+        return map[name] || name
+      }
+      return name
+    }
+
     const handelDragstart = (type: any, name: any) => {
       tempNode.type = type
       tempNode.name = name
@@ -44,8 +63,9 @@ const SynchronizationDefinitionDag = defineComponent({
       dagRef.value.addNode({
         x: e.offsetX,
         y: e.offsetY,
-        label: tempNode.name || tempNode.type,
-        node: tempNode.type
+        label: getNodeLabel(tempNode.type, tempNode.name),
+        node: tempNode.type,
+        connectorType: tempNode.type === 'transform' ? tempNode.name : ''
       })
     }
 

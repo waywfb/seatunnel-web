@@ -46,11 +46,25 @@ const DagSidebar = defineComponent({
       getConnectorTransformsTypeList()
     })
 
+    const getTransformDisplayName = (name: string) => {
+      const map: Record<string, string> = {
+        Copy: t('project.synchronization_definition.transform_copy'),
+        FieldMapper: t('project.synchronization_definition.transform_field_mapper'),
+        FilterRowKind: t('project.synchronization_definition.transform_filter_row_kind'),
+        Replace: t('project.synchronization_definition.transform_replace'),
+        Sql: t('project.synchronization_definition.transform_sql'),
+        JsonPath: t('project.synchronization_definition.transform_json_path'),
+        MultiFieldSplit: t('project.synchronization_definition.transform_multi_field_split')
+      }
+      return map[name] || name
+    }
+
     return {
       ...toRefs(variables),
       businessModel,
       t,
-      handleDragstart
+      handleDragstart,
+      getTransformDisplayName
     }
   },
   render() {
@@ -67,13 +81,13 @@ const DagSidebar = defineComponent({
           >
             <NSpace align='center'>
               <img class={styles['task-image']} src={SourceImg} />
-              <span>Source</span>
+              <span>{this.t('project.synchronization_instance.source')}</span>
             </NSpace>
-            <span 
+            <span
               class="task-item-info ml-auto inline-block"
-              title={'Drag Source into Canvas and Double Click to Setup Configurations'}
+              title={'拖拽组件到画布，双击配置参数'}
             >
-             <InfoCircleOutlined style={{width:'17px', height:'17px'}} />
+              <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
             </span>
           </div>
           <div
@@ -83,13 +97,13 @@ const DagSidebar = defineComponent({
           >
             <NSpace align='center'>
               <img class={styles['task-image']} src={SinkImg} />
-              <span>Sink</span>
+              <span>{this.t('project.synchronization_instance.sink')}</span>
             </NSpace>
-            <span 
+            <span
               class="task-item-info ml-auto inline-block"
-              title={'Drag Sink into Canvas and Double Click to Setup Configurations'}
+              title={'拖拽组件到画布，双击配置参数'}
             >
-              <InfoCircleOutlined style={{width:'17px', height:'17px'}} />
+              <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
             </span>
           </div>
           {this.transforms.length > 0 && (
@@ -97,23 +111,25 @@ const DagSidebar = defineComponent({
           )}
           {this.businessModel === 'data-integration' &&
             this.transforms.map((t: any) => {
+              const nameKey = t.pluginIdentifier.pluginName
               const item: any = {
-                name: t.pluginIdentifier.pluginName
+                name: nameKey,
+                displayName: this.getTransformDisplayName(nameKey)
               }
 
-              if (item.name === 'FieldMapper') {
+              if (nameKey === 'FieldMapper') {
                 item.icon = FieldMapperImg
-              } else if (item.name === 'FilterRowKind') {
+              } else if (nameKey === 'FilterRowKind') {
                 item.icon = FilterEventTypeImg
-              } else if (item.name === 'Replace') {
+              } else if (nameKey === 'Replace') {
                 item.icon = ReplaceImg
-              } else if (item.name === 'MultiFieldSplit') {
+              } else if (nameKey === 'MultiFieldSplit') {
                 item.icon = SplitImg
-              } else if (item.name === 'Copy') {
+              } else if (nameKey === 'Copy') {
                 item.icon = CopyImg
-              } else if (item.name === 'Sql') {
+              } else if (nameKey === 'Sql') {
                 item.icon = SqlImg
-              } else if (item.name === 'JsonPath') {
+              } else if (nameKey === 'JsonPath') {
                 item.icon = JsonPathImg
               }
 
@@ -130,13 +146,13 @@ const DagSidebar = defineComponent({
                 >
                   <NSpace align='center'>
                     <img class={styles['task-image']} src={item.icon} />
-                    <span>{item.name}</span>
+                    <span>{item.displayName}</span>
                   </NSpace>
-                  <span 
+                  <span
                     class="task-item-info ml-auto inline-block"
-                    title={'Drag '+ item.name +' into Canvas and Double Click to Setup Configurations'}
+                    title={'拖拽组件到画布，双击配置参数'}
                   >
-                    <InfoCircleOutlined style={{width:'17px', height:'17px'}} />
+                    <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
                   </span>
                 </div>
               )
