@@ -22,6 +22,18 @@ import org.apache.seatunnel.api.configuration.Options;
 
 public class MysqlOptionRule {
 
+    public static final Option<String> HOST =
+            Options.key("host")
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("数据库服务器主机名或 IP 地址。");
+
+    public static final Option<Integer> PORT =
+            Options.key("port")
+                    .intType()
+                    .defaultValue(3306)
+                    .withDescription("数据库服务器端口。");
+
     public static final Option<String> URL =
             Options.key("url")
                     .stringType()
@@ -47,6 +59,12 @@ public class MysqlOptionRule {
                     .enumType(DriverType.class)
                     .defaultValue(DriverType.MYSQL)
                     .withDescription("driver");
+
+    public static final Option<String> SERVER_TIME_ZONE =
+            Options.key("server-time-zone")
+                    .stringType()
+                    .defaultValue("Asia/Shanghai")
+                    .withDescription("数据库服务器会话时区。");
 
     public enum DriverType {
         MYSQL("com.mysql.cj.jdbc.Driver"),

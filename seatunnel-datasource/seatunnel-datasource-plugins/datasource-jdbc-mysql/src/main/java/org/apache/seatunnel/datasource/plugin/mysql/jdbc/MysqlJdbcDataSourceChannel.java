@@ -183,11 +183,7 @@ public class MysqlJdbcDataSourceChannel implements DataSourceChannel {
 
     private Connection getConnection(Map<String, String> requestParams, String databaseName)
             throws SQLException, ClassNotFoundException {
-        checkNotNull(requestParams.get(MysqlOptionRule.DRIVER.key()));
-        checkNotNull(requestParams.get(MysqlOptionRule.URL.key()), "Jdbc url cannot be null");
-        String url =
-                JdbcUtils.replaceDatabase(
-                        requestParams.get(MysqlOptionRule.URL.key()), databaseName);
+        String url = buildJdbcUrl(requestParams, databaseName);
 
         Properties info = new java.util.Properties();
         info.put("autoDeserialize", "false");
@@ -198,5 +194,29 @@ public class MysqlJdbcDataSourceChannel implements DataSourceChannel {
             info.put("password", requestParams.get(MysqlOptionRule.PASSWORD.key()));
         }
         return DriverManager.getConnection(url, info);
+    }
+
+    private String buildJdbcUrl(Map<String, String> requestParams, String databaseName) {
+        if (StringUtils.isNotBlank(requestParams.get(MysqlOptionRule.URL.key()))) {
+            String url = JdbcUtils.replaceDatabase(
+                    requestParams.get(MysqlOptionRule.URL.key()), databaseName);
+            if (!url.contains("serverTimezone")) {
+                url = url + (url.contains("?") ? "&" : "?") + "serverTimezone="
+                        + requestParams.getOrDefault(MysqlOptionRule.SERVER_TIME_ZONE.key(), "Asia/Shanghai");
+            }
+            return url;
+        }
+
+        checkNotNull(requestParams.get(MysqlOptionRule.HOST.key()), "host cannot be null");
+        String host = requestParams.get(MysqlOptionRule.HOST.key());
+        String port = requestParams.getOrDefault(MysqlOptionRule.PORT.key(), "3306");
+        String timeZone = requestParams.getOrDefault(MysqlOptionRule.SERVER_TIME_ZONE.key(), "Asia/Shanghai");
+        String url = String.format("jdbc:mysql://%s:%s", host, port);
+        if (StringUtils.isNotBlank(databaseName)) {
+            url = url + "/" + databaseName;
+        }
+        url = url + "?useSSL=false&serverTimezone=" + timeZone
+                + "&useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true";
+        return url;
     }
 }

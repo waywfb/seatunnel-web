@@ -43,10 +43,14 @@ public class MysqlDataSourceConfig {
     public static final OptionRule OPTION_RULE =
             OptionRule.builder()
                     .required(
-                            MysqlOptionRule.URL,
-                            MysqlOptionRule.DRIVER,
                             MysqlOptionRule.USER,
                             MysqlOptionRule.PASSWORD)
+                    .optional(
+                            MysqlOptionRule.HOST,
+                            MysqlOptionRule.PORT,
+                            MysqlOptionRule.URL,
+                            MysqlOptionRule.DRIVER,
+                            MysqlOptionRule.SERVER_TIME_ZONE)
                     .build();
 
     public static final OptionRule METADATA_RULE =
