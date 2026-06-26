@@ -29,5 +29,15 @@ export default {
     columns_value: 'Columns',
     columns_placeholder: 'Field array that needs to be parsed',
     row_error_handle_way_value: 'Row Error Handle Way'
+  },
+  jsonpath_sub: {
+    path_value: 'JSON Path',
+    path_placeholder: 'Please enter JSON path expression',
+    src_field_value: 'Source Field',
+    src_field_placeholder: 'Please enter source field name',
+    dest_field_value: 'Destination Field',
+    dest_field_placeholder: 'Please enter destination field name',
+    dest_type_value: 'Destination Type',
+    dest_type_placeholder: 'Default is string'
   }
 }

@@ -29,5 +29,15 @@ export default {
     columns_value: '解析字段',
     columns_placeholder: '需要解析的字段数组',
     row_error_handle_way_value: '列发生错误时的处理方式'
+  },
+  jsonpath_sub: {
+    path_value: 'JSON路径',
+    path_placeholder: '请输入JSON路径表达式',
+    src_field_value: '源字段',
+    src_field_placeholder: '请输入源字段名',
+    dest_field_value: '目标字段',
+    dest_field_placeholder: '请输入目标字段名',
+    dest_type_value: '目标类型',
+    dest_type_placeholder: '默认为string'
   }
 }

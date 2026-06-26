@@ -1144,6 +1144,7 @@ export default {
     cancel: '取消',
     delete: '删除',
     delete_confirm: '确定删除吗?',
+    error_message: '错误',
     task_metrics: '任务监控'
   },
   menu: {
