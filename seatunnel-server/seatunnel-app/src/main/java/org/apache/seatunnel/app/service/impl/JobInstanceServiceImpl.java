@@ -72,6 +72,7 @@ import org.apache.seatunnel.common.constants.PluginType;
 import org.apache.seatunnel.common.utils.ExceptionUtils;
 import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.engine.common.job.JobResult;
+import org.apache.seatunnel.engine.common.job.JobStatus;
 import org.apache.seatunnel.server.common.CodeGenerateUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
 import org.apache.seatunnel.server.common.SeatunnelException;
@@ -166,6 +167,7 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
         jobInstance.setJobConfig(jobConfig);
         jobInstance.setCreateUserId(userId);
         jobInstance.setJobType(latestVersion.getJobMode());
+        jobInstance.setJobStatus(JobStatus.SCHEDULED);
 
         jobInstanceDao.insert(jobInstance);
 
