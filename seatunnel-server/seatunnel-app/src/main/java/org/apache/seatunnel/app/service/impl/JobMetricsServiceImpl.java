@@ -162,7 +162,11 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
 
             if (jobInstance.getJobStatus() == null
                     || jobInstance.getJobStatus() == JobStatus.FAILED
-                    || jobInstance.getJobStatus() == JobStatus.RUNNING) {
+                    || jobInstance.getJobStatus() == JobStatus.RUNNING
+                    || jobInstance.getJobStatus() == JobStatus.SCHEDULED
+                    || jobInstance.getJobStatus() == JobStatus.PENDING
+                    || jobInstance.getJobStatus() == JobStatus.INITIALIZING
+                    || jobInstance.getJobStatus() == JobStatus.CREATED) {
                 // Obtain monitoring information from the collection of running jobs returned from
                 // the engine
                 if (!allRunningJobMetricsFromEngine.isEmpty()
