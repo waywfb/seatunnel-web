@@ -201,7 +201,7 @@ const SyncTask = defineComponent({
       createColumns(variables)
       creatInstanceButtons(variables)
       requestData()
-      refreshTimer = window.setInterval(requestData, 10000)
+      refreshTimer = window.setInterval(requestData, 3000)
     })
 
     onUnmounted(() => {
