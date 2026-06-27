@@ -1145,7 +1145,20 @@ export default {
     delete: '删除',
     delete_confirm: '确定删除吗?',
     error_message: '错误',
-    task_metrics: '任务监控'
+    task_metrics: '任务监控',
+    job_mode: '作业模式',
+    job_name: '作业名称',
+    job_retry_times: '作业重试次数',
+    job_retry_interval_seconds: '作业重试间隔(秒)',
+    jars: '依赖Jar包',
+    checkpoint_interval: 'Checkpoint间隔(毫秒)',
+    checkpoint_timeout: 'Checkpoint超时(毫秒)',
+    min_pause: 'Checkpoint最小暂停间隔(毫秒)',
+    read_limit_rows_per_second: '每秒读取行数限制',
+    read_limit_bytes_per_second: '每秒读取字节数限制',
+    savemode_execute_location: 'SaveMode执行位置',
+    custom_parameters: '自定义参数',
+    tag_filter: '节点标签过滤'
   },
   menu: {
     fav: '收藏组件',

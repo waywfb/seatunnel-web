@@ -39,7 +39,7 @@ interface IJobConfig {
 const TaskDefinition = defineComponent({
   name: 'TaskDefinition',
   setup() {
-    const { t } = useI18n()
+    const { t, te } = useI18n()
     const container = ref()
     const dagContainer = ref()
     const minimapContainer = ref()
@@ -47,8 +47,7 @@ const TaskDefinition = defineComponent({
     const graph = ref<Graph>()
     const { getJobConfig, getJobDag } = useTaskDefinition(t)
 
-
-    const { } = useCanvasTheme()
+    const {} = useCanvasTheme()
 
     const initGraph = () => {
       graph.value = useDagGraph(
@@ -72,9 +71,13 @@ const TaskDefinition = defineComponent({
 
     const formatData = () => {
       const obj = jobConfig.value.env
-      const arr : any = []
+      const arr: any = []
       for (const i in obj) {
-        arr.push({ label: String(i), value: obj[i] })
+        const labelKey = String(i).replace(/\./g, '_').replace(/-/g, '_')
+        const label = te('project.synchronization_instance.' + labelKey)
+          ? t('project.synchronization_instance.' + labelKey)
+          : String(i)
+        arr.push({ label, value: obj[i] })
       }
       return arr
     }
@@ -113,27 +116,41 @@ const TaskDefinition = defineComponent({
         </NGi>
         <NGi span='4'>
           <NCard class={styles['right-panel']}>
-              <NSpace vertical>
+            <NSpace vertical>
+              <div class={styles['info-item']}>
+                <h4>
+                  <strong>
+                    {this.t('project.synchronization_instance.task_name')}
+                  </strong>
+                </h4>
+                <p>{this.jobConfig.name}</p>
+              </div>
+              <div class={styles['info-item']}>
+                <h4>
+                  <strong>
+                    {this.t('project.synchronization_instance.description')}
+                  </strong>
+                </h4>
+                <p>{this.jobConfig.description || '-'}</p>
+              </div>
+              <div class={styles['info-item']}>
+                <h4>
+                  <strong>
+                    {this.t('project.synchronization_instance.engine')}
+                  </strong>
+                </h4>
+                <p>{this.jobConfig.engine}</p>
+              </div>
+              {this.formatData().map((i: any) => (
                 <div class={styles['info-item']}>
-                  <h4><strong>{this.t('project.synchronization_instance.task_name')}</strong></h4>
-                  <p>{this.jobConfig.name}</p>
+                  <h4>
+                    <strong>{i.label}</strong>
+                  </h4>
+                  <p>{i.value || '-'}</p>
                 </div>
-                <div class={styles['info-item']}>
-                  <h4><strong>{this.t('project.synchronization_instance.description')}</strong></h4>
-                  <p>{this.jobConfig.description || '-'}</p>
-                </div>
-                <div class={styles['info-item']}>
-                  <h4><strong>{this.t('project.synchronization_instance.engine')}</strong></h4>
-                  <p>{this.jobConfig.engine}</p>
-                </div>
-                {this.formatData().map((i: any) => (
-                  <div class={styles['info-item']}>
-                    <h4><strong>{i.label}</strong></h4>
-                    <p>{i.value || '-'}</p>
-                  </div>
-                ))}
-              </NSpace>
-            </NCard>
+              ))}
+            </NSpace>
+          </NCard>
         </NGi>
       </NGrid>
     )

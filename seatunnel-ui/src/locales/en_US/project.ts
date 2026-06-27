@@ -1006,7 +1006,8 @@ export default {
     file_tips: 'Please select an excel file.'
   },
   synchronization_definition: {
-    node_prev_check_tips: 'The current node is not connected to the previous node',
+    node_prev_check_tips:
+      'The current node is not connected to the previous node',
     create_synchronization_task: 'Create Synchronization Task',
     edit_synchronization_task: 'Edit Synchronization Task',
     synchronization_task_name: 'Synchronization Task Name',
@@ -1106,7 +1107,8 @@ export default {
     separator: 'Separator',
     separator_tips: 'Please enter a separator',
     segmented_fields: 'Segmented fields',
-    segmented_fields_placeholder: 'If two fields are separated, you can fill in field1, field2',
+    segmented_fields_placeholder:
+      'If two fields are separated, you can fill in field1, field2',
     copy_field: 'Copy Field',
     check_model: 'Please check the model information',
     sql_content_label: 'SQL',
@@ -1161,7 +1163,20 @@ export default {
     delete: 'Delete',
     delete_confirm: 'Delete?',
     error_message: 'Error',
-    task_metrics: 'Task Monitor'
+    task_metrics: 'Task Monitor',
+    job_mode: 'Job Mode',
+    job_name: 'Job Name',
+    job_retry_times: 'Job Retry Times',
+    job_retry_interval_seconds: 'Job Retry Interval (Seconds)',
+    jars: 'Dependency Jars',
+    checkpoint_interval: 'Checkpoint Interval (ms)',
+    checkpoint_timeout: 'Checkpoint Timeout (ms)',
+    min_pause: 'Checkpoint Min Pause (ms)',
+    read_limit_rows_per_second: 'Read Limit Rows Per Second',
+    read_limit_bytes_per_second: 'Read Limit Bytes Per Second',
+    savemode_execute_location: 'SaveMode Execute Location',
+    custom_parameters: 'Custom Parameters',
+    tag_filter: 'Tag Filter'
   },
   menu: {
     fav: 'Favorites',
