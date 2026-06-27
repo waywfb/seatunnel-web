@@ -66,6 +66,7 @@ const SyncTask = defineComponent({
   props,
   setup(props) {
     let logTimer: number
+    let refreshTimer: number
     const { t } = useI18n()
     const {
       variables,
@@ -200,10 +201,12 @@ const SyncTask = defineComponent({
       createColumns(variables)
       creatInstanceButtons(variables)
       requestData()
+      refreshTimer = window.setInterval(requestData, 10000)
     })
 
     onUnmounted(() => {
       clearTimeout(logTimer)
+      clearInterval(refreshTimer)
     })
 
     watch(useI18n().locale, () => {
