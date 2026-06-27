@@ -238,8 +238,10 @@ public class SqlServerDataSourceChannel implements DataSourceChannel {
 
     private Connection getConnection(Map<String, String> requestParams, String databaseName)
             throws SQLException, ClassNotFoundException {
-        checkNotNull(requestParams.get(SqlServerOptionRule.DRIVER.key()));
+        String driverClassName = requestParams.get(SqlServerOptionRule.DRIVER.key());
+        checkNotNull(driverClassName);
         checkNotNull(requestParams.get(SqlServerOptionRule.URL.key()), "Jdbc url cannot be null");
+        Class.forName(driverClassName);
         String url =
                 JdbcUtils.replaceDatabase(
                         requestParams.get(SqlServerOptionRule.URL.key()), databaseName);
