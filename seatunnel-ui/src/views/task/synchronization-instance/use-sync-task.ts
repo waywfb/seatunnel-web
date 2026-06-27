@@ -150,7 +150,8 @@ export function useSyncTask(syncTaskType = 'BATCH') {
       {
         title: t('project.synchronization_instance.state'),
         key: 'jobStatus',
-        ...COLUMN_WIDTH_CONFIG['state']
+        ...COLUMN_WIDTH_CONFIG['state'],
+        render: (row: any) => renderStateCell(row.jobStatus, t)
       },
       {
         title: t('project.synchronization_instance.error_message'),

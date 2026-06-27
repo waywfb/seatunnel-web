@@ -37,6 +37,19 @@ export type ITaskState =
   | 'KILL_BY_ISOLATION'
   | 'PAUSE_BY_CORONATION'
   | 'FORBIDDEN_BY_CORONATION'
+  | 'INITIALIZING'
+  | 'CREATED'
+  | 'PENDING'
+  | 'SCHEDULED'
+  | 'RUNNING'
+  | 'FAILING'
+  | 'FAILED'
+  | 'DOING_SAVEPOINT'
+  | 'SAVEPOINT_DONE'
+  | 'CANCELING'
+  | 'CANCELED'
+  | 'FINISHED'
+  | 'UNKNOWABLE'
 
 export type ITaskStateConfig = {
   [key in ITaskState]: {

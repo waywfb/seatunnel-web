@@ -321,6 +321,110 @@ export const tasksState = (t: any): ITaskStateConfig => ({
     icon: CheckCircleOutlined,
     isSpin: false,
     classNames: 'forbidden_by_coronation'
+  },
+  INITIALIZING: {
+    id: 20,
+    desc: `${t('project.workflow.initializing')}`,
+    color: '#A9A9A9',
+    icon: IssuesCloseOutlined,
+    isSpin: false,
+    classNames: 'initializing'
+  },
+  CREATED: {
+    id: 21,
+    desc: `${t('project.workflow.created')}`,
+    color: '#A9A9A9',
+    icon: IssuesCloseOutlined,
+    isSpin: false,
+    classNames: 'created'
+  },
+  PENDING: {
+    id: 22,
+    desc: `${t('project.workflow.pending')}`,
+    color: '#912eed',
+    icon: ClockCircleOutlined,
+    isSpin: false,
+    classNames: 'pending'
+  },
+  SCHEDULED: {
+    id: 23,
+    desc: `${t('project.workflow.scheduled')}`,
+    color: '#5101be',
+    icon: SendOutlined,
+    isSpin: false,
+    classNames: 'scheduled'
+  },
+  RUNNING: {
+    id: 24,
+    desc: `${t('project.workflow.executing')}`,
+    color: '#0097e0',
+    icon: SettingFilled,
+    isSpin: true,
+    classNames: 'running'
+  },
+  FAILING: {
+    id: 25,
+    desc: `${t('project.workflow.failing')}`,
+    color: '#FE0402',
+    icon: CloseCircleOutlined,
+    isSpin: false,
+    classNames: 'failing'
+  },
+  FAILED: {
+    id: 26,
+    desc: `${t('project.workflow.failed')}`,
+    color: '#000000',
+    icon: CloseCircleOutlined,
+    isSpin: false,
+    classNames: 'failed'
+  },
+  DOING_SAVEPOINT: {
+    id: 27,
+    desc: `${t('project.workflow.doing_savepoint')}`,
+    color: '#07b1a3',
+    icon: PauseCircleFilled,
+    isSpin: true,
+    classNames: 'doing_savepoint'
+  },
+  SAVEPOINT_DONE: {
+    id: 28,
+    desc: `${t('project.workflow.savepoint_done')}`,
+    color: '#95DF96',
+    icon: CheckCircleOutlined,
+    isSpin: false,
+    classNames: 'savepoint_done'
+  },
+  CANCELING: {
+    id: 29,
+    desc: `${t('project.workflow.canceling')}`,
+    color: '#FE0402',
+    icon: MinusCircleOutlined,
+    isSpin: false,
+    classNames: 'canceling'
+  },
+  CANCELED: {
+    id: 30,
+    desc: `${t('project.workflow.canceled')}`,
+    color: '#a70202',
+    icon: MinusCircleOutlined,
+    isSpin: false,
+    classNames: 'canceled'
+  },
+  FINISHED: {
+    id: 31,
+    desc: `${t('project.workflow.success')}`,
+    color: '#95DF96',
+    icon: CheckCircleOutlined,
+    isSpin: false,
+    classNames: 'finished'
+  },
+  UNKNOWABLE: {
+    id: 32,
+    desc: `${t('project.workflow.unknowable')}`,
+    color: '#A9A9A9',
+    icon: IssuesCloseOutlined,
+    isSpin: false,
+    classNames: 'unknowable'
   }
 })
 
