@@ -54,16 +54,20 @@ export const useSource = (showVirtualDataSource = false) => {
       }
 
       state.types = Object.entries(res).map(([key, value]) => {
+        const filtered = (value as any[]).filter(
+          (item: any) => !['MySQL-CDC', 'SqlServer-CDC'].includes(item.name)
+        )
         return {
           type: 'group',
           label: i18n.t(`datasource.${TYPE_MAP[key as Key]}`),
           key: TYPE_MAP[key as Key],
-          children: (value as any).map((item: any) => {
-            locales.zh_CN[item.name] = item.chineseName
+          children: filtered.map((item: any) => {
+            const label = item.name === 'JDBC-Mysql' ? 'MySQL' : item.name
+            locales.zh_CN[item.name] = item.chineseName || label
             locales.en_US[item.name] = item.name
             return {
-              label: item.name,
-              value: item.name
+              label: label,
+              value: label
             }
           })
         }

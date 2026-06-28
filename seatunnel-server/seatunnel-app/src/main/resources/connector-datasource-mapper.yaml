@@ -78,6 +78,8 @@ connector-datasource-mapper:
         - DATA_INTEGRATION
       sceneMode:
         - SINGLE_TABLE
+        - MULTIPLE_TABLE
+        - SPLIT_TABLE
     JDBC-Postgres:
       businessMode:
         - DATA_INTEGRATION

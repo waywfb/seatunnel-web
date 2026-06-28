@@ -48,7 +48,8 @@ const SourceModal = defineComponent({
     const { t } = useI18n()
     const { state } = useSource(false)
     const handleTypeSelect = (type: string) => {
-      ctx.emit('change', type)
+      const pluginName = type === 'MySQL' ? 'JDBC-Mysql' : type
+      ctx.emit('change', pluginName)
     }
     const onCancel = () => {
       ctx.emit('cancel')
@@ -70,7 +71,6 @@ const SourceModal = defineComponent({
                       onClick={() => handleTypeSelect(slip.label as string)}
                     >
                       <div class='font-bold'>{slip.label}</div>
-                      <div class='text-xs mt-1.5'>{item.label}</div>
                     </div>
                   ))}
                 </div>
