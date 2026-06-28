@@ -17,6 +17,7 @@
 
 export function useFormStructure(forms: Array<any>) {
   return forms.map((f: any) => {
+    f.required = !!(f.validate?.required && f.validate?.type === 'non-empty')
     delete f.validate
     delete f.api
 

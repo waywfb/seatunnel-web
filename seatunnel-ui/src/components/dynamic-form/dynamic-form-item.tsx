@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, watch } from 'vue'
+import { defineComponent, watch, computed } from 'vue'
 import {
   NFormItemGi,
   NGrid,
@@ -25,7 +25,9 @@ import {
   NSpace,
   NCheckbox,
   NTooltip,
-  NIcon
+  NIcon,
+  NCollapse,
+  NCollapseItem
 } from 'naive-ui'
 import { QuestionCircleOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
@@ -45,6 +47,10 @@ const props = {
   },
   locales: {
     type: Object as PropType<object>
+  },
+  advancedLabel: {
+    type: String as PropType<string>,
+    default: ''
   }
 }
 
@@ -92,127 +98,130 @@ const DynamicFormItem = defineComponent({
       return te(key) ? t(key) : ''
     }
 
+    const basicFields = computed(() => {
+      if (!props.advancedLabel) return props.formStructure as Array<any>
+      return (props.formStructure as Array<any>).filter((f) => f.required)
+    })
+
+    const advancedFields = computed(() => {
+      if (!props.advancedLabel) return []
+      return (props.formStructure as Array<any>).filter((f) => !f.required)
+    })
+
+    const renderFormField = (f: any) => {
+      const visible = f.show
+        ? formItemDisabled((props.model as any)[f.show.field], f.show.value)
+        : true
+      if (!visible) return null
+
+      const labelText = t(getTranslation(props.name, f.label, 'value') || t(f.label))
+      const helpText =
+        getTranslation(props.name, f.label, 'description') ||
+        t(f.description || '') ||
+        getTranslation(props.name, f.label, 'placeholder') ||
+        t(f.placeholder || '')
+
+      return (
+        <NFormItemGi
+          v-slots={{
+            label: () => (
+              <span>
+                {labelText}
+                {helpText && (
+                  <NTooltip trigger='hover' placement='right'>
+                    {{
+                      trigger: () => (
+                        <NIcon
+                          size={16}
+                          style={{
+                            marginLeft: '4px',
+                            cursor: 'help',
+                            verticalAlign: 'middle'
+                          }}
+                        >
+                          <QuestionCircleOutlined />
+                        </NIcon>
+                      ),
+                      default: () => helpText
+                    }}
+                  </NTooltip>
+                )}
+              </span>
+            )
+          }}
+          path={f.field}
+          span={f.span || 24}
+        >
+          {f.type === 'input' && (
+            <NInput
+              class={`dynamic-form_${formatClass(props.name, f.field)}`}
+              v-model={[(props.model as any)[f.field], 'value']}
+              clearable={f.clearable}
+              type={f.inputType}
+              rows={f.row ? f.row : 4}
+            />
+          )}
+          {f.type === 'select' && (
+            <NSelect
+              class={`dynamic-form_${formatClass(props.name, f.field)}`}
+              v-model={[(props.model as any)[f.field], 'value']}
+              options={f.options.map((o: SelectOption) => ({
+                label: t(o.label as string),
+                value: o.value
+              }))}
+            />
+          )}
+          {f.type === 'checkbox' && (
+            <NCheckboxGroup
+              class={`dynamic-form_${formatClass(props.name, f.field)}`}
+              v-model={[(props.model as any)[f.field], 'value']}
+            >
+              <NSpace vertical={f.vertical}>
+                {f.options.map((o: any) => (
+                  <NCheckbox label={t(o.label as string)} value={o.value} />
+                ))}
+              </NSpace>
+            </NCheckboxGroup>
+          )}
+        </NFormItemGi>
+      )
+    }
+
     return {
       t,
       te,
       getTranslation,
       formatClass,
-      formItemDisabled
+      formItemDisabled,
+      basicFields,
+      advancedFields,
+      renderFormField
     }
   },
   render() {
+    const allFields = this.formStructure as Array<any>
+
+    if ((this.advancedFields as Array<any>).length > 0) {
+      const renderGrid = (fields: Array<any>) => (
+        <NGrid xGap={10}>
+          {fields.map((f) => (this.renderFormField as Function)(f))}
+        </NGrid>
+      )
+      return (
+        <>
+          {renderGrid(this.basicFields as Array<any>)}
+          <NCollapse>
+            <NCollapseItem title={this.advancedLabel} name='advanced'>
+              {renderGrid(this.advancedFields as Array<any>)}
+            </NCollapseItem>
+          </NCollapse>
+        </>
+      )
+    }
+
     return (
       <NGrid xGap={10}>
-        {(this.formStructure as Array<any>).map((f) => {
-          return (
-            (f.show
-              ? this.formItemDisabled(
-                  (this.model as any)[f.show.field],
-                  f.show.value
-                )
-              : true) && (
-              <NFormItemGi
-                v-slots={{
-                  label: () => {
-                    const labelText = this.t(
-                      this.getTranslation(this.name, f.label, 'value') ||
-                        this.t(f.label)
-                    )
-                    const helpText =
-                      this.getTranslation(this.name, f.label, 'description') ||
-                      this.t(f.description || '') ||
-                      this.getTranslation(this.name, f.label, 'placeholder') ||
-                      this.t(f.placeholder || '')
-                    return (
-                      <span>
-                        {labelText}
-                        {helpText && (
-                          <NTooltip trigger='hover' placement='right'>
-                            {{
-                              trigger: () => (
-                                <NIcon
-                                  size={16}
-                                  style={{
-                                    marginLeft: '4px',
-                                    cursor: 'help',
-                                    verticalAlign: 'middle'
-                                  }}
-                                >
-                                  <QuestionCircleOutlined />
-                                </NIcon>
-                              ),
-                              default: () => helpText
-                            }}
-                          </NTooltip>
-                        )}
-                      </span>
-                    )
-                  }
-                }}
-                path={f.field}
-                span={f.span || 24}
-              >
-                {f.type === 'input' && (
-                  <NInput
-                    class={`dynamic-form_${this.formatClass(
-                      this.name,
-                      f.field
-                    )}`}
-                    v-model={[(this.model as any)[f.field], 'value']}
-                    clearable={f.clearable}
-                    type={f.inputType}
-                    rows={f.row ? f.row : 4}
-                  />
-                )}
-                {f.type === 'select' &&
-                  (f.show
-                    ? this.formItemDisabled(
-                        (this.model as any)[f.show.field],
-                        f.show.value
-                      )
-                    : true) && (
-                    <NSelect
-                      class={`dynamic-form_${this.formatClass(
-                        this.name,
-                        f.field
-                      )}`}
-                      v-model={[(this.model as any)[f.field], 'value']}
-                      options={f.options.map((o: SelectOption) => {
-                        return {
-                          label: this.t(o.label as string),
-                          value: o.value
-                        }
-                      })}
-                    />
-                  )}
-                {f.type === 'checkbox' &&
-                  (f.show
-                    ? this.formItemDisabled(
-                        (this.model as any)[f.show.field],
-                        f.show.value
-                      )
-                    : true) && (
-                    <NCheckboxGroup
-                      class={`dynamic-form_${this.formatClass(
-                        this.name,
-                        f.field
-                      )}`}
-                      v-model={[(this.model as any)[f.field], 'value']}
-                    >
-                      <NSpace vertical={f.vertical}>
-                        {f.options.map((o: any) => (
-                          <NCheckbox
-                            label={this.t(o.label as string)}
-                            value={o.value}
-                          />
-                        ))}
-                      </NSpace>
-                    </NCheckboxGroup>
-                  )}
-              </NFormItemGi>
-            )
-          )
-        })}
+        {allFields.map((f) => (this.renderFormField as Function)(f))}
       </NGrid>
     )
   }

@@ -338,6 +338,7 @@ const ConfigurationForm = defineComponent({
               formStructure={state.formStructure}
               name={state.formName}
               locales={state.formLocales}
+              advancedLabel={props.nodeType === 'source' || props.nodeType === 'sink' ? '高级设置' : ''}
             />
           )}
         </NForm>
