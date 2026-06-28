@@ -29,6 +29,7 @@
         <module>datasource-plugins-api</module>
         <module>datasource-all</module>
         <module>datasource-kafka</module>
+        <module>datasource-http</module>
         <module>datasource-elasticsearch</module>
         <module>datasource-jdbc-hive</module>
         <module>datasource-hive</module>

@@ -104,9 +104,7 @@ public class JobTaskServiceImpl extends SeatunnelBaseServiceImpl implements IJob
 
     private void checkConfigIntegrity(JobVersion version, JobTaskInfo jobTaskInfo) {
         if (StringUtils.isEmpty(version.getEnv())) {
-            throw new SeatunnelException(
-                    SeatunnelErrorEnum.ERROR_CONFIG,
-                    "环境配置不能为空，请修改");
+            throw new SeatunnelException(SeatunnelErrorEnum.ERROR_CONFIG, "环境配置不能为空，请修改");
         }
         Map<String, PluginConfig> pluginConfigMap =
                 jobTaskInfo.getPlugins().stream()

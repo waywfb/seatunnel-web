@@ -79,6 +79,8 @@ public class DatasourceLoadConfig {
         classLoaderFactoryName.put(
                 "KAFKA", "org.apache.seatunnel.datasource.plugin.kafka.KafkaDataSourceFactory");
         classLoaderFactoryName.put(
+                "HTTP", "org.apache.seatunnel.datasource.plugin.http.HttpDataSourceFactory");
+        classLoaderFactoryName.put(
                 "MYSQL-CDC",
                 "org.apache.seatunnel.datasource.plugin.cdc.mysql.MysqlCDCDataSourceFactory");
         classLoaderFactoryName.put(
@@ -122,6 +124,7 @@ public class DatasourceLoadConfig {
         classLoaderJarName.put("S3", "datasource-s3-");
         classLoaderJarName.put("HIVE", "datasource-hive-");
         classLoaderJarName.put("KAFKA", "datasource-kafka-");
+        classLoaderJarName.put("HTTP", "datasource-http-");
         classLoaderJarName.put("STARROCKS", "datasource-starrocks-");
         classLoaderJarName.put("S3-REDSHIFT", "datasource-s3redshift-");
         classLoaderJarName.put("JDBC-STARROCKS", "datasource-jdbc-starrocks-");
@@ -144,6 +147,7 @@ public class DatasourceLoadConfig {
                     "JDBC-TiDB",
                     "JDBC-Hive",
                     "Kafka",
+                    "Http",
                     "MySQL-CDC",
                     "S3",
                     "SqlServer-CDC",

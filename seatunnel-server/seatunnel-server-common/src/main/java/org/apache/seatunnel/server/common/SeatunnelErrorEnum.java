@@ -118,10 +118,7 @@ public enum SeatunnelErrorEnum {
     VIRTUAL_TABLE_ID_IS_NULL(60013, "virtual table id is null", "virtual table id is null"),
     VIRTUAL_TABLE_FIELD_EMPTY(
             60014, "virtual table field is empty", "virtual table field is empty"),
-    DATASOURCE_CAN_NOT_DELETE(
-            60015,
-            "数据源正在被虚拟表使用，无法删除",
-            "数据源正在被虚拟表使用，无法删除"),
+    DATASOURCE_CAN_NOT_DELETE(60015, "数据源正在被虚拟表使用，无法删除", "数据源正在被虚拟表使用，无法删除"),
     VIRTUAL_TABLE_CAN_NOT_DELETE(
             60016,
             "virtual table can not be delete because it used by job",
@@ -130,10 +127,7 @@ public enum SeatunnelErrorEnum {
             60017,
             "can not found connector for datasource",
             "can not found connector for datasource [%s]"),
-    DATA_SOURCE_HAD_USED(
-            1600000,
-            "数据源正在被任务使用，无法删除",
-            "数据源正在被任务使用，无法删除"),
+    DATA_SOURCE_HAD_USED(1600000, "数据源正在被任务使用，无法删除", "数据源正在被任务使用，无法删除"),
     INVALID_DATASOURCE(-70001, "Datasource invalid", "datasource [{0}] invalid"),
     MISSING_PARAM(1777000, "param miss [{0}]", "param miss [{0}]"),
     PARAM_CAN_NOT_BE_NULL(60018, "", "param [%s] can not be null or empty"),
