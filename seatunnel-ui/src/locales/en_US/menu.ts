@@ -16,6 +16,7 @@
  */
 
 export default {
+  dashboard: 'Dashboard',
   user_manage: 'User Manage',
   help: 'Help',
   setting: 'Setting',

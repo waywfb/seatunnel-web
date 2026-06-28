@@ -21,8 +21,9 @@ import { useThemeStore } from '@/store/theme'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
-  PartitionOutlined,
+  AppstoreOutlined,
   DatabaseOutlined,
+  PartitionOutlined,
   TableOutlined,
   TeamOutlined
 } from '@vicons/antd'
@@ -38,6 +39,16 @@ const Sidebar = defineComponent({
 
     const sideMenuOptions = [
       {
+        label: () => h(NEllipsis, null, { default: () => t('menu.dashboard') }),
+        key: 'dashboard',
+        icon: () => h(NIcon, null, { default: () => h(AppstoreOutlined) })
+      },
+      {
+        label: () => h(NEllipsis, null, { default: () => t('menu.datasource') }),
+        key: 'datasource',
+        icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) })
+      },
+      {
         label: () => h(NEllipsis, null, { default: () => t('menu.tasks') }),
         key: 'tasks',
         icon: () => h(NIcon, null, { default: () => h(PartitionOutlined) }),
@@ -51,11 +62,6 @@ const Sidebar = defineComponent({
             key: 'synchronization-instance'
           }
         ]
-      },
-      {
-        label: () => h(NEllipsis, null, { default: () => t('menu.datasource') }),
-        key: 'datasource',
-        icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) })
       },
       {
         label: () => h(NEllipsis, null, { default: () => t('menu.virtual_tables') }),
@@ -80,7 +86,9 @@ const Sidebar = defineComponent({
     }, { immediate: true })
 
     const handleMenuClick = (key: string) => {
-      if (key === 'synchronization-definition') {
+      if (key === 'dashboard') {
+        router.push({ path: '/tasks' })
+      } else if (key === 'synchronization-definition') {
         router.push({ path: '/task/synchronization-definition' })
       } else if (key === 'synchronization-instance') {
         router.push({ path: '/task/synchronization-instance' })

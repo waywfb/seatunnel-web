@@ -16,11 +16,12 @@
  */
 
 export default {
+  dashboard: 'Dashboard',
   user_manage: '用户管理',
   help: '帮助',
   setting: '设置',
   logout: '登出',
-  tasks: '任务',
+  tasks: '数据接入',
   datasource: '数据源',
   virtual_tables: '虚拟表',
   sync_task_definition: '同步任务定义',
