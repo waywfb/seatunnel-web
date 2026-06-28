@@ -15,80 +15,92 @@
  * limitations under the License.
  */
 
-import { defineComponent, ref, PropType, onMounted, watch, h } from 'vue'
-import { NLayoutSider, NMenu, NIcon, NDropdown, NEllipsis } from 'naive-ui'
+import { defineComponent, ref, watch, h } from 'vue'
+import { NLayoutSider, NMenu, NIcon, NEllipsis } from 'naive-ui'
 import { useThemeStore } from '@/store/theme'
-import styles from './index.module.scss'
-import { PartitionOutlined, ProjectOutlined, RightOutlined } from '@vicons/antd'
-import { useRoute, useRouter, RouterLink } from 'vue-router'
-import { MenuOption } from 'naive-ui'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import {
+  PartitionOutlined,
+  DatabaseOutlined,
+  TableOutlined,
+  TeamOutlined
+} from '@vicons/antd'
 
 const Sidebar = defineComponent({
   name: 'Sidebar',
-  props: {
-    sideMenuOptions: {
-      type: Array as PropType<any>,
-      default: []
-    },
-    sideKey: {
-      type: String as PropType<string>,
-      default: ''
-    }
-  },
   setup() {
     const router = useRouter()
-    const collapsedRef = ref(false)
-    const defaultExpandedKeys = ['']
     const route = useRoute()
     const { t } = useI18n()
-    // Determine if it is a project overview
-
-    const showDrop = ref(false)
+    const collapsedRef = ref(false)
     const themeStore = useThemeStore()
-    const menuStyle = ref(themeStore.getTheme as 'dark' | 'dark-blue' | 'light')
 
-    const sideMenuOptions = ref([
+    const sideMenuOptions = [
       {
-        label: () =>
-          h(
-            RouterLink,
-            {
-              to: {
-                path: '/task/synchronization-definition'
-              },
-              exact: false
-            },
-            { default: () => t('menu.sync_task_definition') }
-          ),
-        key: 'synchronization-definition'
+        label: () => h(NEllipsis, null, { default: () => t('menu.tasks') }),
+        key: 'tasks',
+        icon: () => h(NIcon, null, { default: () => h(PartitionOutlined) }),
+        children: [
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.sync_task_definition') }),
+            key: 'synchronization-definition'
+          },
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.sync_task_instance') }),
+            key: 'synchronization-instance'
+          }
+        ]
       },
       {
-        label: () =>
-          h(
-            RouterLink,
-            {
-              to: {
-                path: '/task/synchronization-instance'
-              },
-              exact: false
-            },
-            { default: () => t('menu.sync_task_instance') }
-          ),
-        key: 'synchronization-instance'
+        label: () => h(NEllipsis, null, { default: () => t('menu.datasource') }),
+        key: 'datasource',
+        icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) })
+      },
+      {
+        label: () => h(NEllipsis, null, { default: () => t('menu.virtual_tables') }),
+        key: 'virtual-tables',
+        icon: () => h(NIcon, null, { default: () => h(TableOutlined) })
+      },
+      {
+        label: () => h(NEllipsis, null, { default: () => t('menu.user_manage') }),
+        key: 'user-manage',
+        icon: () => h(NIcon, null, { default: () => h(TeamOutlined) })
       }
-    ])
+    ]
 
-    onMounted(() => {})
+    const activeKey = ref((route.meta.activeSide || route.meta.activeMenu) as string || '')
+    const expandedKeys = ref<string[]>([])
+
+    watch(() => route.path, () => {
+      activeKey.value = (route.meta.activeSide || route.meta.activeMenu) as string || ''
+      if (route.meta.activeMenu === 'tasks') {
+        expandedKeys.value = ['tasks']
+      }
+    }, { immediate: true })
+
+    const handleMenuClick = (key: string) => {
+      if (key === 'synchronization-definition') {
+        router.push({ path: '/task/synchronization-definition' })
+      } else if (key === 'synchronization-instance') {
+        router.push({ path: '/task/synchronization-instance' })
+      } else if (key !== 'tasks') {
+        router.push({ path: `/${key}` })
+      }
+    }
+
+    const handleExpandedKeys = (keys: string[]) => {
+      expandedKeys.value = keys
+    }
 
     return {
       collapsedRef,
-      defaultExpandedKeys,
-      menuStyle,
-      themeStore,
-      showDrop,
       sideMenuOptions,
-      route
+      activeKey,
+      expandedKeys,
+      handleMenuClick,
+      handleExpandedKeys,
+      themeStore
     }
   },
   render() {
@@ -105,9 +117,11 @@ const Sidebar = defineComponent({
       >
         <NMenu
           class='tab-vertical'
-          value={this.$props.sideKey}
+          value={this.activeKey}
           options={this.sideMenuOptions}
-          defaultExpandedKeys={this.defaultExpandedKeys}
+          expandedKeys={this.expandedKeys}
+          onUpdateValue={this.handleMenuClick}
+          onUpdateExpandedKeys={this.handleExpandedKeys}
         />
       </NLayoutSider>
     )

@@ -1166,7 +1166,7 @@ export default {
     min_pause: 'Checkpoint最小暂停间隔(毫秒)',
     read_limit_rows_per_second: '每秒读取行数限制',
     read_limit_bytes_per_second: '每秒读取字节数限制',
-    savemode_execute_location: 'SaveMode执行位置',
+    savemode_execute_location: '保存模式执行位置',
     custom_parameters: '自定义参数',
     tag_filter: '节点标签过滤'
   },

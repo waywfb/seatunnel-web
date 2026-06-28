@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, watch, watchEffect, ref, Ref, onMounted } from 'vue'
-import { useRoute, useRouter, RouteLocationMatched } from 'vue-router'
+import { defineComponent } from 'vue'
 import {
   NLayout,
   NLayoutHeader,
@@ -30,26 +29,7 @@ import Sidebar from './sidebar'
 const Dashboard = defineComponent({
   setup() {
     window.$message = useMessage()
-    const route = useRoute()
-    let showSide = ref(false)
-
-    const menuKey = ref(route.meta.activeMenu as string)
-
-    watch(
-      () => route,
-      () => {
-        showSide.value = route?.meta?.showSide as boolean
-        menuKey.value = route.meta.activeSide as string
-      },
-      {
-        immediate: true,
-        deep: true
-      }
-    )
-    return {
-      showSide,
-      menuKey
-    }
+    return {}
   },
   render() {
     return (
@@ -59,7 +39,7 @@ const Dashboard = defineComponent({
         </NLayoutHeader>
         <NLayoutContent style={{ height: 'calc(100vh - 65px)' }}>
           <NLayout has-sider position='absolute'>
-            { this.showSide && <Sidebar sideKey={this.menuKey} />}
+            <Sidebar />
             <NLayoutContent
               native-scrollbar={false}
               style='padding: 16px 22px 0px 22px'
@@ -72,7 +52,7 @@ const Dashboard = defineComponent({
                 style={'height: 100%'}
                 size='small'
               >
-                <router-view key={this['$route'].fullPath} class={!this.showSide && 'px-32 py-12'} />
+                <router-view key={this['$route'].fullPath} />
               </NSpace>
             </NLayoutContent>
           </NLayout>
