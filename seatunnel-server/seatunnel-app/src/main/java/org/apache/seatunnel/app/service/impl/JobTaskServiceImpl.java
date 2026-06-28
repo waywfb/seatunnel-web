@@ -106,7 +106,7 @@ public class JobTaskServiceImpl extends SeatunnelBaseServiceImpl implements IJob
         if (StringUtils.isEmpty(version.getEnv())) {
             throw new SeatunnelException(
                     SeatunnelErrorEnum.ERROR_CONFIG,
-                    "job env can't be empty, please change config");
+                    "环境配置不能为空，请修改");
         }
         Map<String, PluginConfig> pluginConfigMap =
                 jobTaskInfo.getPlugins().stream()
