@@ -6,7 +6,7 @@
     "build:prod": "vite build --mode production",
     "build:prod-check": "vue-tsc --noEmit && vite build --mode production",
     "preview": "vite preview",
-    "lint": "eslint src --fix --ext .ts,.tsx,.vue",
+    "lint": "eslint src --ext .ts,.tsx,.vue",
     "prettier": "prettier --write \"src/**/*.{vue,ts,tsx}\"",
     "install:safe": "node npm-install.js"
   },
