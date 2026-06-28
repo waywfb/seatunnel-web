@@ -77,6 +77,11 @@ service.interceptors.response.use((res: AxiosResponse) => {
     case 0:
       return res.data.data
     
+    case 10008:
+      userStore.setUserInfo({})
+      router.push({ path: '/login' })
+      throw new Error()
+    
     default:
       handleError(res)
       throw new Error()
