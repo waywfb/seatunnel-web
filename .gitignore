@@ -64,3 +64,5 @@ seatunnel-server/seatunnel-app/src/main/resources/application.yml
 .vscode/
 node_modules/*
 profile/*
+SPEC/*
+TASKS/*
