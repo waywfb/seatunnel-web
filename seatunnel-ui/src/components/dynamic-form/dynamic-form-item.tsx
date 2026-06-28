@@ -112,40 +112,42 @@ const DynamicFormItem = defineComponent({
                 )
               : true) && (
               <NFormItemGi
-                label={() => {
-                  const labelText = this.t(
-                    this.getTranslation(this.name, f.label, 'value') ||
-                      this.t(f.label)
-                  )
-                  const helpText =
-                    this.getTranslation(this.name, f.label, 'description') ||
-                    this.t(f.description || '') ||
-                    this.getTranslation(this.name, f.label, 'placeholder') ||
-                    this.t(f.placeholder || '')
-                  return (
-                    <span>
-                      {labelText}
-                      {helpText && (
-                        <NTooltip trigger='hover' placement='right'>
-                          {{
-                            trigger: () => (
-                              <NIcon
-                                size={16}
-                                style={{
-                                  marginLeft: '4px',
-                                  cursor: 'help',
-                                  verticalAlign: 'middle'
-                                }}
-                              >
-                                <QuestionCircleOutlined />
-                              </NIcon>
-                            ),
-                            default: () => helpText
-                          }}
-                        </NTooltip>
-                      )}
-                    </span>
-                  )
+                v-slots={{
+                  label: () => {
+                    const labelText = this.t(
+                      this.getTranslation(this.name, f.label, 'value') ||
+                        this.t(f.label)
+                    )
+                    const helpText =
+                      this.getTranslation(this.name, f.label, 'description') ||
+                      this.t(f.description || '') ||
+                      this.getTranslation(this.name, f.label, 'placeholder') ||
+                      this.t(f.placeholder || '')
+                    return (
+                      <span>
+                        {labelText}
+                        {helpText && (
+                          <NTooltip trigger='hover' placement='right'>
+                            {{
+                              trigger: () => (
+                                <NIcon
+                                  size={16}
+                                  style={{
+                                    marginLeft: '4px',
+                                    cursor: 'help',
+                                    verticalAlign: 'middle'
+                                  }}
+                                >
+                                  <QuestionCircleOutlined />
+                                </NIcon>
+                              ),
+                              default: () => helpText
+                            }}
+                          </NTooltip>
+                        )}
+                      </span>
+                    )
+                  }
                 }}
                 path={f.field}
                 span={f.span || 24}
