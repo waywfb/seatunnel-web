@@ -22,6 +22,7 @@ import org.apache.seatunnel.app.domain.request.connector.ConnectorStatus;
 import org.apache.seatunnel.app.domain.request.connector.SceneMode;
 import org.apache.seatunnel.app.domain.response.connector.ConnectorInfo;
 import org.apache.seatunnel.app.domain.response.connector.DataSourceInstance;
+import org.apache.seatunnel.app.domain.response.connector.SourceDatasourceType;
 import org.apache.seatunnel.app.service.IConnectorService;
 import org.apache.seatunnel.common.constants.PluginType;
 import org.apache.seatunnel.common.utils.JsonUtils;
@@ -44,6 +45,12 @@ import java.util.List;
 public class ConnectorDataSourceController {
 
     @Resource private IConnectorService connectorService;
+
+    @GetMapping("/source-types")
+    @ApiOperation(value = "list all source datasource types", httpMethod = "GET")
+    public Result<List<SourceDatasourceType>> listSourceDatasourceTypes() {
+        return Result.success(connectorService.listSourceDatasourceTypes());
+    }
 
     @GetMapping("/sources")
     @ApiOperation(value = "Use jobID to list source DataSourceInstance", httpMethod = "GET")

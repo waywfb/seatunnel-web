@@ -78,6 +78,13 @@ export function updateSyncTaskDefinition(jobCode: string, data: any): any {
   })
 }
 
+export function fetchSourceDatasourceTypes(): any {
+  return axios({
+    url: '/datasource/source-types',
+    method: 'get'
+  })
+}
+
 export function connectorSourcesTypeList(status = 'DOWNLOADED'): any {
   return axios({
     url: '/connector/sources',

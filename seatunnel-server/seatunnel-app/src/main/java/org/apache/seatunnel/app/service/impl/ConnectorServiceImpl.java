@@ -26,6 +26,7 @@ import org.apache.seatunnel.app.domain.request.job.transform.Transform;
 import org.apache.seatunnel.app.domain.response.connector.ConnectorInfo;
 import org.apache.seatunnel.app.domain.response.connector.DataSourceInfo;
 import org.apache.seatunnel.app.domain.response.connector.DataSourceInstance;
+import org.apache.seatunnel.app.domain.response.connector.SourceDatasourceType;
 import org.apache.seatunnel.app.dynamicforms.FormStructure;
 import org.apache.seatunnel.app.permission.constants.SeatunnelFuncPermissionKeyConstant;
 import org.apache.seatunnel.app.service.IConnectorService;
@@ -66,6 +67,16 @@ public class ConnectorServiceImpl extends SeatunnelBaseServiceImpl implements IC
     private static final List<String> SKIP_SOURCE = Collections.emptyList();
 
     private static final List<String> SKIP_SINK = Collections.emptyList();
+
+    @Override
+    public List<SourceDatasourceType> listSourceDatasourceTypes() {
+        return dataSourceMapperConfig.getSourceDatasourceFeatures().entrySet().stream()
+                .map(
+                        entry ->
+                                new SourceDatasourceType(
+                                        entry.getKey(), entry.getValue().getSceneMode()))
+                .collect(Collectors.toList());
+    }
 
     @Autowired
     public ConnectorServiceImpl(ConnectorCache connectorCache) {

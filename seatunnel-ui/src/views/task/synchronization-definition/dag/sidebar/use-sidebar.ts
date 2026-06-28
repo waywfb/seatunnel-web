@@ -16,13 +16,41 @@
  */
 
 import { reactive, ref } from 'vue'
-import { connectorTransformsTypeList } from '@/service/sync-task-definition'
+import { connectorTransformsTypeList, fetchSourceDatasourceTypes } from '@/service/sync-task-definition'
 import { useRoute } from 'vue-router'
+
+const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
+  'JDBC-Mysql': 'MySQL',
+  'JDBC-Postgres': 'PostgreSQL',
+  'JDBC-SQLServer': 'SQLServer',
+  'JDBC-Oracle': 'Oracle',
+  'JDBC-Db2': 'Db2',
+  'JDBC-Hive': 'Hive',
+  'JDBC-KingBase': 'Kingbase',
+  'JDBC-TiDB': 'TiDB',
+  'MySQL-CDC': 'MySQL-CDC',
+  'Postgres-CDC': 'Postgres-CDC',
+  'SqlServer-CDC': 'SQLServer-CDC',
+  Kafka: 'Kafka',
+  Http: 'HTTP',
+  ElasticSearch: 'Elasticsearch',
+  S3: 'S3',
+  MongoDB: 'MongoDB',
+  FakeSource: 'FakeSource',
+  Hive: 'Hive',
+  Console: 'Console',
+  StarRocks: 'StarRocks'
+}
+
+export function getDatasourceDisplayName(datasourceName: string): string {
+  return DATASOURCE_DISPLAY_NAMES[datasourceName] || datasourceName
+}
 
 export function useSidebar() {
   const route = useRoute()
   const variables = reactive({
-    transforms: ref([])
+    transforms: ref([]),
+    sourceTypes: ref([]) as any
   })
 
   const getConnectorTransformsTypeList = () => {
@@ -31,8 +59,15 @@ export function useSidebar() {
     })
   }
 
+  const getSourceDatasourceTypes = () => {
+    fetchSourceDatasourceTypes().then((res: any) => {
+      variables.sourceTypes = res || []
+    })
+  }
+
   return {
     variables,
-    getConnectorTransformsTypeList
+    getConnectorTransformsTypeList,
+    getSourceDatasourceTypes
   }
 }

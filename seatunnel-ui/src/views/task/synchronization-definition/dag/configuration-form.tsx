@@ -53,6 +53,11 @@ const ConfigurationForm = defineComponent({
     // eslint-disable-next-line vue/require-default-prop
     transformType: {
       type: String as PropType<string>
+    },
+    // eslint-disable-next-line vue/require-default-prop
+    datasourceName: {
+      type: String as PropType<string>,
+      default: ''
     }
   },
   emits: ['tableNameChange'],
@@ -66,7 +71,8 @@ const ConfigurationForm = defineComponent({
       updateFormValues
     } = useConfigurationForm(
       props.nodeType as NodeType,
-      props.transformType as string
+      props.transformType as string,
+      props.datasourceName as string
     )
     const { t } = useI18n()
     const formRef = ref()
@@ -177,7 +183,11 @@ const ConfigurationForm = defineComponent({
             >
               <NSelect
                 filterable
-                options={getSceneModeOptions(dagStore.getDagInfo.jobType, t)}
+                options={getSceneModeOptions(
+                  dagStore.getDagInfo.jobType,
+                  t,
+                  state.allowedSceneModes
+                )}
                 v-model={[state.model.sceneMode, 'value']}
                 onUpdateValue={(v) => {
                   if (v !== state.model.sceneMode) {

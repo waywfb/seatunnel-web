@@ -17,7 +17,7 @@
 
 import { defineComponent, onMounted, toRefs, ref } from 'vue'
 import { NSpace, NCard } from 'naive-ui'
-import { useSidebar } from './use-sidebar'
+import { useSidebar, getDatasourceDisplayName } from './use-sidebar'
 import { useI18n } from 'vue-i18n'
 import styles from './index.module.scss'
 import SourceImg from '../images/source.png'
@@ -36,7 +36,7 @@ const DagSidebar = defineComponent({
   emits: ['dragstart'],
   setup(props, ctx) {
     const businessModel = ref('data-integration')
-    const { variables, getConnectorTransformsTypeList } = useSidebar()
+    const { variables, getConnectorTransformsTypeList, getSourceDatasourceTypes } = useSidebar()
     const { t } = useI18n()
     const handleDragstart = (type: string, name?: string) => {
       ctx.emit('dragstart', type, name)
@@ -44,6 +44,7 @@ const DagSidebar = defineComponent({
 
     onMounted(() => {
       getConnectorTransformsTypeList()
+      getSourceDatasourceTypes()
     })
 
     const getTransformDisplayName = (name: string) => {
@@ -74,22 +75,27 @@ const DagSidebar = defineComponent({
           <h3>
             {this.t('project.synchronization_definition.source_and_sink')}
           </h3>
-          <div
-            class={styles['task-item']}
-            draggable='true'
-            onDragstart={() => this.handleDragstart('source', 'Source')}
-          >
-            <NSpace align='center'>
-              <img class={styles['task-image']} src={SourceImg} />
-              <span>{this.t('project.synchronization_instance.source')}</span>
-            </NSpace>
-            <span
-              class="task-item-info ml-auto inline-block"
-              title={'拖拽组件到画布，双击配置参数'}
-            >
-              <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
-            </span>
-          </div>
+          {this.sourceTypes.map((st: any) => {
+            const displayName = getDatasourceDisplayName(st.datasourceName)
+            return (
+              <div
+                class={styles['task-item']}
+                draggable='true'
+                onDragstart={() => this.handleDragstart('source', st.datasourceName)}
+              >
+                <NSpace align='center'>
+                  <img class={styles['task-image']} src={SourceImg} />
+                  <span>{displayName}</span>
+                </NSpace>
+                <span
+                  class="task-item-info ml-auto inline-block"
+                  title={'拖拽组件到画布，双击配置参数'}
+                >
+                  <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
+                </span>
+              </div>
+            )
+          })}
           <div
             class={styles['task-item']}
             draggable='true'

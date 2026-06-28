@@ -29,7 +29,8 @@ import {
   getTableByDatabase,
   getFormStructureByDatasourceInstance,
   getColumnProjection,
-  findSink
+  findSink,
+  fetchSourceDatasourceTypes
 } from '@/service/sync-task-definition'
 import { useSynchronizationDefinitionStore } from '@/store/synchronization-definition'
 import type { NodeType, TableOption, State } from './types'
@@ -37,7 +38,8 @@ import type { SelectOption } from 'naive-ui'
 
 export const useConfigurationForm = (
   nodeType: NodeType,
-  transformType: string
+  transformType: string,
+  datasourceName: string
 ) => {
   const { t } = useI18n()
   const dagStore = useSynchronizationDefinitionStore()
@@ -74,6 +76,7 @@ export const useConfigurationForm = (
     outputTableData: any[];
     tableColumnsLoading: boolean;
     rules: any;
+    allowedSceneModes: string[];
   }>({
     model: cloneDeep(initialModel),
     loading: false,
@@ -90,6 +93,7 @@ export const useConfigurationForm = (
     inputTableData: [],
     outputTableData: [],
     tableColumnsLoading: false,
+    allowedSceneModes: [],
     rules: {
       name: {
         required: true,
@@ -173,6 +177,21 @@ export const useConfigurationForm = (
     }
   })
 
+  if (datasourceName) {
+    fetchSourceDatasourceTypes().then((res: any) => {
+      const found = (res || []).find(
+        (st: any) => st.datasourceName === datasourceName
+      )
+      if (found) {
+        state.allowedSceneModes = found.sceneModes || []
+        if (state.allowedSceneModes.length === 1) {
+          state.model.sceneMode = state.allowedSceneModes[0]
+          getDatasourceOptions(state.allowedSceneModes[0])
+        }
+      }
+    })
+  }
+
   const getDatasourceOptions = async (sceneMode: string) => {
     if (state.datasourceLoading) return
     state.datasourceLoading = true
@@ -181,13 +200,19 @@ export const useConfigurationForm = (
         route.params.jobDefinitionCode as string,
         sceneMode
       )
-      state.datasourceOptions = result.map((item: any) => ({
+      let options = result.map((item: any) => ({
         label: item.dataSourceInstanceName,
         value: item.dataSourceInstanceId,
         pluginName:
           item.dataSourceInfo?.connectorInfo?.pluginIdentifier.pluginName,
         datasourceName: item.dataSourceInfo?.datasourceName
       }))
+      if (datasourceName) {
+        options = options.filter(
+          (opt: any) => opt.datasourceName === datasourceName
+        )
+      }
+      state.datasourceOptions = options
     } finally {
       state.datasourceLoading = false
     }
@@ -323,6 +348,11 @@ export const useConfigurationForm = (
       state.model.datasourceInstanceId = values.dataSourceId
       state.model.name = values.name
       state.model.sceneMode = values.sceneMode
+
+      if (values.datasourceName) {
+        state.model.datasourceName = values.datasourceName
+      }
+
       if (values.sceneMode === 'SPLIT_TABLE') {
         state.model.database = values.tableOption?.databases || []
       } else {
@@ -391,8 +421,8 @@ export const useConfigurationForm = (
   }
 }
 
-export const getSceneModeOptions = (jobType: string, t: Function) => {
-  return [
+export const getSceneModeOptions = (jobType: string, t: Function, allowedSceneModes?: string[]) => {
+  const allOptions = [
     {
       label: t('project.synchronization_definition.multi_table_sync'),
       value: 'MULTIPLE_TABLE',
@@ -409,4 +439,8 @@ export const getSceneModeOptions = (jobType: string, t: Function) => {
       disabled: jobType === 'DATA_REPLICA'
     }
   ]
+  if (allowedSceneModes && allowedSceneModes.length > 0) {
+    return allOptions.filter((opt) => allowedSceneModes.includes(opt.value))
+  }
+  return allOptions
 }

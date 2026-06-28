@@ -21,6 +21,7 @@ import { DagToolbar } from './toolbar'
 import { NSpace, NSpin } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useDagDetail } from './use-dag-detail'
+import { getDatasourceDisplayName } from './sidebar/use-sidebar'
 import styles from './index.module.scss'
 
 const SynchronizationDefinitionDag = defineComponent({
@@ -30,13 +31,14 @@ const SynchronizationDefinitionDag = defineComponent({
 
     const tempNode = {
       type: '',
-      name: ''
+      name: '',
+      datasourceName: ''
     }
     const { t, locale } = useI18n()
     const { state, detailInit, onDelete, onSave } = useDagDetail()
 
     const getNodeLabel = (type: string, name: string) => {
-      if (type === 'source') return t('project.synchronization_instance.source')
+      if (type === 'source') return getDatasourceDisplayName(name) || t('project.synchronization_instance.source')
       if (type === 'sink') return t('project.synchronization_instance.sink')
       if (type === 'transform') {
         const map: Record<string, string> = {
@@ -56,6 +58,7 @@ const SynchronizationDefinitionDag = defineComponent({
     const handelDragstart = (type: any, name: any) => {
       tempNode.type = type
       tempNode.name = name
+      tempNode.datasourceName = type === 'source' ? name : ''
     }
 
     const handelDrop = (e: DragEvent) => {
@@ -65,7 +68,8 @@ const SynchronizationDefinitionDag = defineComponent({
         y: e.offsetY,
         label: getNodeLabel(tempNode.type, tempNode.name),
         node: tempNode.type,
-        connectorType: tempNode.type === 'transform' ? tempNode.name : ''
+        connectorType: tempNode.type === 'transform' ? tempNode.name : '',
+        datasourceName: tempNode.datasourceName
       })
     }
 

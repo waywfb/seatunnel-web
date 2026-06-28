@@ -21,6 +21,7 @@ import org.apache.seatunnel.app.domain.request.connector.ConnectorStatus;
 import org.apache.seatunnel.app.domain.request.connector.SceneMode;
 import org.apache.seatunnel.app.domain.response.connector.ConnectorInfo;
 import org.apache.seatunnel.app.domain.response.connector.DataSourceInstance;
+import org.apache.seatunnel.app.domain.response.connector.SourceDatasourceType;
 import org.apache.seatunnel.app.dynamicforms.FormStructure;
 
 import lombok.NonNull;
@@ -29,6 +30,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface IConnectorService {
+
+    List<SourceDatasourceType> listSourceDatasourceTypes();
 
     List<ConnectorInfo> listSources(ConnectorStatus status);
 

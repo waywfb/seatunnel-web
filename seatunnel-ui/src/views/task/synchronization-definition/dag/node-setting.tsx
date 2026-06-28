@@ -94,6 +94,7 @@ const NodeSetting = defineComponent({
                     nodeType={props.nodeInfo.type}
                     nodeId={props.nodeInfo.pluginId}
                     transformType={props.nodeInfo.connectorType}
+                    datasourceName={props.nodeInfo.datasourceName || ''}
                     ref={configurationFormRef}
                     onTableNameChange={handleChangeTable}
                   />
