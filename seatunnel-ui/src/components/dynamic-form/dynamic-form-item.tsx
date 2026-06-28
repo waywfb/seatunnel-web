@@ -23,8 +23,11 @@ import {
   NSelect,
   NCheckboxGroup,
   NSpace,
-  NCheckbox
+  NCheckbox,
+  NTooltip,
+  NIcon
 } from 'naive-ui'
+import { QuestionCircleOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
 import type { PropType } from 'vue'
 import type { SelectOption } from 'naive-ui'
@@ -66,9 +69,13 @@ const DynamicFormItem = defineComponent({
 
     mergeFormLocales(props.locales)
 
-    watch(() => props.locales, (newLocales) => {
-      mergeFormLocales(newLocales)
-    }, { deep: true })
+    watch(
+      () => props.locales,
+      (newLocales) => {
+        mergeFormLocales(newLocales)
+      },
+      { deep: true }
+    )
 
     const formatClass = (name: string, modelField: string) => {
       return name.indexOf('[') >= 0
@@ -105,7 +112,41 @@ const DynamicFormItem = defineComponent({
                 )
               : true) && (
               <NFormItemGi
-                label={this.t(this.getTranslation(this.name, f.label, 'value') || this.t(f.label))}
+                label={() => {
+                  const labelText = this.t(
+                    this.getTranslation(this.name, f.label, 'value') ||
+                      this.t(f.label)
+                  )
+                  const helpText =
+                    this.getTranslation(this.name, f.label, 'description') ||
+                    this.t(f.description || '') ||
+                    this.getTranslation(this.name, f.label, 'placeholder') ||
+                    this.t(f.placeholder || '')
+                  return (
+                    <span>
+                      {labelText}
+                      {helpText && (
+                        <NTooltip trigger='hover' placement='right'>
+                          {{
+                            trigger: () => (
+                              <NIcon
+                                size={16}
+                                style={{
+                                  marginLeft: '4px',
+                                  cursor: 'help',
+                                  verticalAlign: 'middle'
+                                }}
+                              >
+                                <QuestionCircleOutlined />
+                              </NIcon>
+                            ),
+                            default: () => helpText
+                          }}
+                        </NTooltip>
+                      )}
+                    </span>
+                  )
+                }}
                 path={f.field}
                 span={f.span || 24}
               >
@@ -115,11 +156,6 @@ const DynamicFormItem = defineComponent({
                       this.name,
                       f.field
                     )}`}
-                    placeholder={
-                      f.placeholder 
-                        ? (this.getTranslation(this.name, f.label, 'placeholder') || this.t(f.placeholder))
-                        : ''
-                    }
                     v-model={[(this.model as any)[f.field], 'value']}
                     clearable={f.clearable}
                     type={f.inputType}
@@ -138,16 +174,13 @@ const DynamicFormItem = defineComponent({
                         this.name,
                         f.field
                       )}`}
-                      placeholder={f.placeholder ? this.t(f.placeholder) : ''}
                       v-model={[(this.model as any)[f.field], 'value']}
-                      options={
-                        f.options.map((o: SelectOption) => {
-                          return {
-                            label: this.t(o.label as string),
-                            value: o.value
-                          }
-                        })
-                      }
+                      options={f.options.map((o: SelectOption) => {
+                        return {
+                          label: this.t(o.label as string),
+                          value: o.value
+                        }
+                      })}
                     />
                   )}
                 {f.type === 'checkbox' &&
