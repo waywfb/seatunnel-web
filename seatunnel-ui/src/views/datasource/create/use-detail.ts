@@ -76,9 +76,11 @@ export function useDetail(
         pluginName: values.pluginName,
         datasourceConfig: omit(values, ['pluginName', 'datasourceName', 'description'])
       })
-      window.$message.success(
-        result.msg ? result.msg : `${t('datasource.test_connect_success')}`
-      )
+      if (result) {
+        window.$message.success(t('datasource.test_connect_success'))
+      } else {
+        window.$message.error(t('datasource.test_connect_failed'))
+      }
 
       status.testing = false
     } catch (err) {

@@ -44,6 +44,7 @@ export default {
   success: '成功',
   test_connect: '测试连接',
   test_connect_success: '测试连接成功',
+  test_connect_failed: '连接测试失败，请检查配置',
   ip: 'IP主机名',
   ip_tips: '请输入IP主机名',
   port: '端口',
@@ -83,5 +84,11 @@ export default {
   storage: '存储',
   data_analysis: '数据分析',
   remote_connection: '远程连接',
-  fake_connection: '假连接'
+  fake_connection: '假连接',
+  import_from_curl: '从 cURL 导入',
+  import_curl: '导入 cURL 命令',
+  curl_placeholder: '请输入 cURL 命令，例如:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',
+  curl_parse: '解析',
+  curl_input_empty: '请输入 cURL 命令',
+  curl_parse_failed: 'cURL 命令解析失败，请检查格式'
 }

@@ -44,6 +44,7 @@ export default {
   success: 'Success',
   test_connect: 'Test Connect',
   test_connect_success: 'Test Connect Success',
+  test_connect_failed: 'Connection test failed, please check the configuration',
   ip: 'IP',
   ip_tips: 'Please enter IP',
   port: 'Port',
@@ -87,5 +88,11 @@ export default {
   storage: 'Storage',
   data_analysis: 'Data Analysis',
   remote_connection: 'Remote Connection',
-  fake_connection: 'Fake Connection'
+  fake_connection: 'Fake Connection',
+  import_from_curl: 'Import from cURL',
+  import_curl: 'Import cURL Command',
+  curl_placeholder: 'Paste a cURL command, e.g.:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',
+  curl_parse: 'Parse',
+  curl_input_empty: 'Please enter a cURL command',
+  curl_parse_failed: 'Failed to parse cURL command, please check the format'
 }

@@ -35,6 +35,7 @@ import { useDetail } from './use-detail'
 import { useForm } from './use-form'
 import styles from '../index.module.scss'
 import SourceModal from '../components/source-modal'
+import { CurlImportModal } from './curl-import-modal'
 
 const DatasourceCreate = defineComponent({
   setup() {
@@ -43,6 +44,7 @@ const DatasourceCreate = defineComponent({
     const router = useRouter()
     const dialog = useDialog()
     const showSourceModal = ref(false)
+    const showCurlModal = ref(false)
     const detailFormRef = ref(null)
 
     const { state, changeType, getFieldsValue, setFieldsValue, getFormItems } =
@@ -158,6 +160,17 @@ const DatasourceCreate = defineComponent({
               </NFormItemGi>
             </NGrid>
             <NDivider style={{ marginTop: '0px' }} />
+            {state.detailForm.pluginName === 'Http' && (
+              <div style={{ marginBottom: '12px' }}>
+                <NButton
+                  type='primary'
+                  ghost
+                  onClick={() => void (showCurlModal.value = true)}
+                >
+                  {t('datasource.import_from_curl')}
+                </NButton>
+              </div>
+            )}
             {state.formStructure.length > 0 && (
               <DynamicFormItem
                 model={state.detailForm}
@@ -175,6 +188,14 @@ const DatasourceCreate = defineComponent({
             showSourceModal.value = false
           }}
           onCancel={() => void (showSourceModal.value = false)}
+        />
+        <CurlImportModal
+          show={showCurlModal.value}
+          onImport={(values: any) => {
+            setFieldsValue(values)
+            showCurlModal.value = false
+          }}
+          onClose={() => void (showCurlModal.value = false)}
         />
       </NSpace>
     )
