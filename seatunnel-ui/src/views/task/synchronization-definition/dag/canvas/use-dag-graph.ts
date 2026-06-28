@@ -42,9 +42,6 @@ export function useDagGraph(
       validateConnection(data) {
         const { sourceCell, targetCell } = data
         if (targetCell?.getData().type === 'source') return false
-        if (targetCell?.getData().type === 'sink') {
-          return graph.value?.getConnectedEdges(targetCell).length < 1
-        }
         
         if (targetCell?.getData().type === 'transform') {
           // The same 'Copy' transform node cannot be connected

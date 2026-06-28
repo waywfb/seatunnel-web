@@ -205,7 +205,11 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
                                         (existing, replacement) -> existing));
         Map<String, JobLine> targetLines =
                 lines.stream()
-                        .collect(Collectors.toMap(JobLine::getTargetPluginId, Function.identity()));
+                        .collect(
+                                Collectors.toMap(
+                                        JobLine::getTargetPluginId,
+                                        Function.identity(),
+                                        (existing, replacement) -> existing));
 
         for (JobTask task : tasks) {
             PluginType pluginType = PluginType.valueOf(task.getType().toUpperCase(Locale.ROOT));
@@ -293,11 +297,15 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
                         break;
                     case SINK:
                         if (targetLines.containsKey(pluginId)) {
+                            List<String> inputTableNames =
+                                    lines.stream()
+                                            .filter(l -> l.getTargetPluginId().equals(pluginId))
+                                            .map(l -> "Table" + l.getInputPluginId())
+                                            .collect(Collectors.toList());
                             config =
-                                    addTableName(
+                                    config.withValue(
                                             ConnectorCommonOptions.PLUGIN_INPUT.key(),
-                                            targetLines.get(pluginId),
-                                            config);
+                                            ConfigValueFactory.fromIterable(inputTableNames));
                             if (!sinkMap.containsKey(task.getConnectorType())) {
                                 sinkMap.put(task.getConnectorType(), new ArrayList<>());
                             }
