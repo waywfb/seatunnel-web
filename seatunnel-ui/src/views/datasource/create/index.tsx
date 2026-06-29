@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, watch } from 'vue'
 import {
   NSpace,
   NBreadcrumb,
@@ -56,6 +56,32 @@ const DatasourceCreate = defineComponent({
       getFormItems,
       detailFormRef,
       route.params.id as string
+    )
+
+    watch(
+      () => ({
+        host: state.detailForm['host'],
+        port: state.detailForm['port'],
+        database: state.detailForm['database'],
+        serverTimeZone: state.detailForm['server-time-zone'],
+        pluginName: state.detailForm.pluginName
+      }),
+      ({ host, port, database, serverTimeZone, pluginName }) => {
+        if (!pluginName?.startsWith('JDBC-')) return
+        if (!host) return
+
+        const dbType = pluginName.replace('JDBC-', '').toLowerCase()
+        const portVal = port || '3306'
+        let url = `jdbc:${dbType}://${host}:${portVal}`
+        if (database) url += `/${database}`
+        if (dbType === 'mysql') {
+          const tz = serverTimeZone || 'Asia/Shanghai'
+          url += `?useSSL=false&serverTimezone=${encodeURIComponent(tz)}&useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true`
+        }
+
+        state.detailForm['url'] = url
+      },
+      { deep: true }
     )
 
     const onClose = () => {
