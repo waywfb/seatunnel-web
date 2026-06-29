@@ -19,13 +19,13 @@ import type { GlobalThemeOverrides } from 'naive-ui'
 
 const light: GlobalThemeOverrides = {
   common: {
-    bodyColor: '#F8FAFC',
+    bodyColor: '#F1F5F9',
 
     /**************** Brand color */
-    primaryColor: '#1E40AF',
-    primaryColorHover: '#2563EB',
-    primaryColorPressed: '#1D4ED8',
-    primaryColorSuppl: '#1E40AF',
+    primaryColor: '#2563EB',
+    primaryColorHover: '#1D4ED8',
+    primaryColorPressed: '#1E40AF',
+    primaryColorSuppl: '#2563EB',
 
     /**************** Function of color */
     infoColor: '#2563EB',
