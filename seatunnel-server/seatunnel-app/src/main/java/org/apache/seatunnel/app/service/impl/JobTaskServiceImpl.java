@@ -441,7 +441,8 @@ public class JobTaskServiceImpl extends SeatunnelBaseServiceImpl implements IJob
                 }
                 transformOptionCheck(connectorType, transformOptionsStr);
             } else {
-                if (pluginConfig.getConnectorType() != null && !pluginConfig.getConnectorType().isEmpty()) {
+                if (pluginConfig.getConnectorType() != null
+                        && !pluginConfig.getConnectorType().isEmpty()) {
                     connectorType = pluginConfig.getConnectorType();
                 } else {
                     connectorType = getConnectorTypeFromDataSource(pluginConfig.getDataSourceId());

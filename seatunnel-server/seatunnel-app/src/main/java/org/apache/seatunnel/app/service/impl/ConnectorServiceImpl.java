@@ -217,7 +217,9 @@ public class ConnectorServiceImpl extends SeatunnelBaseServiceImpl implements IC
 
     @Override
     public FormStructure getDatasourceFormStructure(
-            @NonNull Long jobId, @NonNull Long dataSourceInstanceId, @NonNull String pluginType,
+            @NonNull Long jobId,
+            @NonNull Long dataSourceInstanceId,
+            @NonNull String pluginType,
             String connectorName) {
         funcPermissionCheck(SeatunnelFuncPermissionKeyConstant.CONNECTOR_DATASOURCE_FORM, 0);
         BusinessMode businessMode =
@@ -253,10 +255,12 @@ public class ConnectorServiceImpl extends SeatunnelBaseServiceImpl implements IC
             List<String> supportedDatasources =
                     dataSourceMapperConfig.findDatasourceNamesForConnector(resolvedConnectorName);
             if (!supportedDatasources.isEmpty()
-                    && supportedDatasources.stream().noneMatch(
-                            ds -> ds.equalsIgnoreCase(dataSourceName))) {
+                    && supportedDatasources.stream()
+                            .noneMatch(ds -> ds.equalsIgnoreCase(dataSourceName))) {
                 throw new IllegalArgumentException(
-                        "Datasource " + dataSourceName + " is not supported by connector "
+                        "Datasource "
+                                + dataSourceName
+                                + " is not supported by connector "
                                 + resolvedConnectorName);
             }
             // use connector's primary datasource for switcher resolution

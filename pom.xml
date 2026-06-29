@@ -66,7 +66,7 @@
         <!-- dependency -->
         <jackson-databind.version>2.12.6</jackson-databind.version>
         <jackson.version>2.12.7</jackson.version>
-        <mysql.version>8.0.16</mysql.version>
+        <mysql.version>8.0.28</mysql.version>
         <h2.version>2.1.214</h2.version>
         <junit.version>5.9.0</junit.version>
         <commons-collections4.version>4.4</commons-collections4.version>
@@ -1151,6 +1151,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.seatunnel</groupId>
+                <artifactId>connector-cdc-base</artifactId>
+                <version>${seatunnel-framework.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.seatunnel</groupId>
                 <artifactId>connector-cdc-mysql</artifactId>
                 <version>${seatunnel-framework.version}</version>
                 <scope>test</scope>
@@ -1251,6 +1256,7 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-to-slf4j</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

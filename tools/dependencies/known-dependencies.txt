@@ -60,7 +60,7 @@ mybatis-plus-jsqlparser-common-3.5.12.jar
 mybatis-plus-spring-3.5.12.jar
 mybatis-plus-spring-boot-autoconfigure-3.5.12.jar
 mybatis-spring-2.1.2.jar
-mysql-connector-java-8.0.16.jar
+mysql-connector-java-8.0.28.jar
 netty-buffer-4.1.104.Final.jar
 netty-common-4.1.104.Final.jar
 protobuf-java-3.6.1.jar

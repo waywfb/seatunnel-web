@@ -66,10 +66,15 @@ public class DataSourceConfigSwitcherUtils {
             PluginType pluginType,
             Config connectorConfig) {
         return mergeDatasourceConfig(
-                datasourceName, null,
-                dataSourceInstanceConfig, virtualTableDetail,
-                dataSourceOption, selectTableFields,
-                businessMode, pluginType, connectorConfig);
+                datasourceName,
+                null,
+                dataSourceInstanceConfig,
+                virtualTableDetail,
+                dataSourceOption,
+                selectTableFields,
+                businessMode,
+                pluginType,
+                connectorConfig);
     }
 
     public static Config mergeDatasourceConfig(
@@ -95,7 +100,8 @@ public class DataSourceConfigSwitcherUtils {
                 connectorConfig);
     }
 
-    private static String resolveSwitcherDatasourceName(String datasourceName, String connectorName) {
+    private static String resolveSwitcherDatasourceName(
+            String datasourceName, String connectorName) {
         if (connectorName == null) {
             return datasourceName;
         }
