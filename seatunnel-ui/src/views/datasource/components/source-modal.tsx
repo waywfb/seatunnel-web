@@ -70,15 +70,13 @@ const SourceModal = defineComponent({
                       class={styles.itemBox}
                       onClick={() => handleTypeSelect(slip.label as string)}
                     >
-                      <div class={styles.iconWrap}>
-                        <img
-                          src={`data:image/svg+xml;utf8,${encodeURIComponent(slip.iconSvg)}`}
-                          width="36"
-                          height="36"
-                          class={styles.iconImg}
-                        />
-                      </div>
-                      <div class='font-bold'>{slip.label}</div>
+                      <img
+                        src={slip.iconSvg}
+                        width="28"
+                        height="28"
+                        class={styles.iconImg}
+                      />
+                      <span class={styles.itemLabel}>{slip.label}</span>
                     </div>
                   ))}
                 </div>

@@ -47,7 +47,7 @@ export function useColumns(onCallback: Function) {
           return h(NSpace, { align: 'center', size: [8, 0] }, {
             default: () => [
               h('img', {
-                src: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+                src: svg,
                 width: 24,
                 height: 24,
                 style: { verticalAlign: 'middle', display: 'block' }

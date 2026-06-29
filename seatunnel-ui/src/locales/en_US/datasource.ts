@@ -89,6 +89,7 @@ export default {
   data_analysis: 'Data Analysis',
   remote_connection: 'Remote Connection',
   fake_connection: 'Fake Connection',
+  choose: 'Choose',
   import_from_curl: 'Import from cURL',
   import_curl: 'Import cURL Command',
   curl_placeholder: 'Paste a cURL command, e.g.:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',

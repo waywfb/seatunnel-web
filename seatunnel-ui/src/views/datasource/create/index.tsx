@@ -151,7 +151,7 @@ const DatasourceCreate = defineComponent({
                   {state.detailForm.pluginName ? (
                     <>
                       <img
-                        src={`data:image/svg+xml;utf8,${encodeURIComponent(datasourceIconSvg(state.detailForm.pluginName))}`}
+                        src={datasourceIconSvg(state.detailForm.pluginName)}
                         width="28"
                         height="28"
                         style={{ display: 'block' }}

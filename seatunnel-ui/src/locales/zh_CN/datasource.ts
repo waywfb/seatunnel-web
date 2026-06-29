@@ -85,6 +85,7 @@ export default {
   data_analysis: '数据分析',
   remote_connection: '远程连接',
   fake_connection: '假连接',
+  choose: '选择',
   import_from_curl: '从 cURL 导入',
   import_curl: '导入 cURL 命令',
   curl_placeholder: '请输入 cURL 命令，例如:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',

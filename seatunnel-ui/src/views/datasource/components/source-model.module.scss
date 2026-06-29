@@ -16,37 +16,43 @@
  */
 
 .content {
-  width: 800px;
+  width: 860px;
 
   .types {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+    background: #f0f2f5;
+    border-radius: 8px;
+    padding: 12px;
   }
 
   .itemBox {
-    margin: 10px;
-    border-radius: 10px;
-    width: 110px;
-    padding: 20px 10px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 0 6px 1px rgba(0, 0, 0, 0.1);
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     transition: transform 0.15s, box-shadow 0.15s;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
     }
-  }
-
-  .iconWrap {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 10px;
   }
 
   .iconImg {
     display: block;
+    flex-shrink: 0;
+  }
+
+  .itemLabel {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1a1a1a;
+    white-space: nowrap;
   }
 }
