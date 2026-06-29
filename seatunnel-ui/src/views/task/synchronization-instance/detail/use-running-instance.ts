@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 
-import { reactive, ref } from 'vue'
+import { h, reactive, ref } from 'vue'
+import { NIcon, NSpin, NTooltip } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { queryRunningInstancePaging } from '@/service/sync-task-instance'
 import { useRoute } from 'vue-router'
+import { tasksState } from '@/common/common'
+import type { ITaskState } from '@/common/types'
 
 export function useRunningInstance() {
   const { t } = useI18n()
@@ -67,7 +70,8 @@ export function useRunningInstance() {
       },
       {
         title: t('project.synchronization_instance.state'),
-        key: 'status'
+        key: 'status',
+        render: (row: any) => renderStateCell(row.status, t)
       }
     ]
   }
@@ -93,4 +97,30 @@ export function useRunningInstance() {
     createColumns,
     getTableData
   }
+}
+
+const renderStateCell = (state: ITaskState, t: Function) => {
+  if (!state) return ''
+
+  const stateOption = tasksState(t)[state]
+  if (!stateOption) return state
+  const Icon = h(
+    NIcon,
+    {
+      color: stateOption.color,
+      class: stateOption.classNames,
+      style: {
+        display: 'flex'
+      },
+      size: 20
+    },
+    () => h(stateOption.icon)
+  )
+  return h(NTooltip, null, {
+    trigger: () => {
+      if (!stateOption.isSpin) return Icon
+      return h(NSpin, { size: 20 }, { icon: () => Icon })
+    },
+    default: () => stateOption.desc
+  })
 }

@@ -1095,7 +1095,7 @@ export default {
     start_failed: '启动失败'
   },
   synchronization_instance: {
-    pipeline_id: 'Pipeline ID',
+    pipeline_id: '管道 ID',
     source: '来源',
     sink: '目标',
     run_often: '运行时长',
