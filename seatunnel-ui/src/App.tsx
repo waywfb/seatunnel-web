@@ -49,6 +49,8 @@ const App = defineComponent({
 
     settingStore.getFilletValue && setBorderRadius(settingStore.getFilletValue)
 
+    themeStore.init()
+
     if (settingStore.getLocales) {
       const { locale } = useI18n()
       locale.value = settingStore.getLocales

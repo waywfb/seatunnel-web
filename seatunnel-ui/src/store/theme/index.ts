@@ -50,9 +50,23 @@ export const useThemeStore = defineStore({
       const themeConfig = themeList[theme]
       //@ts-ignore
       this.navTextColor = themeConfig?.Menu?.itemTextColor || ''
+      this.syncHtmlClass()
+    },
+    syncHtmlClass(): void {
+      const html = document.documentElement
+      if (this.darkTheme) {
+        html.classList.add('dark')
+      } else {
+        html.classList.remove('dark')
+      }
     },
     init(theme?: ITheme): void {
-      this.setTheme(theme || this.theme)
+      const restored = theme || this.theme
+      if (restored === 'dark-blue') {
+        this.setTheme('dark' as ITheme)
+      } else {
+        this.setTheme(restored)
+      }
     }
   }
 })

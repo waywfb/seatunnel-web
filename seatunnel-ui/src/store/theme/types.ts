@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export type ITheme = 'light' | 'dark' | 'dark-blue'
+export type ITheme = 'light' | 'dark'
 
 export interface ThemeState {
   darkTheme: boolean

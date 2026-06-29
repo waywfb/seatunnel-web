@@ -16,33 +16,22 @@
  */
 import type { GlobalThemeOverrides } from '../type'
 
-const dark = {
+const dark: GlobalThemeOverrides = {
   common: {
-    bodyColor: '#141414',
-    // baseColor: '#f8f8fc',
+    bodyColor: '#121212',
 
     /**************** Brand color */
-    primaryColor: '#177ddc',
-    primaryColorHover: '#1765ad',
-    primaryColorPressed: '#3c9ae8',
-    primaryColorSuppl: '#177ddc',
+    primaryColor: '#3B82F6',
+    primaryColorHover: '#2563EB',
+    primaryColorPressed: '#1D4ED8',
+    primaryColorSuppl: '#3B82F6',
 
     /**************** Function of color */
-    infoColor: '#177ddc',
-    // successColor: '#49aa19',
-    // warningColor: '#d89614',
-    // errorColor: '#a61d24'
-  },
-  // Layout: {
-  //   headerColor: '#141414'
-  // },
-  // DataTable: {
-  //   thTextColor: '#fff',
-  //   tdColorHover: '#f2f2fa'
-  // },
-  // Space: {
-  //   gapLarge: '28px 32px'
-  // }
-} as GlobalThemeOverrides
+    infoColor: '#3B82F6',
+    successColor: '#22C55E',
+    warningColor: '#D97706',
+    errorColor: '#EF4444'
+  }
+}
 
 export default dark

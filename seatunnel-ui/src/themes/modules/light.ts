@@ -19,53 +19,20 @@ import type { GlobalThemeOverrides } from 'naive-ui'
 
 const light: GlobalThemeOverrides = {
   common: {
-    bodyColor: '#f7f8fa',
+    bodyColor: '#F8FAFC',
 
-    primaryColor: '#1890ff',
-    primaryColorHover: '#40a9ff',
-    primaryColorPressed: '#096dd9',
-    primaryColorSuppl: '#1890ff',
+    /**************** Brand color */
+    primaryColor: '#1E40AF',
+    primaryColorHover: '#2563EB',
+    primaryColorPressed: '#1D4ED8',
+    primaryColorSuppl: '#1E40AF',
 
     /**************** Function of color */
-    infoColor: '#1890ff',
-    successColor: '#52c41a',
-    warningColor: '#faad14',
-    errorColor: '#ff4d4f'
-
-    // errorColor: '#db2777',
-    // errorColorHover: '#d64687',
-    // errorColorSuppl: '#d64687',
-    // errorColorPressed: '#c60165',
-
-    // successColor: '#04beca',
-    // successColorHover: '#69c8d5',
-    // successColorSuppl: '#69c8d5',
-    // successColorPressed: '#04a6ae',
-
-    // warningColor: '#eab308',
-    // warningColorHover: '#e5cb41',
-    // warningColorSuppl: '#e5cb41',
-    // warningColorPressed: '#b38706',
-
-    // textColorBase: '#151666',
-    // textColor1: '#242660',
-    // textColor2: '#313377',
-    // textColor3: '#9096b8',
-
-    
-    // borderRadius: '15px',
-    // tableHeaderColor: '#614bdd'
-  },
-  // Layout: {
-  //   headerColor: '#fff'
-  // },
-  // DataTable: {
-  //   thTextColor: '#fff',
-  //   tdColorHover: '#f2f2fa'
-  // },
-  // Space: {
-  //   gapLarge: '28px 32px'
-  // }
+    infoColor: '#2563EB',
+    successColor: '#16A34A',
+    warningColor: '#D97706',
+    errorColor: '#DC2626'
+  }
 }
 
 export default light

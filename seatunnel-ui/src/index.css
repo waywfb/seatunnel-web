@@ -21,3 +21,82 @@
 @tailwind screens;
 @tailwind fonts;
 @tailwind colors;
+
+:root {
+  --bg-body: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-deep: #F8FAFC;
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  --brand-blue: #1E40AF;
+  --brand-blue-hover: #2563EB;
+  --brand-blue-pressed: #1D4ED8;
+  --accent-green: #16A34A;
+  --warning-amber: #D97706;
+  --error-red: #DC2626;
+
+  --border-default: #E2E8F0;
+  --border-hover: #CBD5E1;
+
+  --overlay-scrim: rgba(0, 0, 0, 0.4);
+
+  --scrollbar-track: #F1F5F9;
+  --scrollbar-thumb: #CBD5E1;
+}
+
+.dark {
+  --bg-body: #121212;
+  --bg-surface: #121212;
+  --bg-elevated: #1E1E1E;
+  --bg-deep: #000000;
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  --brand-blue: #3B82F6;
+  --brand-blue-hover: #2563EB;
+  --brand-blue-pressed: #1D4ED8;
+  --accent-green: #22C55E;
+  --warning-amber: #D97706;
+  --error-red: #EF4444;
+
+  --border-default: #2D2D2D;
+  --border-hover: #404040;
+
+  --overlay-scrim: rgba(0, 0, 0, 0.6);
+
+  --scrollbar-track: #1A1A1A;
+  --scrollbar-thumb: #333333;
+}
+
+body {
+  font-family: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}

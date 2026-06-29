@@ -17,9 +17,49 @@
 
 module.exports = {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
-  darkMode: 'media',
+  darkMode: 'class',
   theme: {
-    extend: {}
+    extend: {
+      colors: {
+        brand: {
+          blue: '#3B82F6',
+          'blue-hover': '#2563EB',
+          'blue-pressed': '#1D4ED8'
+        },
+        surface: {
+          DEFAULT: '#FFFFFF',
+          dark: '#121212',
+          elevated: '#1E1E1E',
+          deep: '#000000'
+        },
+        text: {
+          primary: '#0F172A',
+          secondary: '#475569',
+          muted: '#94A3B8',
+          'primary-dark': '#F8FAFC',
+          'secondary-dark': '#94A3B8',
+          'muted-dark': '#64748B'
+        },
+        success: {
+          DEFAULT: '#16A34A',
+          dark: '#22C55E'
+        },
+        warning: {
+          DEFAULT: '#D97706'
+        },
+        danger: {
+          DEFAULT: '#DC2626',
+          dark: '#EF4444'
+        }
+      },
+      fontFamily: {
+        sans: ['Fira Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['Fira Code', 'Cascadia Code', 'JetBrains Mono', 'monospace']
+      },
+      borderRadius: {
+        DEFAULT: '4px'
+      }
+    }
   },
   variants: {
     extend: {}
