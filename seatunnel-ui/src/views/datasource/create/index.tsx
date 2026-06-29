@@ -36,6 +36,7 @@ import { useForm } from './use-form'
 import styles from '../index.module.scss'
 import SourceModal from '../components/source-modal'
 import { CurlImportModal } from './curl-import-modal'
+import { datasourceIconSvg, getDatasourceIconColor } from '../datasource-icons'
 
 const DatasourceCreate = defineComponent({
   setup() {
@@ -145,15 +146,30 @@ const DatasourceCreate = defineComponent({
                     styles.typeBox,
                     !!route.params.id && styles.disabledBox
                   ]}
+                  align='center'
                 >
-                  <div>{state.detailForm.pluginName}</div>
+                  {state.detailForm.pluginName ? (
+                    <>
+                      <img
+                        src={`data:image/svg+xml;utf8,${encodeURIComponent(datasourceIconSvg(state.detailForm.pluginName))}`}
+                        width="28"
+                        height="28"
+                        style={{ display: 'block' }}
+                      />
+                      <div style={{ fontWeight: 600, color: getDatasourceIconColor(state.detailForm.pluginName) }}>
+                        {state.detailForm.pluginName}
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ color: '#999' }}>{t('datasource.choose_datasource_type')}</div>
+                  )}
                   {!route.params.id && (
                     <NButton
                       text
                       type='primary'
                       onClick={() => void (showSourceModal.value = true)}
                     >
-                      {t('datasource.select')}
+                      {t('datasource.choose')}
                     </NButton>
                   )}
                 </NSpace>

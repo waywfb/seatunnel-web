@@ -20,13 +20,14 @@ import { useI18n } from 'vue-i18n'
 import type { SelectOption } from 'naive-ui'
 import type { ResponseBasic } from '@/service/types'
 import type { DatasourceTypeList } from '@/service/data-source/types'
+import { getDatasourceIcon, getDatasourceIconColor, datasourceIconSvg } from '../datasource-icons'
 
 type Key = '1' | '2' | '3' | '4' | '5'
 type IType = {
   type: string
   label: string
   key: string
-  children: SelectOption[]
+  children: (SelectOption & { icon: string; iconColor: string; iconSvg: string })[]
 }
 
 export const useSource = (showVirtualDataSource = false) => {
@@ -67,7 +68,10 @@ export const useSource = (showVirtualDataSource = false) => {
             locales.en_US[item.name] = item.name
             return {
               label: label,
-              value: label
+              value: label,
+              icon: getDatasourceIcon(item.name),
+              iconColor: getDatasourceIconColor(item.name),
+              iconSvg: datasourceIconSvg(item.name)
             }
           })
         }

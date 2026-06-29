@@ -23,6 +23,7 @@ import { getTableColumn } from '@/common/table'
 
 import { useTableOperation } from '@/hooks'
 import { EditOutlined } from '@vicons/antd'
+import { datasourceIconSvg } from '../datasource-icons'
 
 export function useColumns(onCallback: Function) {
   const { t } = useI18n()
@@ -40,7 +41,21 @@ export function useColumns(onCallback: Function) {
       {
         title: t('datasource.datasource_type'),
         key: 'pluginName',
-        width: 180
+        width: 200,
+        render: (row: any) => {
+          const svg = datasourceIconSvg(row.pluginName)
+          return h(NSpace, { align: 'center', size: [8, 0] }, {
+            default: () => [
+              h('img', {
+                src: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+                width: 24,
+                height: 24,
+                style: { verticalAlign: 'middle', display: 'block' }
+              }),
+              h('span', { style: { verticalAlign: 'middle' } }, row.pluginName)
+            ]
+          })
+        }
       },
       {
         title: t('datasource.datasource_parameter'),

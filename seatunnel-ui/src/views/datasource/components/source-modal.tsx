@@ -65,11 +65,19 @@ const SourceModal = defineComponent({
             {state.types.map((item) => (
               <NTabPane name={item.key} tab={item.label} key={item.key}>
                 <div class={styles['types']}>
-                  {item?.children.map((slip: SelectOption) => (
+                  {item?.children.map((slip: any) => (
                     <div
                       class={styles.itemBox}
                       onClick={() => handleTypeSelect(slip.label as string)}
                     >
+                      <div class={styles.iconWrap}>
+                        <img
+                          src={`data:image/svg+xml;utf8,${encodeURIComponent(slip.iconSvg)}`}
+                          width="36"
+                          height="36"
+                          class={styles.iconImg}
+                        />
+                      </div>
                       <div class='font-bold'>{slip.label}</div>
                     </div>
                   ))}

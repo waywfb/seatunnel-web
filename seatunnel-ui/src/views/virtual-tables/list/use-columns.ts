@@ -20,6 +20,7 @@ import { useI18n } from 'vue-i18n'
 import { EditOutlined } from '@vicons/antd'
 import { NButton, NSpace } from 'naive-ui'
 import {useTableOperation} from "@/hooks";
+import { datasourceIconSvg } from '@/views/datasource/datasource-icons'
 //import type { TableColumns, VirtualTableRecord } from '../types'
 
 export function useColumns(onCallback: Function) {
@@ -49,7 +50,21 @@ export function useColumns(onCallback: Function) {
       },
       {
         title: t('virtual_tables.source_type'),
-        key: 'pluginName'
+        key: 'pluginName',
+        render: (row: any) => {
+          const svg = datasourceIconSvg(row.pluginName)
+          return h(NSpace, { align: 'center', size: [8, 0] }, {
+            default: () => [
+              h('img', {
+                src: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+                width: 24,
+                height: 24,
+                style: { verticalAlign: 'middle', display: 'block' }
+              }),
+              h('span', { style: { verticalAlign: 'middle' } }, row.pluginName)
+            ]
+          })
+        }
       },
       {
         title: t('virtual_tables.creator'),
