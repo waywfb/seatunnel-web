@@ -113,6 +113,20 @@ public class MysqlCDCDataSourceConfigSwitcher extends AbstractDataSourceConfigSw
             BusinessMode businessMode,
             PluginType pluginType,
             Config connectorConfig) {
+        // handle field name mapping for JDBC-Mysql datasource
+        // JDBC-Mysql uses "user" while MySQL-CDC expects "username"
+        if (dataSourceInstanceConfig.hasPath("user") && !dataSourceInstanceConfig.hasPath("username")) {
+            dataSourceInstanceConfig =
+                    dataSourceInstanceConfig.withValue(
+                            "username", dataSourceInstanceConfig.getValue("user"));
+        }
+        // JDBC-Mysql has "url" directly; use it as base-url equivalent
+        if (dataSourceInstanceConfig.hasPath("url") && !dataSourceInstanceConfig.hasPath("base-url")) {
+            dataSourceInstanceConfig =
+                    dataSourceInstanceConfig.withValue(
+                            "base-url", dataSourceInstanceConfig.getValue("url"));
+        }
+
         if (PluginType.SOURCE.equals(pluginType)) {
             // 从数据源配置自动构造 JDBC URL
             if (!connectorConfig.hasPath(URL_KEY)) {

@@ -485,6 +485,7 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
 
         return DataSourceConfigSwitcherUtils.mergeDatasourceConfig(
                 pluginName,
+                connectorType,
                 datasourceConf,
                 virtualTableDetailRes,
                 dataSourceOption,

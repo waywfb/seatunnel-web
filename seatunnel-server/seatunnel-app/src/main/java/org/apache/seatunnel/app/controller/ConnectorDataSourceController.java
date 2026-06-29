@@ -110,6 +110,6 @@ public class ConnectorDataSourceController {
         return Result.success(
                 JsonUtils.toJsonString(
                         connectorService.getDatasourceFormStructure(
-                                jobId, dataSourceInstanceId, connectorType)));
+                                jobId, dataSourceInstanceId, connectorType, connectorName)));
     }
 }

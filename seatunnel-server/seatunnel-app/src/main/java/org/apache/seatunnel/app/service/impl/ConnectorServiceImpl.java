@@ -217,7 +217,8 @@ public class ConnectorServiceImpl extends SeatunnelBaseServiceImpl implements IC
 
     @Override
     public FormStructure getDatasourceFormStructure(
-            @NonNull Long jobId, @NonNull Long dataSourceInstanceId, @NonNull String pluginType) {
+            @NonNull Long jobId, @NonNull Long dataSourceInstanceId, @NonNull String pluginType,
+            String connectorName) {
         funcPermissionCheck(SeatunnelFuncPermissionKeyConstant.CONNECTOR_DATASOURCE_FORM, 0);
         BusinessMode businessMode =
                 BusinessMode.valueOf(
@@ -240,21 +241,41 @@ public class ConnectorServiceImpl extends SeatunnelBaseServiceImpl implements IC
         OptionRule virtualTableOptionRule =
                 datasourceService.queryVirtualTableOptionRuleByPluginName(dataSourceName);
 
-        // 4.dataSourceName query connector
-        String connectorName =
-                dataSourceMapperConfig.findConnectorForDatasourceName(dataSourceName).get();
+        // 4.resolve connector name and switcher datasource name
+        // when connectorName is provided by frontend, use it directly
+        String resolvedConnectorName = connectorName;
+        String switcherDatasourceName = dataSourceName;
+        if (resolvedConnectorName == null) {
+            resolvedConnectorName =
+                    dataSourceMapperConfig.findConnectorForDatasourceName(dataSourceName).get();
+        } else {
+            // verify the datasource is supported by the connector
+            List<String> supportedDatasources =
+                    dataSourceMapperConfig.findDatasourceNamesForConnector(resolvedConnectorName);
+            if (!supportedDatasources.isEmpty()
+                    && supportedDatasources.stream().noneMatch(
+                            ds -> ds.equalsIgnoreCase(dataSourceName))) {
+                throw new IllegalArgumentException(
+                        "Datasource " + dataSourceName + " is not supported by connector "
+                                + resolvedConnectorName);
+            }
+            // use connector's primary datasource for switcher resolution
+            if (!supportedDatasources.isEmpty()) {
+                switcherDatasourceName = supportedDatasources.get(0);
+            }
+        }
 
         // 5.call utils
         PluginType connectorPluginType = PluginType.valueOf(pluginType.toUpperCase(Locale.ROOT));
 
         return DataSourceConfigSwitcherUtils.filterOptionRule(
-                dataSourceName,
-                connectorName,
+                switcherDatasourceName,
+                resolvedConnectorName,
                 dataSourceNameOptionRole,
                 virtualTableOptionRule,
                 connectorPluginType,
                 businessMode,
-                connectorCache.getOptionRule(pluginType, connectorName));
+                connectorCache.getOptionRule(pluginType, resolvedConnectorName));
     }
 
     /**

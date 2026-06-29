@@ -31,6 +31,7 @@ connector-datasource-mapper:
     MySQL-CDC:
       dataSources:
         - MySQL-CDC
+        - JDBC-Mysql
 
     Kafka:
       dataSources:

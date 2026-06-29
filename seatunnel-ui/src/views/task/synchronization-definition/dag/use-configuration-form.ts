@@ -208,8 +208,11 @@ export const useConfigurationForm = (
         datasourceName: item.dataSourceInfo?.datasourceName
       }))
       if (datasourceName) {
+        // 一个连接器可能支持多种数据源类型（如 MySQL-CDC 支持 MySQL-CDC 和 JDBC-Mysql）
         options = options.filter(
-          (opt: any) => opt.datasourceName === datasourceName
+          (opt: any) =>
+            opt.datasourceName === datasourceName ||
+            opt.pluginName === datasourceName
         )
       }
       state.datasourceOptions = options
@@ -306,8 +309,10 @@ export const useConfigurationForm = (
         jobCode: number
       }
       if (nodeType === 'transform') params.connectorName = transformType
-      if (nodeType !== 'transform')
+      if (nodeType !== 'transform') {
         params.dataSourceInstanceId = datasourceInstanceId
+        params.connectorName = state.model.pluginName
+      }
       const resJson = await getFormStructureByDatasourceInstance(params)
       if (resJson === 'null') return
       const res = JSON.parse(resJson)

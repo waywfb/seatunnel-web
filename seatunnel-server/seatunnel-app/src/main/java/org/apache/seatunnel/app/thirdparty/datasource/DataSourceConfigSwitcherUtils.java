@@ -65,8 +65,26 @@ public class DataSourceConfigSwitcherUtils {
             BusinessMode businessMode,
             PluginType pluginType,
             Config connectorConfig) {
+        return mergeDatasourceConfig(
+                datasourceName, null,
+                dataSourceInstanceConfig, virtualTableDetail,
+                dataSourceOption, selectTableFields,
+                businessMode, pluginType, connectorConfig);
+    }
+
+    public static Config mergeDatasourceConfig(
+            String datasourceName,
+            String connectorName,
+            Config dataSourceInstanceConfig,
+            VirtualTableDetailRes virtualTableDetail,
+            DataSourceOption dataSourceOption,
+            SelectTableFields selectTableFields,
+            BusinessMode businessMode,
+            PluginType pluginType,
+            Config connectorConfig) {
+        String switcherDsName = resolveSwitcherDatasourceName(datasourceName, connectorName);
         DataSourceConfigSwitcher dataSourceConfigSwitcher =
-                getDataSourceConfigSwitcher(datasourceName.toUpperCase());
+                getDataSourceConfigSwitcher(switcherDsName.toUpperCase());
         return dataSourceConfigSwitcher.mergeDatasourceConfig(
                 dataSourceInstanceConfig,
                 virtualTableDetail,
@@ -75,6 +93,20 @@ public class DataSourceConfigSwitcherUtils {
                 businessMode,
                 pluginType,
                 connectorConfig);
+    }
+
+    private static String resolveSwitcherDatasourceName(String datasourceName, String connectorName) {
+        if (connectorName == null) {
+            return datasourceName;
+        }
+        String upperDs = datasourceName.toUpperCase();
+        String upperConn = connectorName.toUpperCase();
+        // When JDBC-Mysql datasource is used with MySQL-CDC connector,
+        // use MySQL-CDC as the switcher datasource name
+        if ("JDBC-MYSQL".equals(upperDs) && "MYSQL-CDC".equals(upperConn)) {
+            return "MySQL-CDC";
+        }
+        return datasourceName;
     }
 
     private static DataSourceConfigSwitcher getDataSourceConfigSwitcher(String datasourceName) {

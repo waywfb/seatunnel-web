@@ -100,6 +100,14 @@ public class ConnectorDataSourceMapperConfig {
                 "pluginType : " + pluginType + " not support SceneMode");
     }
 
+    public List<String> findDatasourceNamesForConnector(String connectorName) {
+        ConnectorMapper mapper = connectorDatasourceMappers.get(connectorName);
+        if (mapper != null) {
+            return mapper.getDataSources();
+        }
+        return List.of();
+    }
+
     public Optional<String> findConnectorForDatasourceName(String datasourceName) {
         return connectorDatasourceMappers.entrySet().stream()
                 .map(

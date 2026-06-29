@@ -55,5 +55,6 @@ public interface IConnectorService {
             @NonNull String pluginType, @NonNull String connectorName);
 
     FormStructure getDatasourceFormStructure(
-            @NonNull Long jobId, @NonNull Long dataSourceId, @NonNull String pluginType);
+            @NonNull Long jobId, @NonNull Long dataSourceId, @NonNull String pluginType,
+            String connectorName);
 }
