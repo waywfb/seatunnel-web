@@ -76,8 +76,7 @@ export default {
     suspend_confirm: 'Suspend?',
     stop_recovery: 'Stop Recovery',
     stop_recovery_confirm: 'Stop Recovery?',
-    copy_judge_tips:
-      'In the current workflow, a node with brand name $value is referenced.',
+    copy_judge_tips: 'In the current workflow, a node with brand name $value is referenced.',
     workflow_relation: 'Workflow Relation',
     create_workflow: 'Create Workflow',
     select_project: 'Choose a project',
@@ -156,8 +155,7 @@ export default {
     data_date: 'Data date',
     select_date: 'Select Date',
     enter_date: 'Enter Date',
-    data_date_tips:
-      'The format is yyyy-MM-dd HH:mm:ss with multiple comma splits',
+    data_date_tips: 'The format is yyyy-MM-dd HH:mm:ss with multiple comma splits',
     data_date_limit: 'Enter more than 100 dates',
     mode_of_execution: 'Mode of execution',
     serial_execution: 'Serial execution',
@@ -256,8 +254,7 @@ export default {
     related_items: 'Related items',
     project_name: 'Project Name',
     project_tips: 'Please select project name',
-    workflow_relation_no_data_result_title:
-      'Can not find any relations of workflows.',
+    workflow_relation_no_data_result_title: 'Can not find any relations of workflows.',
     workflow_relation_no_data_result_desc:
       'There is not any workflows. Please create a workflow, and then visit this page again.',
     timing_tips: 'The current workflow lacks timing',
@@ -297,10 +294,8 @@ export default {
     create: 'Create',
     last_update_user: 'Last Update User',
     last_update_time: 'Last Update Time',
-    dependent_chain_title:
-      'The following workflow are about to start dependency chain cleanup and rerun',
-    dependent_chain_condition_title:
-      'The following workflow do not meet the execution conditions'
+    dependent_chain_title: 'The following workflow are about to start dependency chain cleanup and rerun',
+    dependent_chain_condition_title: 'The following workflow do not meet the execution conditions'
   },
   task: {
     metrics: {
@@ -374,16 +369,12 @@ export default {
     detail: 'Detail',
     return: 'Return',
     cancel: 'Cancel',
-    dependent_chain_title:
-      'The following tasks are about to start dependency chain cleanup and rerun',
-    dependent_chain_condition_title:
-      'The following tasks do not meet the execution conditions',
-    dependent_chain_condition_tip1:
-      'An executing workflow instance is not executable',
+    dependent_chain_title: 'The following tasks are about to start dependency chain cleanup and rerun',
+    dependent_chain_condition_title: 'The following tasks do not meet the execution conditions',
+    dependent_chain_condition_tip1: 'An executing workflow instance is not executable',
     dependent_chain_condition_tip2:
       'The task cannot be executed if it does not meet the execution conditions (the predecessor task of the task is suspended or failed)',
-    dependent_chain_condition_tip3:
-      'Non-executable without operation permission',
+    dependent_chain_condition_tip3: 'Non-executable without operation permission',
     batch_confirm: 'Batch Confirm'
   },
   dag: {
@@ -436,8 +427,7 @@ export default {
     online: 'Online',
     label: 'Label',
     label_length_tips: 'The maximum number of labels is 3',
-    unsave_tips:
-      'Please save the workflow first, and then execute the run operation.',
+    unsave_tips: 'Please save the workflow first, and then execute the run operation.',
     cancel: 'Cancel',
     force_close: 'Force Close',
     close_tip: 'Close Tip',
@@ -454,8 +444,7 @@ export default {
     form_tips: 'Error in required information of node',
     save_and_debug: 'Save Workflow and debug',
     debug: 'Debug',
-    import_alert:
-      'When the script content is updated, the referenced file content is also updated.',
+    import_alert: 'When the script content is updated, the referenced file content is also updated.',
     select_file: 'Select a file'
   },
   node: {
@@ -482,8 +471,7 @@ export default {
     description_tips: 'Please enter description',
     task_priority: 'Task priority',
     worker_group: 'Worker group',
-    worker_group_tips:
-      'The Worker group no longer exists, please select the correct Worker group!',
+    worker_group_tips: 'The Worker group no longer exists, please select the correct Worker group!',
     environment_name: 'Environment Name',
     task_group_name: 'Task group name',
     task_group_queue_priority: 'Priority',
@@ -500,12 +488,9 @@ export default {
     confirm: 'Confirm',
     success: 'Success',
     failed: 'Failed',
-    backfill_tips:
-      'The newly created sub-Process has not yet been executed and cannot enter the sub-Process',
-    task_instance_tips:
-      'The task has not been executed and cannot enter the sub-Process',
-    branch_tips:
-      'Cannot select the same node for successful branch flow and failed branch flow',
+    backfill_tips: 'The newly created sub-Process has not yet been executed and cannot enter the sub-Process',
+    task_instance_tips: 'The task has not been executed and cannot enter the sub-Process',
+    branch_tips: 'Cannot select the same node for successful branch flow and failed branch flow',
     timeout_alarm: 'Timeout alarm',
     timeout_strategy: 'Timeout strategy',
     timeout_strategy_tips: 'Timeout strategy must be selected',
@@ -629,16 +614,12 @@ export default {
     zeppelin_note_id: 'zeppelinNoteId',
     zeppelin_note_id_tips: 'Please enter the note id of your zeppelin note',
     zeppelin_paragraph_id: 'zeppelinParagraphId',
-    zeppelin_paragraph_id_tips:
-      'Please enter the paragraph id of your zeppelin paragraph',
+    zeppelin_paragraph_id_tips: 'Please enter the paragraph id of your zeppelin paragraph',
     zeppelin_parameters: 'parameters',
-    zeppelin_parameters_tips:
-      'Please enter the parameters for zeppelin dynamic form',
+    zeppelin_parameters_tips: 'Please enter the parameters for zeppelin dynamic form',
     zeppelin_rest_endpoint: 'zeppelinRestEndpoint',
-    zeppelin_rest_endpoint_tips:
-      'Please enter the rest endpoint of your Zeppelin server',
-    zeppelin_production_note_directory:
-      'Directory for cloned zeppelin note in production mode',
+    zeppelin_rest_endpoint_tips: 'Please enter the rest endpoint of your Zeppelin server',
+    zeppelin_production_note_directory: 'Directory for cloned zeppelin note in production mode',
     zeppelin_production_note_directory_tips:
       'Please enter the production note directory to enable production mode',
     hive_table_tips: 'Please enter Hive Table(required)',
@@ -734,8 +715,7 @@ export default {
     pytorch_python_env_tool: 'Python Environment Manager Tool',
     pytorch_requirements: 'Requirement File',
     pytorch_conda_python_version: 'Python Version',
-    pytorch_conda_python_version_tips:
-      'Please enter the version number, such as 3.6, 3.7, 3.x',
+    pytorch_conda_python_version_tips: 'Please enter the version number, such as 3.6, 3.7, 3.x',
     export_dir: 'Export Dir',
     export_dir_tips: 'Please enter Export Dir(required)',
     sql_statement_tips: 'SQL Statement(required)',
@@ -769,8 +749,7 @@ export default {
     sea_tunnel_master: 'Master',
     sea_tunnel_master_url: 'Master URL',
     sea_tunnel_queue: 'Queue',
-    sea_tunnel_master_url_tips:
-      'Please enter the master url, e.g., 127.0.0.1:7077',
+    sea_tunnel_master_url_tips: 'Please enter the master url, e.g., 127.0.0.1:7077',
     switch_condition: 'Condition',
     switch_branch_flow: 'Branch Flow',
     switch_branch_flow_tips: 'Please select branch flow',
@@ -896,10 +875,8 @@ export default {
     please_select_source_datasource_id: 'Please select source datasource id',
     please_enter_source_table_name: 'Please select source table name',
     please_enter_filter_expression: 'Please enter filter expression',
-    please_enter_column_only_single_column_is_supported:
-      'Please select column, only single column is supported',
-    please_enter_threshold_number_is_needed:
-      'Please enter threshold number is needed',
+    please_enter_column_only_single_column_is_supported: 'Please select column, only single column is supported',
+    please_enter_threshold_number_is_needed: 'Please enter threshold number is needed',
     please_enter_comparison_title: 'please select comparison title',
     please_enter_statistics_execute_sql: 'Please enter statistics execute sql',
     please_enter_statistics_name_the_alias_in_statistics_execute_sql:
@@ -907,8 +884,7 @@ export default {
     please_select_target_connector_type: 'Please select target connector type',
     please_select_target_datasource: 'Please select target datasource',
     please_enter_target_table: 'Please enter target table',
-    please_enter_target_filter_expression:
-      'Please enter target filter expression',
+    please_enter_target_filter_expression: 'Please enter target filter expression',
     please_enter_comparison_name_the_alias_in_comparison_execute_sql:
       'Please enter comparison name the alias in comparison execute sql',
     please_enter_comparison_execute_sql: 'Please enter comparison execute sql',
@@ -936,20 +912,16 @@ export default {
     value_deserializer_tips: 'Value Deserializer(required)',
     next_loop_custom_rule: 'Custom Next Loop Rule',
     script_type: 'Script Type',
-    next_loop_date_tip:
-      'The script return value is in date format: yyyy-MM-dd HH:mm:ss',
-    next_loop_timezone_tip:
-      'Note that the return date is consistent with the scheduled time zone.',
+    next_loop_date_tip: 'The script return value is in date format: yyyy-MM-dd HH:mm:ss',
+    next_loop_timezone_tip: 'Note that the return date is consistent with the scheduled time zone.',
     next_loop_card: 'Card',
     next_loop_card_tips: 'Card(required)',
     dependency_strategy: 'Dependency Strategy',
     failure: 'Failure',
     continue: 'Continue',
     wait: 'Wait',
-    failure_continue_tips:
-      'When a dependency fails, the current node continues execution.',
-    failure_wait_tips:
-      'When a dependency fails, the current node waits for the dependency to succeed and then continues execution.',
+    failure_continue_tips: 'When a dependency fails, the current node continues execution.',
+    failure_wait_tips: 'When a dependency fails, the current node waits for the dependency to succeed and then continues execution.',
     hive_cli_task_execution_type: 'Hive Cli task type',
     hive_sql_script: 'Hive SQL script',
     hive_cli_options: 'Hive Cli options',
@@ -1016,8 +988,7 @@ export default {
     file_tips: 'Please select an excel file.'
   },
   synchronization_definition: {
-    node_prev_check_tips:
-      'The current node is not connected to the previous node',
+    node_prev_check_tips: 'The current node is not connected to the previous node',
     create_synchronization_task: 'Create Synchronization Task',
     edit_synchronization_task: 'Edit Synchronization Task',
     synchronization_task_name: 'Synchronization Task Name',
@@ -1096,8 +1067,7 @@ export default {
     scene_mode_validate: 'Scene mode is not empty',
     kind: 'Kind',
     delete_empty_tips: 'Please select a node',
-    database_exception_message:
-      'database exception，has been cleared in the form',
+    database_exception_message: 'database exception，has been cleared in the form',
     table_exception_message: 'table exception，has been cleared in the form',
     start_node_tips: 'The starting node be source node',
     end_node_tips: 'The ending node be sink node',
@@ -1117,8 +1087,7 @@ export default {
     separator: 'Separator',
     separator_tips: 'Please enter a separator',
     segmented_fields: 'Segmented fields',
-    segmented_fields_placeholder:
-      'If two fields are separated, you can fill in field1, field2',
+    segmented_fields_placeholder: 'If two fields are separated, you can fill in field1, field2',
     copy_field: 'Copy Field',
     check_model: 'Please check the model information',
     sql_content_label: 'SQL',

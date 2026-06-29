@@ -80,8 +80,7 @@ export default {
   jdbc_format_tips: 'jdbc connection parameters is not a correct JSON format',
   all: 'All',
   warning: 'Warning',
-  close_confirm_tips:
-    'This operation will lose the source currently being created',
+  close_confirm_tips: 'This operation will lose the source currently being created',
   database: 'Database',
   file: 'File',
   no_structured: 'NoSQLs',

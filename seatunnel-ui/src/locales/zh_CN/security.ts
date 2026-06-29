@@ -124,6 +124,8 @@ export default {
     edit_user: '编辑用户',
     delete_user: '删除用户',
     delete_confirm: '确定删除吗?',
+    delete_confirm_tip:
+      '删除用户属于高危操作，请谨慎执行',
     project: '项目',
     resource: '资源',
     file_resource: '文件资源',
@@ -134,7 +136,6 @@ export default {
     authorize_resource: '资源授权',
     authorize_datasource: '数据源授权',
     authorize_udf: 'UDF函数授权',
-    // username: '用户名',
     username_exists: '用户名已存在',
     username_tips: '请输入用户名',
     tenant_tips: '请选择租户',

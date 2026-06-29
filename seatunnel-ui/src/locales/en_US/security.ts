@@ -140,8 +140,7 @@ export default {
     username_tips: 'Please enter username',
     tenant_tips: 'Please select tenant',
     user_password: 'Password',
-    user_password_tips:
-      'Please enter a password containing letters and numbers with a length between 6 and 20',
+    user_password_tips: 'Please enter a password containing letters and numbers with a length between 6 and 20',
     user_type: 'User Type',
     ordinary_user: 'Ordinary users',
     administrator: 'Administrator',
@@ -184,8 +183,7 @@ export default {
     all_role: 'All Roles',
     success: 'Success',
     import_success: 'Import User Success',
-    reset_req_success:
-      'The password reset request is successful, please check your email',
+    reset_req_success: 'The password reset request is successful, please check your email',
     reset_success: 'Password Reset Success',
     search_tips: 'Please enter keywords',
     alias_tips: 'Please enter alias',
@@ -219,8 +217,7 @@ export default {
     current_role: 'Current Role',
     confirm: 'Confirm',
     cancel: 'Cancel',
-    function_resource_empty_tips:
-      'Please select a functional authority or a resource authority!',
+    function_resource_empty_tips: 'Please select a functional authority or a resource authority!',
     success: 'success',
     module: 'Module',
     page: 'Page',
@@ -420,8 +417,7 @@ export default {
     operate_time: 'Operate Time',
     export_date: 'Export date',
     export_date_tips: 'Please select export date',
-    export_tips:
-      'The default export format is xlsx, and the export date range is allowed to export data of nearly three months.'
+    export_tips: 'The default export format is xlsx, and the export date range is allowed to export data of nearly three months.'
   },
   timing: {
     create_timing: 'Create Timing',
@@ -450,8 +446,7 @@ export default {
     timing: 'Timing',
     calender_tips: 'Please choose calender',
     next_five_execution_times: 'Next Five Execution Times',
-    next_five_execution_times_tips:
-      'No executable time based on current configuration',
+    next_five_execution_times_tips: 'No executable time based on current configuration',
     project_name: 'Project Name',
     workflow_name: 'Workflow Name',
     on_off_status: 'Online/Offline',
@@ -497,10 +492,8 @@ export default {
     close: 'Close',
     system_tips: 'System Tips',
     warning_tips: 'Your License has',
-    warning_tips2:
-      'Contact the administrator to update the License authorization code in time to prevent system usage from being affected',
-    warning_tips3:
-      'Your License does not exist or has expired. Please contact the administrator to update the License authorization code',
+    warning_tips2: 'Contact the administrator to update the License authorization code in time to prevent system usage from being affected',
+    warning_tips3: 'Your License does not exist or has expired. Please contact the administrator to update the License authorization code',
     warning_tips4: 'Authorization code update failed',
     version: 'Version',
     effective_date: 'Effective Date',
@@ -572,12 +565,9 @@ export default {
     delete: 'Delete',
     key_tips: 'Please enter Key',
     value_tips: 'Please enter Value',
-    system_biz_date:
-      'The day before the schedule time of the daily scheduling instance, the format is yyyyMMdd',
-    system_biz_curdate:
-      'The schedule time of the daily scheduling instance, the format is yyyyMMdd',
-    system_datetime:
-      'The schedule time of the daily scheduling instance, the format is yyyyMMddHHmmss',
+    system_biz_date: 'The day before the schedule time of the daily scheduling instance, the format is yyyyMMdd',
+    system_biz_curdate: 'The schedule time of the daily scheduling instance, the format is yyyyMMdd',
+    system_datetime: 'The schedule time of the daily scheduling instance, the format is yyyyMMddHHmmss',
     system_project_code: 'Project ID',
     system_project_name: 'Project Name',
     system_workflow_code: 'Workflow ID',
@@ -618,10 +608,8 @@ export default {
     param_value_title_tips:
       // eslint-disable-next-line quotes
       "Please fill in the string directly for constants, and add the format {'$'} {'{'}{'}'} for function variables.",
-    basic_param_tips:
-      'Basic parameter values built into the system, which are used after being given parameter key names.',
-    derive_param_tips:
-      'Derived parameter values built into the system, which are used after replacing variables and giving parameter key names.',
+    basic_param_tips: 'Basic parameter values built into the system, which are used after being given parameter key names.',
+    derive_param_tips: 'Derived parameter values built into the system, which are used after replacing variables and giving parameter key names.',
     calendar_function_param_tips:
       'The calendar function built into the system replaces the variable and gives the parameter key name to use.',
     handle_tips: 'Parameter key and value cannot be empty.',
