@@ -47,7 +47,7 @@ export function useNodeSettingModal(
       name: values.name,
       type: props.nodeInfo.type.toUpperCase(),
       connectorType:
-        props.nodeInfo.type === 'transform'
+        props.nodeInfo.type === 'transform' || props.nodeInfo.type === 'source'
           ? props.nodeInfo.connectorType
           : null
     } as { [key: string]: any }

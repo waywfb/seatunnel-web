@@ -68,7 +68,7 @@ const SynchronizationDefinitionDag = defineComponent({
         y: e.offsetY,
         label: getNodeLabel(tempNode.type, tempNode.name),
         node: tempNode.type,
-        connectorType: tempNode.type === 'transform' ? tempNode.name : '',
+        connectorType: tempNode.type === 'transform' || tempNode.type === 'source' ? tempNode.name : '',
         datasourceName: tempNode.datasourceName
       })
     }
