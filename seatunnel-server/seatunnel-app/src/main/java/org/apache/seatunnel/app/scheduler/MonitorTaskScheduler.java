@@ -25,6 +25,8 @@ import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.dal.entity.JobMetricsHistory;
 import org.apache.seatunnel.app.domain.response.metrics.JobPipelineDetailMetricsRes;
 import org.apache.seatunnel.app.service.IJobMetricsService;
+import org.apache.seatunnel.app.thirdparty.engine.SeaTunnelEngineProxy;
+import org.apache.seatunnel.app.utils.JobUtils;
 import org.apache.seatunnel.engine.common.job.JobStatus;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,6 +39,7 @@ import javax.annotation.Resource;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -160,13 +163,49 @@ public class MonitorTaskScheduler {
                                                     historyList.size());
                                         }
                                     } catch (Exception e) {
-                                        log.error("Error saving job metrics", e);
+                                        log.error(
+                                                "Error saving job metrics for job instance {}",
+                                                jobInstance.getId(),
+                                                e);
+                                        handleEngineJobNotFound(jobInstance);
                                     }
                                 });
                     } catch (Exception e) {
                         log.error("Task scheduling error", e);
                     }
                 });
+    }
+
+    private void handleEngineJobNotFound(JobInstance jobInstance) {
+        try {
+            String jobEngineId = jobInstance.getJobEngineId();
+            if (jobEngineId == null) {
+                return;
+            }
+            JobStatus engineStatus =
+                    SeaTunnelEngineProxy.getInstance().getJobStatus(jobEngineId);
+            if (engineStatus == null || JobUtils.isJobEndStatus(engineStatus)) {
+                log.warn(
+                        "Job instance {} (engineId={}) is no longer running on engine,"
+                                + " updating DB status to {}",
+                        jobInstance.getId(),
+                        jobEngineId,
+                        engineStatus != null ? engineStatus : JobStatus.FAILED);
+                jobInstance.setJobStatus(
+                        engineStatus != null ? engineStatus : JobStatus.FAILED);
+                jobInstance.setEndTime(new Date());
+                jobInstance.setUpdateUserId(-1);
+                jobInstanceDao.update(jobInstance);
+                synchronized (mapLock) {
+                    jobInstanceMap.remove(jobInstance.getId());
+                }
+            }
+        } catch (Exception ex) {
+            log.warn(
+                    "Failed to verify job status on engine for job instance {}",
+                    jobInstance.getId(),
+                    ex);
+        }
     }
 
     private JobMetricsHistory convertToJobMetricsHistory(
