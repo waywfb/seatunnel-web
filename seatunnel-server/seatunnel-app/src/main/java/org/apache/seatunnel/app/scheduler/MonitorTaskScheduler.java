@@ -195,7 +195,7 @@ public class MonitorTaskScheduler {
                         engineStatus != null ? engineStatus : JobStatus.FAILED);
                 jobInstance.setEndTime(new Date());
                 jobInstance.setUpdateUserId(-1);
-                jobInstanceDao.update(jobInstance);
+                jobInstanceDao.getJobInstanceMapper().updateById(jobInstance);
                 synchronized (mapLock) {
                     jobInstanceMap.remove(jobInstance.getId());
                 }
