@@ -21,21 +21,29 @@ import org.apache.seatunnel.api.configuration.util.OptionRule;
 import org.apache.seatunnel.datasource.plugin.api.DataSourceChannel;
 import org.apache.seatunnel.datasource.plugin.api.DataSourcePluginException;
 import org.apache.seatunnel.datasource.plugin.api.model.TableField;
+import org.apache.seatunnel.datasource.plugin.api.utils.JsonSchemaDerivationUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -93,23 +101,44 @@ public class KafkaDataSourceChannel implements DataSourceChannel {
     }
 
     @Override
+    public boolean canAbleGetSchema() {
+        return true;
+    }
+
+    @Override
     public List<TableField> getTableFields(
             @NonNull String pluginName,
             @NonNull Map<String, String> requestParams,
             @NonNull String database,
             @NonNull String table) {
         checkArgument(StringUtils.equalsIgnoreCase(database, DATABASE), "database must be default");
-        return Collections.emptyList();
-    }
+        Properties props = KafkaRequestParamsUtils.parsePropertiesFromRequestParams(requestParams);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(
+                ConsumerConfig.GROUP_ID_CONFIG, "seatunnel-schema-derivation-" + UUID.randomUUID());
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1");
 
-    @Override
-    public Map<String, List<TableField>> getTableFields(
-            @NonNull String pluginName,
-            @NonNull Map<String, String> requestParams,
-            @NonNull String database,
-            @NonNull List<String> tables) {
-        checkArgument(StringUtils.equalsIgnoreCase(database, DATABASE), "database must be default");
-        return Collections.emptyMap();
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
+            consumer.subscribe(Collections.singletonList(table));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
+            if (records.isEmpty()) {
+                throw new DataSourcePluginException("No messages found in topic: " + table);
+            }
+            String value = records.iterator().next().value();
+            if (value == null) {
+                throw new DataSourcePluginException("Message value is null in topic: " + table);
+            }
+            return JsonSchemaDerivationUtils.deriveFromJson(value);
+        } catch (DataSourcePluginException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DataSourcePluginException(
+                    "Failed to derive schema from topic: " + table + ", " + e.getMessage(), e);
+        }
     }
 
     private AdminClient createAdminClient(Map<String, String> requestParams) {

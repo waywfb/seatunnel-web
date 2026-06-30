@@ -18,7 +18,6 @@
 package org.apache.seatunnel.datasource.plugin.kafka;
 
 import org.apache.seatunnel.api.configuration.util.OptionRule;
-import org.apache.seatunnel.datasource.plugin.api.model.TableField;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -27,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -89,19 +87,7 @@ public class KafkaDataSourceChannelTest {
     }
 
     @Test
-    public void getTableFields() {
-        List<TableField> tableFields =
-                KAFKA_DATA_SOURCE_CHANNEL.getTableFields(KAFKA_PLUGIN_NAME, REQUEST_PARAMS, "", "");
-        log.info("{}", tableFields);
-        Assertions.assertTrue(tableFields.isEmpty());
-    }
-
-    @Test
-    public void testGetTableFields() {
-        Map<String, List<TableField>> tableFields =
-                KAFKA_DATA_SOURCE_CHANNEL.getTableFields(
-                        KAFKA_PLUGIN_NAME, REQUEST_PARAMS, "", Collections.emptyList());
-        log.info("{}", tableFields);
-        Assertions.assertTrue(tableFields.isEmpty());
+    public void canAbleGetSchema() {
+        Assertions.assertTrue(KAFKA_DATA_SOURCE_CHANNEL.canAbleGetSchema());
     }
 }
