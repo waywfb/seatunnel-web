@@ -29,5 +29,5 @@ public interface VirtualTableMapper extends BaseMapper<VirtualTable> {
             @Param("tableId") Long tableId,
             @Param("virtualDatabaseName") String databaseName,
             @Param("virtualTableName") String virtualTableName,
-            @Param("datasourceId") Long datasourceId);
+            @Param("workspaceId") Long workspaceId);
 }
