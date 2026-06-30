@@ -182,8 +182,7 @@ public class MonitorTaskScheduler {
             if (jobEngineId == null) {
                 return;
             }
-            JobStatus engineStatus =
-                    SeaTunnelEngineProxy.getInstance().getJobStatus(jobEngineId);
+            JobStatus engineStatus = SeaTunnelEngineProxy.getInstance().getJobStatus(jobEngineId);
             if (engineStatus == null || JobUtils.isJobEndStatus(engineStatus)) {
                 log.warn(
                         "Job instance {} (engineId={}) is no longer running on engine,"
@@ -191,8 +190,7 @@ public class MonitorTaskScheduler {
                         jobInstance.getId(),
                         jobEngineId,
                         engineStatus != null ? engineStatus : JobStatus.FAILED);
-                jobInstance.setJobStatus(
-                        engineStatus != null ? engineStatus : JobStatus.FAILED);
+                jobInstance.setJobStatus(engineStatus != null ? engineStatus : JobStatus.FAILED);
                 jobInstance.setEndTime(new Date());
                 jobInstance.setUpdateUserId(-1);
                 jobInstanceDao.getJobInstanceMapper().updateById(jobInstance);
