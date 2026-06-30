@@ -56,9 +56,7 @@ public class HiveClient implements AutoCloseable {
     }
 
     public static HiveClient createInstance(Map<String, String> reqParam) {
-        checkNotNull(
-                reqParam.get(HiveOptionRule.METASTORE_URI.key()),
-                "hive metastore_uri cannot be null");
+        checkNotNull(reqParam.get(HiveOptionRule.METASTORE_URI.key()), "hive metastore_uri 不能为空");
         String metastoreUri = reqParam.get(HiveOptionRule.METASTORE_URI.key());
         String kerberosPrincipal = reqParam.get(HiveOptionRule.KERBEROS_PRINCIPAL.key());
         String kerberosKrb5ConfPath = reqParam.get(HiveOptionRule.KERBEROS_KRB5_CONF_PATH.key());
@@ -88,10 +86,7 @@ public class HiveClient implements AutoCloseable {
             return new HiveClient(new HiveMetaStoreClient(hiveConf));
         } catch (Exception e) {
             String errorMsg =
-                    String.format(
-                            "Using this hive uris [%s] to initialize "
-                                    + "hive metastore client instance failed",
-                            metastoreUri);
+                    String.format("使用 Hive URI [%s] 初始化 Hive Metastore 客户端失败", metastoreUri);
             log.error(ExceptionUtils.getMessage(e));
             throw new DataSourcePluginException(errorMsg, e);
         }
@@ -115,8 +110,7 @@ public class HiveClient implements AutoCloseable {
                 UserGroupInformation.loginUserFromKeytab(principal, keytabPath);
                 log.info("Kerberos authentication successful");
             } catch (IOException e) {
-                throw new DataSourcePluginException(
-                        "check hive connectivity failed, " + e.getMessage(), e);
+                throw new DataSourcePluginException("检查 Hive 连接失败, " + e.getMessage(), e);
             }
         }
     }
@@ -141,7 +135,7 @@ public class HiveClient implements AutoCloseable {
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error(ExceptionUtils.getMessage(e));
-            throw new DataSourcePluginException("get database names failed", e);
+            throw new DataSourcePluginException("获取数据库列表失败", e);
         }
     }
 
@@ -168,7 +162,7 @@ public class HiveClient implements AutoCloseable {
             return filteredTables;
         } catch (Exception e) {
             log.error(ExceptionUtils.getMessage(e));
-            throw new DataSourcePluginException("get table names failed", e);
+            throw new DataSourcePluginException("获取表名列表失败", e);
         }
     }
 
@@ -213,7 +207,7 @@ public class HiveClient implements AutoCloseable {
             return tableFields;
         } catch (TException e) {
             log.error(ExceptionUtils.getMessage(e));
-            throw new DataSourcePluginException("get table fields failed", e);
+            throw new DataSourcePluginException("获取表字段信息失败", e);
         }
     }
 }

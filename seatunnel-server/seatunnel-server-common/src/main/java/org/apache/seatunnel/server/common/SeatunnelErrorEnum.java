@@ -17,6 +17,10 @@
 
 package org.apache.seatunnel.server.common;
 
+import org.springframework.context.i18n.LocaleContextHolder;
+
+import java.util.Locale;
+
 public enum SeatunnelErrorEnum {
     SCRIPT_ALREADY_EXIST(
             10001, "script already exist", "You already have a script with the same name : '%s'"),
@@ -128,7 +132,7 @@ public enum SeatunnelErrorEnum {
             "can not found connector for datasource",
             "can not found connector for datasource [%s]"),
     DATA_SOURCE_HAD_USED(1600000, "数据源正在被任务使用，无法删除", "数据源正在被任务使用，无法删除"),
-    INVALID_DATASOURCE(-70001, "Datasource invalid", "datasource [{0}] invalid"),
+    INVALID_DATASOURCE(-70001, "Datasource invalid", "datasource [{0}] invalid", "数据源无效"),
     MISSING_PARAM(1777000, "param miss [{0}]", "param miss [{0}]"),
     PARAM_CAN_NOT_BE_NULL(60018, "", "param [%s] can not be null or empty"),
     INVALID_PARAM(60019, "", "param [%s] is invalid. %s"),
@@ -140,11 +144,17 @@ public enum SeatunnelErrorEnum {
     private final int code;
     private final String msg;
     private final String template;
+    private final String zhMsg;
 
     SeatunnelErrorEnum(int code, String msg, String template) {
+        this(code, msg, template, msg);
+    }
+
+    SeatunnelErrorEnum(int code, String msg, String template, String zhMsg) {
         this.code = code;
         this.msg = msg;
         this.template = template;
+        this.zhMsg = zhMsg;
     }
 
     public int getCode() {
@@ -152,6 +162,11 @@ public enum SeatunnelErrorEnum {
     }
 
     public String getMsg() {
+        if (Locale.SIMPLIFIED_CHINESE
+                .getLanguage()
+                .equals(LocaleContextHolder.getLocale().getLanguage())) {
+            return zhMsg;
+        }
         return msg;
     }
 

@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
         logError(e);
         return Result.failure(
                 SeatunnelErrorEnum.INVALID_DATASOURCE.getCode(),
-                SeatunnelErrorEnum.INVALID_DATASOURCE.getMsg() + ". " + e.getMessage());
+                SeatunnelErrorEnum.INVALID_DATASOURCE.getMsg() + ": " + e.getMessage());
     }
 
     @ExceptionHandler(value = MissingServletRequestParameterException.class)

@@ -99,8 +99,7 @@ public class HiveDataSourceChannel implements DataSourceChannel {
             System.out.println(ignored.getAllDatabases());
             return true;
         } catch (Exception e) {
-            throw new DataSourcePluginException(
-                    "check hive connectivity failed, " + e.getMessage(), e);
+            throw new DataSourcePluginException("检查 Hive 连接失败, " + e.getMessage(), e);
         }
     }
 

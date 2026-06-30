@@ -72,7 +72,7 @@ public class HiveJdbcDataSourceChannel implements DataSourceChannel {
             return getDataBaseNames(requestParams);
         } catch (SQLException | IOException e) {
             log.error("Query Hive databases error, request params is {}", requestParams, e);
-            throw new DataSourcePluginException("Query Hive databases error,", e);
+            throw new DataSourcePluginException("查询 Hive 数据库失败", e);
         }
     }
 
@@ -108,16 +108,14 @@ public class HiveJdbcDataSourceChannel implements DataSourceChannel {
         try (Connection ignored = getHiveConnection(requestParams)) {
             return true;
         } catch (Exception e) {
-            throw new DataSourcePluginException(
-                    "check jdbc connectivity failed, " + e.getMessage(), e);
+            throw new DataSourcePluginException("检查 JDBC 连接失败, " + e.getMessage(), e);
         }
     }
 
     protected Connection getHiveConnection(Map<String, String> requestParams)
             throws IOException, SQLException {
         if (MapUtils.isEmpty(requestParams)) {
-            throw new DataSourcePluginException(
-                    "Hive jdbc request params is null, please check your config");
+            throw new DataSourcePluginException("Hive JDBC 请求参数为空，请检查配置");
         }
         String driverClass =
                 requestParams.getOrDefault(
@@ -125,8 +123,7 @@ public class HiveJdbcDataSourceChannel implements DataSourceChannel {
         try {
             Class.forName(driverClass);
         } catch (ClassNotFoundException e) {
-            throw new DataSourcePluginException(
-                    "Hive jdbc driver " + driverClass + " not found", e);
+            throw new DataSourcePluginException("Hive JDBC 驱动 " + driverClass + " 未找到", e);
         }
         Properties connProps = new Properties();
         boolean isKerberosEnabled =
@@ -188,7 +185,7 @@ public class HiveJdbcDataSourceChannel implements DataSourceChannel {
             }
             return tableNames;
         } catch (SQLException | IOException e) {
-            throw new DataSourcePluginException("get table names failed", e);
+            throw new DataSourcePluginException("获取表名列表失败", e);
         }
     }
 
@@ -215,7 +212,7 @@ public class HiveJdbcDataSourceChannel implements DataSourceChannel {
                 tableFields.add(tableField);
             }
         } catch (SQLException | IOException e) {
-            throw new DataSourcePluginException("get table fields failed", e);
+            throw new DataSourcePluginException("获取表字段信息失败", e);
         }
         return tableFields;
     }
