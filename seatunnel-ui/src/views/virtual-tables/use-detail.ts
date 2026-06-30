@@ -217,9 +217,9 @@ export const useDetail = (id: string) => {
     try {
       const res = await deriveFromMessage(value)
       const fields: IDetailTableRecord[] = (res || []).map(
-        (item: { fieldName: string; fieldType: string }) => ({
-          fieldName: item.fieldName,
-          fieldType: item.fieldType,
+        (item: { name: string; type: string }) => ({
+          fieldName: item.name,
+          fieldType: item.type,
           nullable: 0,
           primaryKey: 0,
           isEdit: false,
