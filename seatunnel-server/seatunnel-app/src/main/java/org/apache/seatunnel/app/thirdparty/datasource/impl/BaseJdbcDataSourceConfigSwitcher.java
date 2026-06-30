@@ -84,7 +84,8 @@ public abstract class BaseJdbcDataSourceConfigSwitcher extends AbstractDataSourc
 
         filterFieldMap.put(
                 PluginType.SINK,
-                Arrays.asList(QUERY_KEY, TABLE_KEY, DATABASE_KEY, GENERATE_SINK_SQL));
+                Arrays.asList(
+                        QUERY_KEY, TABLE_KEY, DATABASE_KEY, GENERATE_SINK_SQL, USERNAME, PASSWORD));
         filterFieldMap.put(PluginType.SOURCE, Collections.singletonList(QUERY_KEY));
         if (isSupportDefaultSchema()
                 && businessMode.equals(DATA_REPLICA)
