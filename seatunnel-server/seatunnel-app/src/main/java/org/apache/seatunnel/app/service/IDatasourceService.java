@@ -243,6 +243,8 @@ public interface IDatasourceService {
      */
     List<TableField> queryTableSchema(String datasourceName, String databaseName, String tableName);
 
+    Map<String, Object> previewMessage(String datasourceId, String topic, Long offset);
+
     default List<String> queryTableNames(
             String datasourceName, String databaseName, String filterName, Integer size) {
         return new ArrayList<>();

@@ -58,5 +58,17 @@ export default {
   table_data_required_tips: '请在表结构中添加数据',
   default_value: '默认值',
   create: '创建',
-  search: '搜索'
+  search: '搜索',
+  derive_schema: '自动推导',
+  derive_schema_required_tips: '请先选择数据源和填写表名',
+  derive_schema_empty_tips: '未推导出字段信息',
+  derive_schema_success: '推导成功',
+  derive_schema_error: '推导失败',
+  derive_schema_no_more: '没有更多消息了',
+  preview_message_title: '消息预览',
+  preview_message_offset: '偏移量: {offset}',
+  preview_message_loading: '加载中...',
+  preview_message_empty: '(空消息)',
+  preview_fetch_next: '获取下一条',
+  preview_use: '使用此消息推导'
 }

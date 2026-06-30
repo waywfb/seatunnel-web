@@ -35,6 +35,7 @@ import org.apache.seatunnel.app.utils.PropertyUtils;
 import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.datasource.plugin.api.DataSourcePluginInfo;
 import org.apache.seatunnel.datasource.plugin.api.model.TableField;
+import org.apache.seatunnel.datasource.plugin.api.utils.JsonSchemaDerivationUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
 import org.apache.seatunnel.server.common.SeatunnelException;
 
@@ -60,6 +61,7 @@ import io.swagger.annotations.ApiOperation;
 import javax.annotation.Resource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -329,6 +331,24 @@ public class SeatunnelDatasourceController extends BaseController {
                 datasourceService.queryTableSchema(
                         res.getDatasourceName(), databaseName, tableName);
         return Result.success(tableFields);
+    }
+
+    @GetMapping("/message")
+    Result<Map<String, Object>> getKafkaMessage(
+            @RequestParam("datasourceId") String datasourceId,
+            @RequestParam("topic") String topic,
+            @RequestParam(value = "offset", required = false, defaultValue = "0") Long offset) {
+        Map<String, Object> message = datasourceService.previewMessage(datasourceId, topic, offset);
+        return Result.success(message);
+    }
+
+    @PostMapping("/schema/derive")
+    Result<List<TableField>> deriveFromMessage(@RequestBody Map<String, String> body) {
+        String value = body.get("value");
+        if (value == null || value.trim().isEmpty()) {
+            return Result.success(Collections.emptyList());
+        }
+        return Result.success(JsonSchemaDerivationUtils.deriveFromJson(value));
     }
 
     @PostMapping("/schemas")

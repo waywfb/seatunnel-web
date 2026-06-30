@@ -127,4 +127,11 @@ public interface DataSourceService {
             String updateFieldType);
 
     Connection getConnection(String pluginName, Map<String, String> requestParams);
+
+    Map<String, Object> previewMessage(
+            String pluginName,
+            Map<String, String> requestParams,
+            String databaseName,
+            String tableName,
+            Long offset);
 }

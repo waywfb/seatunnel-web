@@ -25,13 +25,14 @@ import {
   NText,
   NIcon,
   NCard,
+  NModal,
   useDialog
 } from 'naive-ui'
 import StepOneForm from './step-one-form'
 import StepTwoForm from './step-two-form'
 import StepTwoTable from './step-two-table'
 import StepThreeParams from './step-three-params'
-import { PlusOutlined } from '@vicons/antd'
+import { PlusOutlined, SyncOutlined } from '@vicons/antd'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDetail } from './use-detail'
@@ -50,7 +51,11 @@ const VirtualTablesDetail = defineComponent({
       stepTwoFormRef,
       onAddRecord,
       onChangeStep,
-      createOrUpdate
+      createOrUpdate,
+      onDeriveSchema,
+      onPreviewUse,
+      onPreviewFetchNext,
+      onPreviewClose
     } = useDetail(route.params.id as string)
     console.log('create')
     const onClose = () => {
@@ -117,6 +122,16 @@ const VirtualTablesDetail = defineComponent({
                       </NIcon>
                     ),
                     default: () => t('virtual_tables.add')
+                  }}
+                </NButton>
+                <NButton text type='primary' onClick={onDeriveSchema}>
+                  {{
+                    icon: () => (
+                      <NIcon>
+                        <SyncOutlined />
+                      </NIcon>
+                    ),
+                    default: () => t('virtual_tables.derive_schema')
                   }}
                 </NButton>
               </div>
@@ -190,6 +205,62 @@ const VirtualTablesDetail = defineComponent({
             </NButton>
           </NSpace>
         </NCard>
+
+        <NModal
+          show={state.previewModal.show}
+          preset='card'
+          title={t('virtual_tables.preview_message_title')}
+          style={{ width: '640px' }}
+          loading={state.previewModal.deriving}
+          onUpdateShow={(val: boolean) => {
+            if (!val) onPreviewClose()
+          }}
+        >
+          <NSpace vertical>
+            <NText depth='3'>
+              {t('virtual_tables.preview_message_offset', {
+                offset: state.previewModal.offset
+              })}
+            </NText>
+            <NText>
+              <pre
+                style={{
+                  background: '#f5f5f5',
+                  padding: '12px',
+                  borderRadius: '4px',
+                  overflow: 'auto',
+                  maxHeight: '320px',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-all'
+                }}
+              >
+                {state.previewModal.loading
+                  ? t('virtual_tables.preview_message_loading')
+                  : state.previewModal.value ||
+                    t('virtual_tables.preview_message_empty')}
+              </pre>
+            </NText>
+            <NSpace justify='end'>
+              <NButton
+                onClick={onPreviewFetchNext}
+                loading={state.previewModal.loading}
+                disabled={state.previewModal.deriving}
+              >
+                {t('virtual_tables.preview_fetch_next')}
+              </NButton>
+              <NButton
+                type='primary'
+                onClick={onPreviewUse}
+                loading={state.previewModal.deriving}
+                disabled={
+                  state.previewModal.loading || !state.previewModal.value
+                }
+              >
+                {t('virtual_tables.preview_use')}
+              </NButton>
+            </NSpace>
+          </NSpace>
+        </NModal>
       </NSpace>
     )
   }

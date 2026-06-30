@@ -59,5 +59,17 @@ export default {
   table_data_required_tips: 'Please add a record to the table',
   default_value: 'Default Value',
   create: 'Create',
-  search: 'Search'
+  search: 'Search',
+  derive_schema: 'Auto Derive',
+  derive_schema_required_tips: 'Please select a datasource and enter table name first',
+  derive_schema_empty_tips: 'No fields derived',
+  derive_schema_success: 'Schema derived successfully',
+  derive_schema_error: 'Schema derivation failed',
+  derive_schema_no_more: 'No more messages',
+  preview_message_title: 'Preview Message',
+  preview_message_offset: 'Offset: {offset}',
+  preview_message_loading: 'Loading...',
+  preview_message_empty: '(empty message)',
+  preview_fetch_next: 'Fetch Next',
+  preview_use: 'Use This Message'
 }

@@ -343,8 +343,8 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         String pluginName = datasource.getPluginName();
         ITableSchemaService tableSchemaService =
                 (ITableSchemaService) applicationContext.getBean("tableSchemaServiceImpl");
+        configShadeUtil.decryptData(datasourceConfig);
         if (BooleanUtils.isNotTrue(checkIsSupportVirtualTable(pluginName))) {
-            configShadeUtil.decryptData(datasourceConfig);
             List<TableField> tableFields =
                     DataSourceClientFactory.getDataSourceClient()
                             .getTableFields(pluginName, datasourceConfig, databaseName, tableName);
@@ -353,15 +353,34 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             return tableFields;
         }
         VirtualTable virtualTable = virtualTableDao.selectVirtualTableByTableName(tableName);
-        if (virtualTable == null) {
-            throw new SeatunnelException(SeatunnelErrorEnum.VIRTUAL_TABLE_NOT_FOUND, tableName);
+        if (virtualTable != null) {
+            List<TableField> tableFields = convertTableSchema(virtualTable.getTableFields());
+            tableSchemaService.getAddSeaTunnelSchema(tableFields, pluginName);
+            return tableFields;
         }
 
-        // convert virtual table to table field
-        // virtualTable.getTableFields()
-        List<TableField> tableFields = convertTableSchema(virtualTable.getTableFields());
+        // 虚拟表不存在时（创建流程），尝试从数据源插件实时推导 schema
+        List<TableField> tableFields =
+                DataSourceClientFactory.getDataSourceClient()
+                        .getTableFields(pluginName, datasourceConfig, databaseName, tableName);
+
         tableSchemaService.getAddSeaTunnelSchema(tableFields, pluginName);
         return tableFields;
+    }
+
+    @Override
+    public Map<String, Object> previewMessage(String datasourceId, String topic, Long offset) {
+        long datasourceIdLong = Long.parseLong(datasourceId);
+        Datasource datasource = datasourceDao.selectDatasourceById(datasourceIdLong);
+        if (datasource == null) {
+            throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceId);
+        }
+        String config = datasource.getDatasourceConfig();
+        Map<String, String> datasourceConfig = JsonUtils.toMap(config, String.class, String.class);
+        configShadeUtil.decryptData(datasourceConfig);
+        String pluginName = datasource.getPluginName();
+        return DataSourceClientFactory.getDataSourceClient()
+                .previewMessage(pluginName, datasourceConfig, "default", topic, offset);
     }
 
     private List<TableField> convertTableSchema(String virtualTableFieldJson) {

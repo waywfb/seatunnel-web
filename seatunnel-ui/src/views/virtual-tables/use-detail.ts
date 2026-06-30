@@ -20,7 +20,10 @@ import {
   getVirtualTableDetail,
   createVirtualTable,
   updateVirtualTable,
-  getFieldType
+  getFieldType,
+  getDatasourceSchema,
+  getKafkaMessage,
+  deriveFromMessage
 } from '@/service/virtual-table'
 import { omit } from 'lodash'
 import { useRouter } from 'vue-router'
@@ -43,7 +46,14 @@ export const useDetail = (id: string) => {
       config: []
     },
     fieldTypes: [] as string[],
-    goNexting: false
+    goNexting: false,
+    previewModal: {
+      show: false,
+      loading: false,
+      value: '',
+      offset: 0,
+      deriving: false
+    }
   })
   const { t } = useI18n()
   let tempDatabaseProperties: any
@@ -176,12 +186,97 @@ export const useDetail = (id: string) => {
     queryFieldsType()
   })
 
+  const onDeriveSchema = async () => {
+    const { datasourceId, tableName } = state.stepOne
+    if (!datasourceId || !tableName) {
+      window.$message.warning(t('virtual_tables.derive_schema_required_tips'))
+      return
+    }
+    state.previewModal.loading = true
+    state.previewModal.show = true
+    state.previewModal.offset = 0
+    try {
+      const res = await getKafkaMessage(datasourceId, tableName, 0)
+      state.previewModal.value = res?.value || ''
+      state.previewModal.offset = res?.offset ?? 0
+    } catch {
+      state.previewModal.value = ''
+      window.$message.error(t('virtual_tables.derive_schema_error'))
+    } finally {
+      state.previewModal.loading = false
+    }
+  }
+
+  const onPreviewUse = async () => {
+    const value = state.previewModal.value
+    if (!value) {
+      window.$message.warning(t('virtual_tables.derive_schema_empty_tips'))
+      return
+    }
+    state.previewModal.deriving = true
+    try {
+      const res = await deriveFromMessage(value)
+      const fields: IDetailTableRecord[] = (res || []).map(
+        (item: { fieldName: string; fieldType: string }) => ({
+          fieldName: item.fieldName,
+          fieldType: item.fieldType,
+          nullable: 0,
+          primaryKey: 0,
+          isEdit: false,
+          key: Date.now() + Math.random() * 1000
+        })
+      )
+      if (fields.length === 0) {
+        window.$message.warning(t('virtual_tables.derive_schema_empty_tips'))
+        return
+      }
+      state.stepTwo.list = fields
+      state.previewModal.show = false
+      window.$message.success(t('virtual_tables.derive_schema_success'))
+    } catch {
+      window.$message.error(t('virtual_tables.derive_schema_error'))
+    } finally {
+      state.previewModal.deriving = false
+    }
+  }
+
+  const onPreviewFetchNext = async () => {
+    const { datasourceId, tableName } = state.stepOne
+    state.previewModal.loading = true
+    try {
+      const nextOffset = state.previewModal.offset + 1
+      const res = await getKafkaMessage(datasourceId, tableName, nextOffset)
+      if (!res || !res.value) {
+        window.$message.info(t('virtual_tables.derive_schema_no_more'))
+        state.previewModal.offset = nextOffset
+        state.previewModal.value = ''
+        return
+      }
+      state.previewModal.value = res.value
+      state.previewModal.offset = res.offset ?? nextOffset
+    } catch {
+      window.$message.error(t('virtual_tables.derive_schema_error'))
+    } finally {
+      state.previewModal.loading = false
+    }
+  }
+
+  const onPreviewClose = () => {
+    state.previewModal.show = false
+    state.previewModal.value = ''
+    state.previewModal.offset = 0
+  }
+
   return {
     state,
     stepOneFormRef,
     stepTwoFormRef,
     createOrUpdate,
     onAddRecord,
-    onChangeStep
+    onChangeStep,
+    onDeriveSchema,
+    onPreviewUse,
+    onPreviewFetchNext,
+    onPreviewClose
   }
 }

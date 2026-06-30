@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableList;
 import lombok.NonNull;
 
 import java.sql.Connection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -65,6 +66,15 @@ public interface DataSourceChannel {
 
     default boolean canAbleGetSchema() {
         return false;
+    }
+
+    default Map<String, Object> previewMessage(
+            @NonNull String pluginName,
+            @NonNull Map<String, String> requestParams,
+            @NonNull String database,
+            @NonNull String table,
+            Long offset) {
+        return Collections.emptyMap();
     }
 
     List<TableField> getTableFields(

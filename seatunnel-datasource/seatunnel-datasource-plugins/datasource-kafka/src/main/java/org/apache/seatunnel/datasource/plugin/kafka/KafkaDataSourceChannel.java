@@ -29,8 +29,10 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import lombok.NonNull;
@@ -39,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -106,6 +109,44 @@ public class KafkaDataSourceChannel implements DataSourceChannel {
     }
 
     @Override
+    public Map<String, Object> previewMessage(
+            @NonNull String pluginName,
+            @NonNull Map<String, String> requestParams,
+            @NonNull String database,
+            @NonNull String table,
+            Long offset) {
+        checkArgument(StringUtils.equalsIgnoreCase(database, DATABASE), "database must be default");
+        Properties props = KafkaRequestParamsUtils.parsePropertiesFromRequestParams(requestParams);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "seatunnel-schema-preview-" + UUID.randomUUID());
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "1");
+
+        try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
+            TopicPartition tp = new TopicPartition(table, 0);
+            consumer.assign(Collections.singletonList(tp));
+            if (offset != null && offset >= 0) {
+                consumer.seek(tp, offset);
+            }
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
+            if (!records.isEmpty()) {
+                ConsumerRecord<String, String> record = records.iterator().next();
+                Map<String, Object> result = new HashMap<>();
+                result.put("value", record.value());
+                result.put("offset", record.offset());
+                result.put("partition", record.partition());
+                return result;
+            }
+            return Collections.emptyMap();
+        } catch (Exception e) {
+            throw new DataSourcePluginException(
+                    "Failed to preview message from topic: " + table + ", " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public List<TableField> getTableFields(
             @NonNull String pluginName,
             @NonNull Map<String, String> requestParams,
@@ -124,15 +165,17 @@ public class KafkaDataSourceChannel implements DataSourceChannel {
 
         try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props)) {
             consumer.subscribe(Collections.singletonList(table));
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(10));
-            if (records.isEmpty()) {
-                throw new DataSourcePluginException("No messages found in topic: " + table);
+            long deadline = System.currentTimeMillis() + 15_000;
+            while (System.currentTimeMillis() < deadline) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(5));
+                for (ConsumerRecord<String, String> record : records) {
+                    String value = record.value();
+                    if (value != null && !value.trim().isEmpty()) {
+                        return JsonSchemaDerivationUtils.deriveFromJson(value);
+                    }
+                }
             }
-            String value = records.iterator().next().value();
-            if (value == null) {
-                throw new DataSourcePluginException("Message value is null in topic: " + table);
-            }
-            return JsonSchemaDerivationUtils.deriveFromJson(value);
+            throw new DataSourcePluginException("No valid JSON message found in topic: " + table);
         } catch (DataSourcePluginException e) {
             throw e;
         } catch (Exception e) {

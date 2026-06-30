@@ -82,3 +82,38 @@ export function getFieldType(): any {
     method: 'get'
   })
 }
+
+export function getDatasourceSchema(
+  datasourceId: string,
+  databaseName: string,
+  tableName: string
+): any {
+  return axios({
+    url: '/datasource/schema',
+    method: 'get',
+    params: { datasourceId, databaseName, tableName }
+  })
+}
+
+export function getKafkaMessage(
+  datasourceId: string,
+  topic: string,
+  offset?: number
+): any {
+  return axios({
+    url: '/datasource/message',
+    method: 'get',
+    params: { datasourceId, topic, offset }
+  })
+}
+
+export function deriveFromMessage(value: string): any {
+  return axios({
+    url: '/datasource/schema/derive',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    },
+    data: { value }
+  })
+}

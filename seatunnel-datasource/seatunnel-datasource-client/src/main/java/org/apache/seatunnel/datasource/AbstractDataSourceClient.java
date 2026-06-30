@@ -303,4 +303,19 @@ public abstract class AbstractDataSourceClient implements DataSourceService {
         classLoaderRestore();
         return connection;
     }
+
+    @Override
+    public Map<String, Object> previewMessage(
+            String pluginName,
+            Map<String, String> requestParams,
+            String databaseName,
+            String tableName,
+            Long offset) {
+        updateClassLoader(pluginName);
+        Map<String, Object> result =
+                getDataSourceChannel(pluginName)
+                        .previewMessage(pluginName, requestParams, databaseName, tableName, offset);
+        classLoaderRestore();
+        return result;
+    }
 }
