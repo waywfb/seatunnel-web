@@ -30,6 +30,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.seatunnel</groupId>
             <artifactId>seatunnel-jackson</artifactId>
             <version>${seatunnel-framework.version}</version>
