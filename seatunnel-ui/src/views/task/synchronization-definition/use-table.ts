@@ -361,42 +361,45 @@ export function useTable() {
       })
   }
 
-  const handleRun = (row: any) => {
+  const handleRun = async (row: any) => {
     // Prevent duplicate task submissions
     loadingStates.value.set(row.id, true)
 
-    executeJob(row.id)
-      .then((res: any) => {
-        message.success(t('project.synchronization_definition.start_success'))
-        router.push({
-          path: `/task/synchronization-instance/${row.id}`,
-          query: {
-            jobInstanceId: res,
-            taskName: row.name
-          }
-        })
+    try {
+      const res: any = await executeJob(row.id)
+      message.success(t('project.synchronization_definition.start_success'))
+      router.push({
+        path: `/task/synchronization-instance/${row.id}`,
+        query: {
+          jobInstanceId: res,
+          taskName: row.name
+        }
       })
-      .catch((error) => {
-        message.error(t('project.synchronization_definition.start_failed'))
-        loadingStates.value.set(row.id, false)
-      })
+    } catch (error) {
+      message.error(t('project.synchronization_definition.start_failed'))
+      loadingStates.value.set(row.id, false)
+    }
   }
 
-  const handleDelete = (row: Task) => {
+  const handleDelete = async (row: Task) => {
     if (variables.tableData.length === 1 && variables.page > 1) {
       --variables.page
     }
 
-    deleteSyncTaskDefinition({
-      projectCode: row.projectCode,
-      id: row.id
-    }).then(() => {
+    try {
+      await deleteSyncTaskDefinition({
+        projectCode: row.projectCode,
+        id: row.id
+      })
       getTableData({
         pageSize: variables.pageSize,
         pageNo: variables.page,
         searchName: variables.searchName
       })
-    })
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Delete failed:', error)
+    }
   }
 
   return {

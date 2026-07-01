@@ -53,6 +53,10 @@ const err = (err: AxiosError): Promise<AxiosError> => {
     userStore.setUserInfo({})
     router.push({ path: '/login' })
   }
+  const message =
+    (err.response?.data as any)?.message || err.message || '请求失败'
+  // eslint-disable-next-line no-console
+  console.error('API Error:', message)
   return Promise.reject(err)
 }
 
@@ -76,12 +80,10 @@ service.interceptors.response.use((res: AxiosResponse) => {
   switch (res.data.code) {
     case 0:
       return res.data.data
-    
     case 10008:
       userStore.setUserInfo({})
       router.push({ path: '/login' })
       throw new Error()
-    
     default:
       handleError(res)
       throw new Error()

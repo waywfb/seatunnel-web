@@ -106,7 +106,12 @@ const TaskCard = defineComponent({
                 t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.DELETE_CONFIRM)
               )
             ) {
-              emit('delete', props.task)
+              try {
+                emit('delete', props.task)
+              } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error('Delete failed:', error)
+              }
             }
           }
         }
