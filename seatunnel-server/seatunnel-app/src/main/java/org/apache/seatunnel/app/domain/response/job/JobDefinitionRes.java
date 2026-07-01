@@ -67,4 +67,7 @@ public class JobDefinitionRes {
 
     @ApiModelProperty(value = "sink connector type", dataType = "String")
     private String sinkConnectorType;
+
+    @ApiModelProperty(value = "sink datasource plugin name, eg JDBC-Mysql", dataType = "String")
+    private String sinkDatasourceName;
 }

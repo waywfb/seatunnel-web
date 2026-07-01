@@ -23,6 +23,7 @@ import {
 import _, { omit } from 'lodash'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { getDatasourceDisplayName } from './sidebar/use-sidebar'
 import type { ModelRecord } from './types'
 
 export function useNodeSettingModal(
@@ -47,7 +48,8 @@ export function useNodeSettingModal(
       connectorType:
         props.nodeInfo.type === 'transform' || props.nodeInfo.type === 'source'
           ? props.nodeInfo.connectorType
-          : null
+          : null,
+      datasourceName: values.datasourceName || ''
     } as { [key: string]: any }
     const config = omit(values, [
       'name',
@@ -133,6 +135,11 @@ export function useNodeSettingModal(
       }
 
       const values = configurationFormRef.value.getValues()
+
+      // auto-generate node name for sink from datasource type
+      if (props.nodeInfo.type === 'sink' && values.datasourceName) {
+        values.name = getDatasourceDisplayName(values.datasourceName)
+      }
 
       let modelOutputTableData
       if (props.nodeInfo.type === 'source') {

@@ -33,6 +33,7 @@ import { getDagData } from './dag-data'
 import styles from './index.module.scss'
 import type { Ref } from 'vue'
 import type { InputEdge, InputPlugin, NodeInfo } from '../types'
+import { getDatasourceDisplayName } from '../sidebar/use-sidebar'
 
 const DagCanvas = defineComponent({
   name: 'DagCanvas',
@@ -124,6 +125,10 @@ const DagCanvas = defineComponent({
     const onConfirmModal = (values: InputPlugin) => {
       state.show = false
       const node = graph.value?.getCellById(currentNodeId)
+      // auto-show database type for sink nodes
+      if (values.type?.toLowerCase() === 'sink' && (values as any).datasourceName) {
+        values.name = getDatasourceDisplayName((values as any).datasourceName)
+      }
       node?.replaceData({
         ...values,
         unsaved: false,

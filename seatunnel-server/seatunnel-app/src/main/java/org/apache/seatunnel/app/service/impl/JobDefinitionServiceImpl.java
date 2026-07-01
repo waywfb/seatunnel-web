@@ -18,9 +18,11 @@
 package org.apache.seatunnel.app.service.impl;
 
 import org.apache.seatunnel.app.common.EngineType;
+import org.apache.seatunnel.app.dal.dao.IDatasourceDao;
 import org.apache.seatunnel.app.dal.dao.IJobDefinitionDao;
 import org.apache.seatunnel.app.dal.dao.IJobTaskDao;
 import org.apache.seatunnel.app.dal.dao.IJobVersionDao;
+import org.apache.seatunnel.app.dal.entity.Datasource;
 import org.apache.seatunnel.app.dal.entity.JobDefinition;
 import org.apache.seatunnel.app.dal.entity.JobTask;
 import org.apache.seatunnel.app.dal.entity.JobVersion;
@@ -52,10 +54,12 @@ import lombok.NonNull;
 import javax.annotation.Resource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,6 +78,9 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
     private IJobVersionDao jobVersionDao;
 
     @Resource private WorkspaceService workspaceService;
+
+    @Resource(name = "datasourceDaoImpl")
+    private IDatasourceDao datasourceDao;
 
     @Override
     @Transactional
@@ -144,6 +151,23 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
             Map<Long, List<JobTask>> tasksByVersion =
                     allTasks.stream().collect(Collectors.groupingBy(JobTask::getVersionId));
 
+            // batch resolve sink datasource names
+            Set<Long> sinkDataSourceIds =
+                    allTasks.stream()
+                            .filter(t -> "SINK".equalsIgnoreCase(t.getType()))
+                            .map(JobTask::getDataSourceId)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+            Map<Long, String> dsIdToPluginName = Collections.emptyMap();
+            if (!sinkDataSourceIds.isEmpty()) {
+                dsIdToPluginName =
+                        datasourceDao.selectDatasourceByIds(new ArrayList<>(sinkDataSourceIds))
+                                .stream()
+                                .collect(
+                                        Collectors.toMap(
+                                                Datasource::getId, Datasource::getPluginName));
+            }
+
             for (JobDefinitionRes res : job.getData()) {
                 Long versionId = jobIdToVersionId.get(res.getId());
                 if (versionId == null) continue;
@@ -155,6 +179,10 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                         res.setSourceConnectorType(task.getConnectorType());
                     } else if ("SINK".equals(type)) {
                         res.setSinkConnectorType(task.getConnectorType());
+                        String pluginName = dsIdToPluginName.get(task.getDataSourceId());
+                        if (pluginName != null) {
+                            res.setSinkDatasourceName(pluginName);
+                        }
                     }
                 }
             }

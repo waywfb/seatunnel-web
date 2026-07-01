@@ -9,6 +9,33 @@ import { tasksState } from '@/common/common'
 import { useI18n } from 'vue-i18n'
 import TimeAgo from '@/components/time-ago'
 
+const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
+  'JDBC-Mysql': 'MySQL',
+  'JDBC-Postgres': 'PostgreSQL',
+  'JDBC-SQLServer': 'SQLServer',
+  'JDBC-Oracle': 'Oracle',
+  'JDBC-Db2': 'Db2',
+  'JDBC-Hive': 'Hive',
+  'JDBC-KingBase': 'Kingbase',
+  'JDBC-TiDB': 'TiDB',
+  'MySQL-CDC': 'MySQL-CDC',
+  'Postgres-CDC': 'Postgres-CDC',
+  'SqlServer-CDC': 'SQLServer-CDC',
+  Kafka: 'Kafka',
+  Http: 'HTTP',
+  ElasticSearch: 'Elasticsearch',
+  S3: 'S3',
+  MongoDB: 'MongoDB',
+  FakeSource: 'FakeSource',
+  Hive: 'Hive',
+  Console: 'Console',
+  StarRocks: 'StarRocks'
+}
+
+function getDatasourceDisplayName(name: string): string {
+  return DATASOURCE_DISPLAY_NAMES[name] || name
+}
+
 const TaskCard = defineComponent({
   name: 'TaskCard',
   props: {
@@ -137,7 +164,7 @@ const TaskCard = defineComponent({
 
           {task.sourceConnectorType || task.sinkConnectorType ? (
             <div style={{ fontSize: '13px', color: 'var(--color-foreground)' }}>
-              {(task.sourceConnectorType || '?') + ' → ' + (task.sinkConnectorType || '?')}
+              {(task.sourceConnectorType || '?') + ' → ' + (getDatasourceDisplayName(task.sinkDatasourceName || task.sinkConnectorType) || '?')}
             </div>
           ) : null}
 
