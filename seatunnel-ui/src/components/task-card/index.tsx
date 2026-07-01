@@ -1,5 +1,5 @@
 import { defineComponent, PropType, h } from 'vue'
-import { NTag, NButton, NIcon, NDropdown, NSpace, NSpin } from 'naive-ui'
+import { NTag, NButton, NIcon, NDropdown, NSpin } from 'naive-ui'
 import {
   EditOutlined,
   PlayCircleOutlined,
@@ -9,6 +9,14 @@ import { tasksState } from '@/common/common'
 import { useI18n } from 'vue-i18n'
 import TimeAgo from '@/components/time-ago'
 import { I18N_KEYS } from '@/common/i18n-keys'
+import {
+  cardStyles,
+  cardHeaderStyles,
+  cardTitleStyles,
+  cardContentStyles,
+  cardFooterStyles,
+  cardMetaStyles
+} from '@/common/styles'
 
 const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
   'JDBC-Mysql': 'MySQL',
@@ -43,7 +51,10 @@ const TaskCard = defineComponent({
     task: { type: Object as PropType<any>, required: true },
     onEdit: { type: Function as PropType<(task: any) => void>, default: null },
     onRun: { type: Function as PropType<(task: any) => void>, default: null },
-    onDelete: { type: Function as PropType<(task: any) => void>, default: null },
+    onDelete: {
+      type: Function as PropType<(task: any) => void>,
+      default: null
+    },
     loadingStates: {
       type: Object as PropType<Map<number, boolean>>,
       default: () => new Map()
@@ -74,14 +85,7 @@ const TaskCard = defineComponent({
             fontSize: '13px'
           }
         },
-        [
-          icon,
-          h(
-            'span',
-            { style: { color: option.color } },
-            option.desc
-          )
-        ]
+        [icon, h('span', { style: { color: option.color } }, option.desc)]
       )
     }
 
@@ -89,19 +93,23 @@ const TaskCard = defineComponent({
       if (!jobType) return null
       const isReplica =
         jobType === 'DATA_REPLICA' || jobType === 'whole_library_sync'
-      return h(NTag, {
-        size: 'small',
-        type: isReplica ? 'info' : 'success',
-        bordered: false,
-        round: false
-      }, {
-        default: () =>
-          t(
-            isReplica
-              ? I18N_KEYS.SYNCHRONIZATION_DEFINITION.WHOLE_LIBRARY_SYNC
-              : I18N_KEYS.SYNCHRONIZATION_DEFINITION.DATA_INTEGRATION
-          )
-      })
+      return h(
+        NTag,
+        {
+          size: 'small',
+          type: isReplica ? 'info' : 'success',
+          bordered: false,
+          round: false
+        },
+        {
+          default: () =>
+            t(
+              isReplica
+                ? I18N_KEYS.SYNCHRONIZATION_DEFINITION.WHOLE_LIBRARY_SYNC
+                : I18N_KEYS.SYNCHRONIZATION_DEFINITION.DATA_INTEGRATION
+            )
+        }
+      )
     }
 
     const dropdownOptions = [
@@ -129,33 +137,14 @@ const TaskCard = defineComponent({
       return (
         <div
           style={{
-            background: 'var(--color-card)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-card)',
-            padding: '16px 20px',
+            ...cardStyles,
             display: 'flex',
             flexDirection: 'column',
             gap: '10px'
           }}
         >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              gap: '8px'
-            }}
-          >
-            <span
-              style={{
-                fontWeight: 600,
-                fontSize: '14px',
-                color: 'var(--color-primary)',
-                cursor: 'pointer',
-                lineHeight: 1.4
-              }}
-              onClick={() => props.onEdit?.(task)}
-            >
+          <div style={cardHeaderStyles}>
+            <span style={cardTitleStyles} onClick={() => props.onEdit?.(task)}>
               {task.name}
             </span>
             {renderJobTypeTag(task.jobType)}
@@ -164,46 +153,34 @@ const TaskCard = defineComponent({
           <div>{renderState(task.status || task.jobStatus)}</div>
 
           {task.sourceConnectorType || task.sinkConnectorType ? (
-            <div style={{ fontSize: '13px', color: 'var(--color-foreground)' }}>
-              {(task.sourceConnectorType || '?') + ' → ' + (getDatasourceDisplayName(task.sinkDatasourceName || task.sinkConnectorType) || '?')}
+            <div style={cardContentStyles}>
+              {(task.sourceConnectorType || '?') +
+                ' → ' +
+                (getDatasourceDisplayName(
+                  task.sinkDatasourceName || task.sinkConnectorType
+                ) || '?')}
             </div>
           ) : null}
 
-          <div
-            style={{
-              display: 'flex',
-              gap: '12px',
-              fontSize: '12px',
-              color: 'var(--color-muted-foreground)'
-            }}
-          >
+          <div style={cardMetaStyles}>
             {task.createTime
-              ? h(
-                  'span',
-                  null,
-                  [
-                    t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TIME) + ' ',
-                    h(TimeAgo, { date: task.createTime })
-                  ]
-              )
+              ? h('span', null, [
+                  t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TIME) + ' ',
+                  h(TimeAgo, { date: task.createTime })
+                ])
               : null}
             {task.updateTime
-              ? h(
-                  'span',
-                  null,
-                  [
-                    t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.UPDATE_TIME) + ' ',
-                    h(TimeAgo, { date: task.updateTime })
-                  ]
-              )
+              ? h('span', null, [
+                  t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.UPDATE_TIME) + ' ',
+                  h(TimeAgo, { date: task.updateTime })
+                ])
               : null}
           </div>
 
-          <div style={{ display: 'flex', gap: '8px', marginTop: '2px' }}>
+          <div style={cardFooterStyles}>
             <NButton size='small' tertiary onClick={() => props.onEdit?.(task)}>
               {{
-                icon: () =>
-                  h(NIcon, null, { default: () => h(EditOutlined) }),
+                icon: () => h(NIcon, null, { default: () => h(EditOutlined) }),
                 default: () => t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.EDIT)
               }}
             </NButton>

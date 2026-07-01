@@ -15,7 +15,15 @@
  * limitations under the License.
  */
 
-import { defineComponent, onMounted, toRefs, watch, computed, ref, h } from 'vue'
+import {
+  defineComponent,
+  onMounted,
+  toRefs,
+  watch,
+  computed,
+  ref,
+  h
+} from 'vue'
 import {
   NSpace,
   NCard,
@@ -27,7 +35,11 @@ import {
   NPagination
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { SearchOutlined, UnorderedListOutlined, AppstoreOutlined } from '@vicons/antd'
+import {
+  SearchOutlined,
+  UnorderedListOutlined,
+  AppstoreOutlined
+} from '@vicons/antd'
 import { I18N_KEYS } from '@/common/i18n-keys'
 import { useTable } from './use-table'
 import { TaskModal } from './task-modal'
@@ -35,6 +47,7 @@ import StatCard from '@/components/stat-card'
 import TaskCard from '@/components/task-card'
 import { useRoute, useRouter } from 'vue-router'
 import isEmpty from 'lodash/isEmpty'
+import { statCardContainerStyles, taskCardGridStyles } from '@/common/styles'
 
 const SynchronizationDefinition = defineComponent({
   name: 'SynchronizationDefinition',
@@ -42,7 +55,14 @@ const SynchronizationDefinition = defineComponent({
     const { t, locale } = useI18n()
     const route = useRoute()
     const router = useRouter()
-    const { variables, createColumns, getTableData, handleRun, handleDelete, loadingStates } = useTable()
+    const {
+      variables,
+      createColumns,
+      getTableData,
+      handleRun,
+      handleDelete,
+      loadingStates
+    } = useTable()
 
     const viewMode = ref((route.query.view as string) || 'table')
 
@@ -63,7 +83,12 @@ const SynchronizationDefinition = defineComponent({
       for (const row of data) {
         const s = row.status || row.jobStatus
         if (!s) continue
-        if (s === 'SUBMITTED_SUCCESS' || s === 'RUNNING_EXECUTION' || s === 'RUNNING') running++
+        if (
+          s === 'SUBMITTED_SUCCESS' ||
+          s === 'RUNNING_EXECUTION' ||
+          s === 'RUNNING'
+        )
+          running++
         else if (s === 'SUCCESS') success++
         else if (s === 'FAILURE' || s === 'FAILED') failed++
       }
@@ -108,10 +133,10 @@ const SynchronizationDefinition = defineComponent({
         query: !isEmpty(query)
           ? {
               ...query,
-              ...route.query,
+              ...route.query
             }
           : {
-              ...route.query,
+              ...route.query
             }
       })
       requestData()
@@ -156,141 +181,135 @@ const SynchronizationDefinition = defineComponent({
       handleModalChange,
       onSearch,
       handleKeyup,
-      toggleView,
+      toggleView
     }
   },
   render() {
+    const renderSearchBar = () => (
+      <NCard>
+        <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
+          <NButton type='info' onClick={this.handleModalChange}>
+            {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TASK)}
+          </NButton>
+          <NSpace justify='end'>
+            <NInput
+              clearable
+              v-model={[this.searchName, 'value']}
+              placeholder={this.t(
+                I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME
+              )}
+              onKeyup={this.handleKeyup}
+            />
+
+            <NButton type='primary' onClick={this.onSearch}>
+              <NIcon>
+                <SearchOutlined />
+              </NIcon>
+            </NButton>
+            <NButtonGroup size='small'>
+              <NButton
+                type={this.viewMode === 'table' ? 'primary' : 'default'}
+                onClick={() => this.toggleView('table')}
+              >
+                {{
+                  icon: () =>
+                    h(NIcon, null, { default: () => h(UnorderedListOutlined) })
+                }}
+              </NButton>
+              <NButton
+                type={this.viewMode === 'card' ? 'primary' : 'default'}
+                onClick={() => this.toggleView('card')}
+              >
+                {{
+                  icon: () =>
+                    h(NIcon, null, { default: () => h(AppstoreOutlined) })
+                }}
+              </NButton>
+            </NButtonGroup>
+          </NSpace>
+        </NSpace>
+      </NCard>
+    )
+
+    const renderStatCards = () => (
+      <div style={statCardContainerStyles}>
+        <StatCard
+          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.TOTAL)}
+          value={this.stats.total}
+          color='var(--color-info)'
+          loading={this.loadingRef}
+        />
+        <StatCard
+          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.RUNNING)}
+          value={this.stats.running}
+          color='var(--color-primary)'
+          loading={this.loadingRef}
+        />
+        <StatCard
+          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.SUCCESS)}
+          value={this.stats.success}
+          color='var(--color-success)'
+          loading={this.loadingRef}
+        />
+        <StatCard
+          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.FAIL)}
+          value={this.stats.failed}
+          color='var(--color-error)'
+          loading={this.loadingRef}
+        />
+      </div>
+    )
+
+    const renderPagination = () => (
+      <NSpace justify='center'>
+        <NPagination
+          v-model:page={this.page}
+          v-model:page-size={this.pageSize}
+          page-count={this.totalPage}
+          show-size-picker
+          page-sizes={[10, 30, 50]}
+          show-quick-jumper
+          onUpdatePage={this.requestData}
+          onUpdatePageSize={this.onUpdatePageSize}
+        />
+      </NSpace>
+    )
+
+    const renderTableView = () => (
+      <NCard>
+        <NSpace vertical>
+          <NDataTable
+            loading={this.loadingRef}
+            columns={this.columns}
+            data={this.tableData}
+          />
+          {renderPagination()}
+        </NSpace>
+      </NCard>
+    )
+
+    const renderCardView = () => (
+      <div>
+        <div style={taskCardGridStyles}>
+          {this.tableData.map((task: any) => (
+            <TaskCard
+              task={task}
+              onEdit={this.handleEdit}
+              onRun={this.handleRun}
+              onDelete={this.handleDelete}
+              loadingStates={this.loadingStates}
+            />
+          ))}
+        </div>
+        {renderPagination()}
+      </div>
+    )
+
     return (
       <NSpace vertical>
-        <NCard>
-          <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
-            <NButton
-              type='info'
-              onClick={this.handleModalChange}
-            >
-              {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TASK)}
-            </NButton>
-            <NSpace justify='end'>
-              <NInput
-                clearable
-                v-model={[this.searchName, 'value']}
-                placeholder={this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME)}
-                onKeyup={this.handleKeyup}
-              />
-
-              <NButton type='primary' onClick={this.onSearch}>
-                <NIcon>
-                  <SearchOutlined />
-                </NIcon>
-              </NButton>
-              <NButtonGroup size='small'>
-                <NButton
-                  type={this.viewMode === 'table' ? 'primary' : 'default'}
-                  onClick={() => this.toggleView('table')}
-                >
-                  {{
-                    icon: () => h(NIcon, null, { default: () => h(UnorderedListOutlined) })
-                  }}
-                </NButton>
-                <NButton
-                  type={this.viewMode === 'card' ? 'primary' : 'default'}
-                  onClick={() => this.toggleView('card')}
-                >
-                  {{
-                    icon: () => h(NIcon, null, { default: () => h(AppstoreOutlined) })
-                  }}
-                </NButton>
-              </NButtonGroup>
-            </NSpace>
-          </NSpace>
-        </NCard>
-        <div
-          style={{
-            display: 'flex',
-            gap: 'var(--space-3)',
-          }}
-        >
-          <StatCard
-            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.TOTAL)}
-            value={this.stats.total}
-            color='var(--color-info)'
-            loading={this.loadingRef}
-          />
-          <StatCard
-            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.RUNNING)}
-            value={this.stats.running}
-            color='var(--color-primary)'
-            loading={this.loadingRef}
-          />
-          <StatCard
-            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.SUCCESS)}
-            value={this.stats.success}
-            color='var(--color-success)'
-            loading={this.loadingRef}
-          />
-          <StatCard
-            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.FAIL)}
-            value={this.stats.failed}
-            color='var(--color-error)'
-            loading={this.loadingRef}
-          />
-        </div>
-        {this.viewMode === 'table' ? (
-          <NCard>
-            <NSpace vertical>
-              <NDataTable
-                loading={this.loadingRef}
-                columns={this.columns}
-                data={this.tableData}
-              />
-              <NSpace justify='center'>
-                <NPagination
-                  v-model:page={this.page}
-                  v-model:page-size={this.pageSize}
-                  page-count={this.totalPage}
-                  show-size-picker
-                  page-sizes={[10, 30, 50]}
-                  show-quick-jumper
-                  onUpdatePage={this.requestData}
-                  onUpdatePageSize={this.onUpdatePageSize}
-                />
-              </NSpace>
-            </NSpace>
-          </NCard>
-        ) : (
-          <div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-                gap: '12px',
-                marginBottom: '16px'
-              }}
-            >
-              {this.tableData.map((task: any) => (
-                <TaskCard
-                  task={task}
-                  onEdit={this.handleEdit}
-                  onRun={this.handleRun}
-                  onDelete={this.handleDelete}
-                  loadingStates={this.loadingStates}
-                />
-              ))}
-            </div>
-            <NSpace justify='center'>
-              <NPagination
-                v-model:page={this.page}
-                v-model:page-size={this.pageSize}
-                page-count={this.totalPage}
-                show-size-picker
-                page-sizes={[10, 30, 50]}
-                show-quick-jumper
-                onUpdatePage={this.requestData}
-                onUpdatePageSize={this.onUpdatePageSize}
-              />
-            </NSpace>
-          </div>
-        )}
+        {renderSearchBar()}
+        {renderStatCards()}
+        {this.viewMode === 'table' ? renderTableView() : renderCardView()}
         <TaskModal
           showModalRef={this.showModalRef}
           onCancelModal={this.onCancelModal}
