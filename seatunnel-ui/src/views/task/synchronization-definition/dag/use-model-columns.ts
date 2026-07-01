@@ -80,6 +80,69 @@ export const useModelColumns = () => {
       negativeText: t('project.synchronization_definition.cancel')
     })
   }
+  const getBasicColumns = (withWidth: boolean) => {
+    const cols = [
+      {
+        title: '#',
+        key: 'index',
+        render: (row: any, index: number) => index + 1,
+        ...(withWidth ? COLUMN_WIDTH_CONFIG['index'] : {})
+      },
+      {
+        title: t('project.synchronization_definition.field_name'),
+        key: 'name',
+        ...(withWidth ? COLUMN_WIDTH_CONFIG['name'] : {}),
+        ellipsis: withWidth ? { tooltip: true } : undefined
+      },
+      {
+        title: t('project.synchronization_definition.field_type'),
+        key: 'type',
+        ...(withWidth ? COLUMN_WIDTH_CONFIG['type'] : {}),
+        ellipsis: {
+          tooltip: true
+        }
+      },
+      {
+        title: t('project.synchronization_definition.non_empty'),
+        key: 'nullable',
+        ...(withWidth ? COLUMN_WIDTH_CONFIG['index'] : {}),
+        render: (row: any) =>
+          row.nullable
+            ? t('project.synchronization_definition.yes')
+            : t('project.synchronization_definition.no')
+      },
+      {
+        title: t('project.synchronization_definition.primary_key'),
+        key: 'primaryKey',
+        ...(withWidth ? COLUMN_WIDTH_CONFIG['index'] : {}),
+        render: (row: any) =>
+          row.primaryKey
+            ? t('project.synchronization_definition.yes')
+            : t('project.synchronization_definition.no')
+      },
+      {
+        title: t('project.synchronization_definition.field_comment'),
+        key: 'comment',
+        ...(withWidth ? COLUMN_WIDTH_CONFIG['name'] : {}),
+        ellipsis: {
+          tooltip: true
+        }
+      },
+      {
+        title: t('project.synchronization_definition.default_value'),
+        key: 'defaultValue',
+        ...(withWidth ? COLUMN_WIDTH_CONFIG['state'] : {}),
+        ellipsis: {
+          tooltip: true
+        }
+      }
+    ] as any[]
+    if (!withWidth) {
+      cols.forEach((col: any) => { delete col.width })
+    }
+    return cols
+  }
+
   const createColumns = ({
     nodeType,
     columnSelectable,
@@ -91,61 +154,7 @@ export const useModelColumns = () => {
     transformType: string
     outputTableData: ModelRecord[]
   }) => {
-    const basicColumns = [
-      {
-        title: '#',
-        key: 'index',
-        render: (row: any, index: number) => index + 1,
-        ...COLUMN_WIDTH_CONFIG['index']
-      },
-      {
-        title: t('project.synchronization_definition.field_name'),
-        key: 'name',
-        ...COLUMN_WIDTH_CONFIG['name']
-      },
-      {
-        title: t('project.synchronization_definition.field_type'),
-        key: 'type',
-        ...COLUMN_WIDTH_CONFIG['type'],
-        ellipsis: {
-          tooltip: true
-        }
-      },
-      {
-        title: t('project.synchronization_definition.non_empty'),
-        key: 'nullable',
-        ...COLUMN_WIDTH_CONFIG['index'],
-        render: (row: any) =>
-          row.nullable
-            ? t('project.synchronization_definition.yes')
-            : t('project.synchronization_definition.no')
-      },
-      {
-        title: t('project.synchronization_definition.primary_key'),
-        key: 'primaryKey',
-        ...COLUMN_WIDTH_CONFIG['index'],
-        render: (row: any) =>
-          row.primaryKey
-            ? t('project.synchronization_definition.yes')
-            : t('project.synchronization_definition.no')
-      },
-      {
-        title: t('project.synchronization_definition.field_comment'),
-        key: 'comment',
-        ...COLUMN_WIDTH_CONFIG['name'],
-        ellipsis: {
-          tooltip: true
-        }
-      },
-      {
-        title: t('project.synchronization_definition.default_value'),
-        key: 'defaultValue',
-        ...COLUMN_WIDTH_CONFIG['state'],
-        ellipsis: {
-          tooltip: true
-        }
-      }
-    ] as any[]
+    const basicColumns = getBasicColumns(true) as any[]
 
     const selection = {
       type: 'selection',
@@ -557,7 +566,59 @@ export const useModelColumns = () => {
       outputTableWidth: calculateTableWidth(basicColumns)
     }
   }
-  return { createColumns }
+  const createMergedColumns = ({
+    nodeType,
+    columnSelectable,
+    transformType,
+    outputTableData
+  }: {
+    nodeType: string
+    columnSelectable: boolean
+    transformType: string
+    outputTableData: ModelRecord[]
+  }) => {
+    const basicAutoColumns = getBasicColumns(false) as any[]
+
+    if (nodeType === 'source') {
+      const selection = {
+        type: 'selection',
+        disabled: (row: any) => row.unSupport,
+        width: 50
+      }
+      return {
+        mergedColumns: !columnSelectable
+          ? basicAutoColumns
+          : ([selection, ...basicAutoColumns] as TableColumns),
+        mergedTableWidth: undefined
+      }
+    }
+
+    if (nodeType === 'transform' && (transformType === 'FieldMapper' || transformType === 'MultiFieldSplit' || transformType === 'Copy')) {
+      const outputColumns = [...basicAutoColumns]
+      const originalFieldCol = {
+        title: t('project.synchronization_definition.original_field'),
+        key: 'original_field',
+        ellipsis: { tooltip: true }
+      }
+      const nameCol = {
+        title: t('project.synchronization_definition.field_name'),
+        key: 'name',
+        ellipsis: { tooltip: true }
+      }
+      outputColumns.splice(1, 1, originalFieldCol, nameCol)
+      return {
+        mergedColumns: outputColumns as TableColumns,
+        mergedTableWidth: undefined
+      }
+    }
+
+    return {
+      mergedColumns: basicAutoColumns as TableColumns,
+      mergedTableWidth: undefined
+    }
+  }
+
+  return { createColumns, createMergedColumns }
 }
 
 function changeIndex(list: any[], targetIndex: number, sourceIndex: number) {

@@ -1,0 +1,26 @@
+.drawer-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.config-section {
+  flex: 0 0 auto;
+  max-height: 45%;
+  overflow-y: auto;
+  padding-bottom: 12px;
+}
+
+.model-section {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+.divider {
+  flex: 0 0 auto;
+  height: 1px;
+  background: #e0e0e0;
+  margin: 0 0 12px 0;
+}

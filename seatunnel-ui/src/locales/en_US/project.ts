@@ -1106,7 +1106,9 @@ export default {
     smart_parse_no_cache: 'No cached message found. Please go to the virtual table to fetch a message first.',
     smart_parse_required_tips: 'Please select a data source and table first',
     smart_parse_error: 'Smart parse failed',
-    smart_parse_success: 'Columns filled successfully'
+    smart_parse_success: 'Columns filled successfully',
+    view_mode_merged: 'Switch to Merged View',
+    view_mode_split: 'Switch to Split View'
   },
   synchronization_instance: {
     pipeline_id: 'Pipeline Id',

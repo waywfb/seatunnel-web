@@ -21,15 +21,14 @@ import {
   NDrawer,
   NDrawerContent,
   NSpace,
-  NButton,
-  NTabs,
-  NTabPane
+  NButton
 } from 'naive-ui'
 import { useNodeSettingModal } from './use-node-setting'
 import NodeModeModal from './node-model'
 import ConfigurationForm from './configuration-form'
 import type { PropType } from 'vue'
 import type { NodeInfo } from './types'
+import styles from './node-setting.module.scss'
 
 const props = {
   show: {
@@ -53,14 +52,11 @@ const NodeSetting = defineComponent({
       configurationFormRef,
       modelRef,
       onSave,
-      handleTab,
       handleChangeTable,
       handleSmartParseConfirm
     } = useNodeSettingModal(props, ctx)
 
     const cancelModal = () => {
-      state.tab = 'configuration'
-      state.width = '60%'
       ctx.emit('cancelModal', props.show)
     }
 
@@ -81,16 +77,12 @@ const NodeSetting = defineComponent({
     )
 
     return () => (
-      <NDrawer show={props.show} width={state.width} zIndex={1000}>
-        <NDrawerContent>
+      <NDrawer show={props.show} width='40%' zIndex={1000}>
+        <NDrawerContent bodyScrollable={false}>
           {{
             default: () => (
-              <NTabs onUpdateValue={handleTab} value={state.tab}>
-                <NTabPane
-                  name='configuration'
-                  tab={t('project.synchronization_definition.configuration')}
-                  displayDirective='show'
-                >
+              <div class={styles['drawer-layout']}>
+                <div class={styles['config-section']}>
                   <ConfigurationForm
                     nodeType={props.nodeInfo.type}
                     nodeId={props.nodeInfo.pluginId}
@@ -102,12 +94,9 @@ const NodeSetting = defineComponent({
                     onTableNameChange={handleChangeTable}
                     onSmartParseConfirm={handleSmartParseConfirm}
                   />
-                </NTabPane>
-                <NTabPane
-                  name='model'
-                  tab={t('project.synchronization_definition.model')}
-                  displayDirective='show'
-                >
+                </div>
+                <div class={styles['divider']} />
+                <div class={styles['model-section']}>
                   <NodeModeModal
                     ref={modelRef}
                     type={props.nodeInfo.type}
@@ -117,8 +106,8 @@ const NodeSetting = defineComponent({
                     schemaError={props.nodeInfo.schemaError}
                     refForm={configurationFormRef}
                   />
-                </NTabPane>
-              </NTabs>
+                </div>
+              </div>
             ),
             footer: () => (
               <NSpace>

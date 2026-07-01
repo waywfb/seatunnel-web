@@ -19,10 +19,9 @@ import { defineComponent } from 'vue'
 import {
   NSpace,
   NDataTable,
-  NEmpty,
   NGrid,
   NGridItem,
-  NEllipsis
+  NButton
 } from 'naive-ui'
 import { useNodeModel } from './use-model'
 import { useI18n } from 'vue-i18n'
@@ -58,7 +57,7 @@ const NodeModeModal = defineComponent({
   },
   setup(props, { expose }) {
     const { t } = useI18n()
-    const { state, onInit, onSwitchTable, onUpdatedCheckedRowKeys } =
+    const { state, onInit, onSwitchTable, onUpdatedCheckedRowKeys, onToggleViewMode } =
       useNodeModel(props.type, props.transformType, props.predecessorsNodeId, props.schemaError, props.currentNodeId, props.refForm)
 
     expose({
@@ -78,64 +77,78 @@ const NodeModeModal = defineComponent({
       }
     })
 
-    return () => (
-      <NGrid xGap={6}>
-        <NGridItem
-          span={6}
-          class={styles['list-container']}
-        >
-          <NSpace vertical>
-            <h3>{t('project.synchronization_definition.table_name')}</h3>
-            <dl v-show={state.tables.length}>
-              {state.tables.map((table) => (
-                <dd
-                  class={
-                    table === state.currentTable ? styles['dd-active'] : ''
-                  }
-                  onClick={() => void onSwitchTable(table)}
-                >
-                  <NEllipsis>{table}</NEllipsis>
-                </dd>
-              ))}
-            </dl>
-            {state.tables.length === 0 && <NEmpty />}
-          </NSpace>
-        </NGridItem>
-        <NGridItem span={props.type === 'sink' ? 18 : 9}>
-          <NSpace vertical>
-            <h3>
-              {t('project.synchronization_definition.input_table_structure')}
-            </h3>
-            <NDataTable
-              size='small'
-              row-class-name={styles['adjust-th-height']}
-              columns={state.inputColumns}
-              data={state.inputTableData}
-              onUpdateCheckedRowKeys={onUpdatedCheckedRowKeys}
-              rowKey={(row) => row.name}
-              checkedRowKeys={state.selectedKeys}
-              scrollX={state.inputTableWidth}
-            />
-          </NSpace>
-        </NGridItem>
-        {
-          props.type !== 'sink' && <NGridItem span={9}>
+    return () => {
+      const isSplitMode = state.viewMode === 'split'
+
+      return (
+        <div class={styles['model-content']}>
+          {isSplitMode ? (
+            <NGrid xGap={6}>
+              <NGridItem span={props.type === 'sink' ? 24 : 12}>
+                <NSpace vertical>
+                  <h3>
+                    {t('project.synchronization_definition.input_table_structure')}
+                  </h3>
+                  <NDataTable
+                    size='small'
+                    row-class-name={styles['adjust-th-height']}
+                    columns={state.inputColumns}
+                    data={state.inputTableData}
+                    onUpdateCheckedRowKeys={onUpdatedCheckedRowKeys}
+                    rowKey={(row) => row.name}
+                    checkedRowKeys={state.selectedKeys}
+                    scrollX={state.inputTableWidth}
+                  />
+                </NSpace>
+              </NGridItem>
+              {props.type !== 'sink' && (
+                <NGridItem span={12}>
+                  <NSpace vertical>
+                    <h3>
+                      {t('project.synchronization_definition.output_table_structure')}
+                    </h3>
+                    <NDataTable
+                      size='small'
+                      row-class-name={styles['adjust-th-height']}
+                      columns={state.outputColumns}
+                      data={state.outputTableData}
+                      scrollX={state.outputTableWidth}
+                    />
+                  </NSpace>
+                </NGridItem>
+              )}
+            </NGrid>
+          ) : (
             <NSpace vertical>
-              <h3>
-                {t('project.synchronization_definition.output_table_structure')}
-              </h3>
+              <div class={styles['merged-header']}>
+                <h3>
+                  {t('project.synchronization_definition.input_table_structure')}
+                </h3>
+                <NButton text size='tiny' onClick={onToggleViewMode}>
+                  {isSplitMode
+                    ? t('project.synchronization_definition.view_mode_merged')
+                    : t('project.synchronization_definition.view_mode_split')}
+                </NButton>
+              </div>
               <NDataTable
                 size='small'
                 row-class-name={styles['adjust-th-height']}
-                columns={state.outputColumns}
-                data={state.outputTableData}
-                scrollX={state.outputTableWidth}
+                columns={state.mergedColumns}
+                data={props.type === 'source' || props.type === 'sink' ? state.inputTableData : state.outputTableData}
+                onUpdateCheckedRowKeys={(keys) => {
+                  if (props.type === 'source' || props.type === 'sink') {
+                    onUpdatedCheckedRowKeys(keys)
+                  }
+                }}
+                rowKey={(row) => row.name}
+                checkedRowKeys={props.type === 'source' || props.type === 'sink' ? state.selectedKeys : undefined}
+                scrollX={state.mergedTableWidth}
               />
             </NSpace>
-          </NGridItem>
-        }
-      </NGrid>
-    )
+          )}
+        </div>
+      )
+    }
   }
 })
 

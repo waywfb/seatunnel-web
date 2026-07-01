@@ -35,7 +35,7 @@ export function useNodeModel(
   currentNodeId: string,
   refForm: any
 ) {
-  const { createColumns } = useModelColumns()
+  const { createColumns, createMergedColumns } = useModelColumns()
   const route = useRoute()
   const state = reactive({
     inputColumns: [] as TableColumns,
@@ -58,7 +58,10 @@ export function useNodeModel(
     datasourceName: '',
     inputTableWidth: DefaultTableWidth,
     outputTableWidth: DefaultTableWidth,
-    format: ''
+    mergedColumns: [] as TableColumns,
+    mergedTableWidth: DefaultTableWidth,
+    format: '',
+    viewMode: 'merged' as 'split' | 'merged'
   })
 
   let tempOutputTables = [] as ModelRecord[]
@@ -114,6 +117,18 @@ export function useNodeModel(
     state.outputColumns = outputColumns
     state.inputTableWidth = inputTableWidth
     state.outputTableWidth = outputTableWidth
+
+    const { mergedColumns, mergedTableWidth } = createMergedColumns({
+      nodeType: type,
+      columnSelectable: state.columnSelectable,
+      transformType,
+      outputTableData: state.outputTableData
+    }) as {
+      mergedColumns: TableColumns
+      mergedTableWidth: number
+    }
+    state.mergedColumns = mergedColumns
+    state.mergedTableWidth = mergedTableWidth
   }
 
   const getSqlTransformOutputData = () => {
@@ -369,10 +384,16 @@ export function useNodeModel(
     }
   )
 
+  const onToggleViewMode = () => {
+    state.viewMode = state.viewMode === 'split' ? 'merged' : 'split'
+    getColumns()
+  }
+
   return {
     state,
     onSwitchTable,
     onUpdatedCheckedRowKeys,
-    onInit
+    onInit,
+    onToggleViewMode
   }
 }

@@ -48,3 +48,13 @@
 :global .row-error {
   color: #ff4d4f;
 }
+
+.merged-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.model-content {
+  width: 100%;
+}

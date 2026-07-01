@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { reactive, ref, SetupContext } from 'vue'
+import { reactive, ref, SetupContext, watch, nextTick } from 'vue'
 import {
   getInputTableSchema,
   saveTaskDefinitionItem
@@ -36,9 +36,7 @@ export function useNodeSettingModal(
   const state = reactive({
     nodeSettingModelFormRef: ref(),
     saving: false,
-    loading: false,
-    width: '60%',
-    tab: 'configuration'
+    loading: false
   })
 
   const formatParams = (values: any) => {
@@ -130,7 +128,6 @@ export function useNodeSettingModal(
     try {
       const validateResult = await configurationFormRef.value.validate()
       if (!validateResult) {
-        handleTab('configuration')
         state.saving = false
         return false
       }
@@ -274,8 +271,6 @@ export function useNodeSettingModal(
       )
 
       state.saving = false
-      state.tab = 'configuration'
-      state.width = '60%'
       return true
     } catch (err) {
       state.saving = false
@@ -338,22 +333,24 @@ export function useNodeSettingModal(
 
     const selectedKeys = result.map((row: ModelRecord) => row.name)
     modelRef.value.setSelectFields(selectedKeys)
+    initModelData(node)
   }
 
-  const handleTab = (tab: 'configuration' | 'model') => {
-    state.width = tab === 'configuration' ? '60%' : '80%'
-    state.tab = tab
-    if (tab === 'model' && modelRef.value) {
-      initModelData(configurationFormRef.value.getValues())
+  watch(
+    () => props.show,
+    async () => {
+      await nextTick()
+      if (props.show && configurationFormRef.value && modelRef.value) {
+        initModelData(configurationFormRef.value.getValues())
+      }
     }
-  }
+  )
 
   return {
     state,
     configurationFormRef,
     modelRef,
     onSave,
-    handleTab,
     handleChangeTable,
     handleSmartParseConfirm
   }

@@ -1104,7 +1104,9 @@ export default {
     smart_parse_no_cache: '未找到缓存消息，请先到虚拟表中拉取消息',
     smart_parse_required_tips: '请先选择数据源和表名',
     smart_parse_error: '智能解析失败',
-    smart_parse_success: '自动填充字段成功'
+    smart_parse_success: '自动填充字段成功',
+    view_mode_merged: '切换到合并视图',
+    view_mode_split: '切换到分栏视图'
   },
   synchronization_instance: {
     pipeline_id: '管道 ID',
