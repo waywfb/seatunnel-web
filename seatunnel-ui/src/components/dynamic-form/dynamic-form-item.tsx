@@ -182,7 +182,7 @@ const DynamicFormItem = defineComponent({
               class={`dynamic-form_${formatClass(props.name, f.field)}`}
               v-model={[(props.model as any)[f.field], 'value']}
               options={f.options.map((o: SelectOption) => ({
-                label: t(o.label as string),
+                label: safeTranslate(o.label as string),
                 value: o.value
               }))}
             />
@@ -193,8 +193,8 @@ const DynamicFormItem = defineComponent({
               v-model={[(props.model as any)[f.field], 'value']}
             >
               <NSpace vertical={f.vertical}>
-                {f.options.map((o: any) => (
-                  <NCheckbox label={t(o.label as string)} value={o.value} />
+                  {f.options.map((o: any) => (
+                  <NCheckbox label={safeTranslate(o.label as string)} value={o.value} />
                 ))}
               </NSpace>
             </NCheckboxGroup>
