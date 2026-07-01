@@ -161,7 +161,7 @@ const DatasourceCreate = defineComponent({
                       </div>
                     </>
                   ) : (
-                    <div style={{ color: '#999' }}>{t('datasource.choose_datasource_type')}</div>
+                    <div style={{ color: 'var(--color-text-muted)' }}>{t('datasource.choose_datasource_type')}</div>
                   )}
                   {!route.params.id && (
                     <NButton

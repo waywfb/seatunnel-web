@@ -61,7 +61,7 @@ const Login = defineComponent({
               <NForm rules={this.rules} ref='loginFormRef' class='mb-4'>
                 <NFormItem
                   label={this.t('login.username')}
-                  label-style={{ color: 'black' }}
+                  label-style={{ color: 'var(--color-foreground)' }}
                   path='userName'
                 >
                   <NInput
@@ -76,7 +76,7 @@ const Login = defineComponent({
                 </NFormItem>
                 <NFormItem
                   label={this.t('login.password')}
-                  label-style={{ color: 'black' }}
+                  label-style={{ color: 'var(--color-foreground)' }}
                   path='userPassword'
                 >
                   <NInput
@@ -90,7 +90,7 @@ const Login = defineComponent({
                 </NFormItem>
                 <NFormItem
                     label={this.t('login.select_workspace')}
-                    label-style={{ color: 'black' }}
+                    label-style={{ color: 'var(--color-foreground)' }}
                     path='selectedWorkspace'
                 >
                   <NSelect

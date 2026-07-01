@@ -22,62 +22,460 @@
 @tailwind fonts;
 @tailwind colors;
 
+/* =========================================================
+   LAYER 1: PRIMITIVE TOKENS
+   Raw design values — the single source of truth.
+   ========================================================= */
 :root {
-  --bg-body: #F1F5F9;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #FAFAFA;
-  --bg-deep: #F1F5F9;
+  /* ---- Color Primitives ---- */
+  /* Gray */
+  --color-gray-50:  #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6B7280;
+  --color-gray-600: #4B5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
 
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  /* Blue (Primary) */
+  --color-blue-50:  #EFF6FF;
+  --color-blue-100: #DBEAFE;
+  --color-blue-200: #BFDBFE;
+  --color-blue-300: #93C5FD;
+  --color-blue-400: #60A5FA;
+  --color-blue-500: #3B82F6;
+  --color-blue-600: #2563EB;
+  --color-blue-700: #1D4ED8;
+  --color-blue-800: #1E40AF;
+  --color-blue-900: #1E3A8A;
 
-  --brand-blue: #2563EB;
-  --brand-blue-hover: #1D4ED8;
-  --brand-blue-pressed: #1E40AF;
-  --accent-green: #16A34A;
-  --warning-amber: #D97706;
-  --error-red: #DC2626;
+  /* Green (Success/Source) */
+  --color-green-50:  #ECFDF5;
+  --color-green-100: #D1FAE5;
+  --color-green-400: #34D399;
+  --color-green-500: #22C55E;
+  --color-green-600: #16A34A;
 
-  --border-default: #E2E8F0;
-  --border-hover: #CBD5E1;
+  /* Amber (Warning) */
+  --color-amber-50:  #FFFBEB;
+  --color-amber-100: #FEF3C7;
+  --color-amber-400: #FBBF24;
+  --color-amber-500: #F59E0B;
+  --color-amber-600: #D97706;
 
-  --overlay-scrim: rgba(0, 0, 0, 0.4);
+  /* Red (Error) */
+  --color-red-50:  #FEF2F2;
+  --color-red-100: #FEE2E2;
+  --color-red-400: #F87171;
+  --color-red-500: #EF4444;
+  --color-red-600: #DC2626;
 
-  --scrollbar-track: #F1F5F9;
-  --scrollbar-thumb: #CBD5E1;
+  /* Violet (Transform/Process) */
+  --color-violet-50:  #F5F3FF;
+  --color-violet-100: #EDE9FE;
+  --color-violet-400: #A78BFA;
+  --color-violet-500: #8B5CF6;
+  --color-violet-600: #7C3AED;
+
+  /* ---- Spacing Primitives ---- */
+  --space-0:    0;
+  --space-px:   1px;
+  --space-0-5:  0.125rem;
+  --space-1:    0.25rem;
+  --space-1-5:  0.375rem;
+  --space-2:    0.5rem;
+  --space-2-5:  0.625rem;
+  --space-3:    0.75rem;
+  --space-3-5:  0.875rem;
+  --space-4:    1rem;
+  --space-5:    1.25rem;
+  --space-6:    1.5rem;
+  --space-7:    1.75rem;
+  --space-8:    2rem;
+  --space-10:   2.5rem;
+  --space-12:   3rem;
+  --space-16:   4rem;
+  --space-20:   5rem;
+  --space-24:   6rem;
+
+  /* ---- Typography Primitives ---- */
+  --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+
+  --font-size-tiny:   0.6875rem;
+  --font-size-xs:     0.75rem;
+  --font-size-sm:     0.875rem;
+  --font-size-base:   1rem;
+  --font-size-lg:     1.125rem;
+  --font-size-xl:     1.25rem;
+  --font-size-2xl:    1.5rem;
+  --font-size-3xl:    1.875rem;
+
+  --leading-none:    1;
+  --leading-tight:   1.25;
+  --leading-snug:    1.375;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose:   2;
+
+  --font-weight-normal:    400;
+  --font-weight-medium:    500;
+  --font-weight-semibold:  600;
+  --font-weight-bold:      700;
+
+  --tracking-tight:  -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.025em;
+
+  /* ---- Radius Primitives ---- */
+  --radius-none:    0;
+  --radius-sm:      0.125rem;
+  --radius-default: 0.25rem;
+  --radius-md:      0.375rem;
+  --radius-lg:      0.5rem;
+  --radius-xl:      0.75rem;
+  --radius-2xl:     1rem;
+  --radius-full:    9999px;
+
+  /* ---- Shadow Primitives ---- */
+  --shadow-none: none;
+  --shadow-sm:   0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md:   0 4px 6px -1px rgb(0 0 0 / 0.1),
+                 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:   0 10px 15px -3px rgb(0 0 0 / 0.1),
+                 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+  /* ---- Duration / Motion Primitives ---- */
+  --duration-75:   75ms;
+  --duration-100:  100ms;
+  --duration-150:  150ms;
+  --duration-200:  200ms;
+  --duration-300:  300ms;
+  --duration-500:  500ms;
 }
 
+/* =========================================================
+   LAYER 2: SEMANTIC TOKENS  (LIGHT MODE)
+   Purpose-based aliases that reference primitives.
+   ========================================================= */
+:root {
+  /* Background & Foreground */
+  --color-background: var(--color-gray-50);
+  --color-foreground: var(--color-gray-900);
+
+  --color-card: #FFFFFF;
+  --color-card-foreground: var(--color-gray-900);
+
+  --color-popover: #FFFFFF;
+  --color-popover-foreground: var(--color-gray-900);
+
+  /* Brand Primary */
+  --color-primary: var(--color-blue-600);
+  --color-primary-hover: var(--color-blue-700);
+  --color-primary-active: var(--color-blue-800);
+  --color-primary-foreground: #FFFFFF;
+
+  /* Secondary */
+  --color-secondary: var(--color-gray-100);
+  --color-secondary-hover: var(--color-gray-200);
+  --color-secondary-foreground: var(--color-gray-900);
+
+  /* Muted */
+  --color-muted: var(--color-gray-100);
+  --color-muted-foreground: var(--color-gray-500);
+
+  /* Accent */
+  --color-accent: var(--color-gray-100);
+  --color-accent-foreground: var(--color-gray-900);
+
+  /* Destructive */
+  --color-destructive: var(--color-red-600);
+  --color-destructive-hover: var(--color-red-700);
+  --color-destructive-foreground: #FFFFFF;
+
+  /* Status */
+  --color-success: var(--color-green-600);
+  --color-success-foreground: #FFFFFF;
+  --color-warning: var(--color-amber-500);
+  --color-warning-foreground: #FFFFFF;
+  --color-error: var(--color-red-600);
+  --color-error-foreground: #FFFFFF;
+  --color-info: var(--color-blue-500);
+  --color-info-foreground: #FFFFFF;
+
+  /* Border & Ring */
+  --color-border: var(--color-gray-200);
+  --color-border-hover: var(--color-gray-300);
+  --color-input: var(--color-gray-200);
+  --color-ring: var(--color-blue-500);
+
+  /* DAG Node Type Colors */
+  --color-source: var(--color-green-500);
+  --color-source-bg: var(--color-green-50);
+  --color-sink: var(--color-blue-600);
+  --color-sink-bg: var(--color-blue-50);
+  --color-process: var(--color-violet-500);
+  --color-process-bg: var(--color-violet-50);
+  --color-dirty: var(--color-amber-500);
+  --color-dirty-bg: var(--color-amber-50);
+
+  /* Overlay */
+  --color-overlay: rgb(0 0 0 / 0.4);
+
+  /* Scrollbar */
+  --scrollbar-track: var(--color-gray-50);
+  --scrollbar-thumb: var(--color-gray-300);
+
+  /* ---- Spacing Semantics ---- */
+  --spacing-component-xs: var(--space-1);
+  --spacing-component-sm: var(--space-2);
+  --spacing-component: var(--space-3);
+  --spacing-component-lg: var(--space-4);
+  --spacing-section: var(--space-8);
+  --spacing-section-lg: var(--space-12);
+  --spacing-page-x: var(--space-4);
+  --spacing-page-y: var(--space-6);
+
+  /* ---- Typography Semantics ---- */
+  --font-page-title:   var(--font-size-xl);
+  --font-card-title:   var(--font-size-lg);
+  --font-body:         var(--font-size-sm);
+  --font-body-medium:  var(--font-size-sm);
+  --font-caption:      var(--font-size-xs);
+  --font-tiny:         var(--font-size-tiny);
+  --font-nav:          var(--font-size-sm);
+  --font-code:         13px;
+
+  /* ---- Radius Semantics ---- */
+  --radius-component: var(--radius-default);
+  --radius-card: var(--radius-lg);
+  --radius-dialog: var(--radius-lg);
+  --radius-dag-node: var(--radius-md);
+
+  /* ---- Shadow Semantics ---- */
+  --shadow-card: var(--shadow-sm);
+  --shadow-dialog: var(--shadow-lg);
+  --shadow-dag-node: var(--shadow-sm);
+  --shadow-dropdown: var(--shadow-md);
+}
+
+/* =========================================================
+   LAYER 2: SEMANTIC TOKENS  (DARK MODE)
+   Override semantic tokens for dark theme.
+   ========================================================= */
 .dark {
-  --bg-body: #121212;
-  --bg-surface: #121212;
-  --bg-elevated: #1E1E1E;
-  --bg-deep: #000000;
+  --color-background: var(--color-gray-950);
+  --color-foreground: var(--color-gray-50);
 
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
+  --color-card: var(--color-gray-900);
+  --color-card-foreground: var(--color-gray-50);
 
-  --brand-blue: #3B82F6;
-  --brand-blue-hover: #2563EB;
-  --brand-blue-pressed: #1D4ED8;
-  --accent-green: #22C55E;
-  --warning-amber: #D97706;
-  --error-red: #EF4444;
+  --color-popover: var(--color-gray-900);
+  --color-popover-foreground: var(--color-gray-50);
 
-  --border-default: #2D2D2D;
-  --border-hover: #404040;
+  --color-primary: var(--color-blue-500);
+  --color-primary-hover: var(--color-blue-600);
+  --color-primary-active: var(--color-blue-700);
+  --color-primary-foreground: #FFFFFF;
 
-  --overlay-scrim: rgba(0, 0, 0, 0.6);
+  --color-secondary: var(--color-gray-800);
+  --color-secondary-hover: var(--color-gray-700);
+  --color-secondary-foreground: var(--color-gray-50);
+
+  --color-muted: var(--color-gray-800);
+  --color-muted-foreground: var(--color-gray-400);
+
+  --color-accent: var(--color-gray-800);
+  --color-accent-foreground: var(--color-gray-50);
+
+  --color-destructive: var(--color-red-500);
+  --color-destructive-hover: var(--color-red-600);
+  --color-destructive-foreground: #FFFFFF;
+
+  --color-success: var(--color-green-500);
+  --color-success-foreground: #FFFFFF;
+  --color-warning: var(--color-amber-500);
+  --color-warning-foreground: #FFFFFF;
+  --color-error: var(--color-red-500);
+  --color-error-foreground: #FFFFFF;
+  --color-info: var(--color-blue-500);
+  --color-info-foreground: #FFFFFF;
+
+  --color-border: var(--color-gray-700);
+  --color-border-hover: var(--color-gray-600);
+  --color-input: var(--color-gray-700);
+  --color-ring: var(--color-blue-500);
+
+  --color-source: var(--color-green-400);
+  --color-source-bg: #0A2E1A;
+  --color-sink: var(--color-blue-400);
+  --color-sink-bg: #0A1A3A;
+  --color-process: var(--color-violet-400);
+  --color-process-bg: #1A0A3A;
+  --color-dirty: var(--color-amber-400);
+  --color-dirty-bg: #2A1A00;
+
+  --color-overlay: rgb(0 0 0 / 0.6);
 
   --scrollbar-track: #1A1A1A;
   --scrollbar-thumb: #333333;
+
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-dialog: 0 10px 15px -3px rgb(0 0 0 / 0.4);
+  --shadow-dag-node: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-dropdown: 0 4px 6px -1px rgb(0 0 0 / 0.4);
 }
 
+/* =========================================================
+   LAYER 3: COMPONENT TOKENS
+   Component-specific tokens referencing semantic layer.
+   ========================================================= */
+:root {
+  /* Button */
+  --button-bg: var(--color-primary);
+  --button-fg: var(--color-primary-foreground);
+  --button-hover-bg: var(--color-primary-hover);
+  --button-active-bg: var(--color-primary-active);
+  --button-padding-x: var(--space-4);
+  --button-padding-y: var(--space-2);
+  --button-padding-x-sm: var(--space-3);
+  --button-padding-y-sm: var(--space-1-5);
+  --button-radius: var(--radius-component);
+  --button-font-size: var(--font-size-sm);
+  --button-font-weight: var(--font-weight-medium);
+  --button-height: 2.5rem;
+  --button-height-sm: 2rem;
+
+  /* Secondary Button */
+  --button-secondary-bg: var(--color-secondary);
+  --button-secondary-fg: var(--color-secondary-foreground);
+  --button-secondary-hover-bg: var(--color-secondary-hover);
+
+  /* Outline Button */
+  --button-outline-border: var(--color-border);
+  --button-outline-fg: var(--color-foreground);
+  --button-outline-hover-bg: var(--color-accent);
+
+  /* Ghost Button */
+  --button-ghost-fg: var(--color-foreground);
+  --button-ghost-hover-bg: var(--color-accent);
+
+  /* Destructive Button */
+  --button-destructive-bg: var(--color-destructive);
+  --button-destructive-fg: var(--color-destructive-foreground);
+  --button-destructive-hover-bg: var(--color-destructive-hover);
+
+  /* Input */
+  --input-bg: var(--color-card);
+  --input-border: var(--color-input);
+  --input-fg: var(--color-foreground);
+  --input-placeholder: var(--color-muted-foreground);
+  --input-focus-border: var(--color-ring);
+  --input-focus-ring: var(--color-ring);
+  --input-error-border: var(--color-error);
+  --input-disabled-bg: var(--color-muted);
+  --input-disabled-fg: var(--color-muted-foreground);
+  --input-padding-x: var(--space-3);
+  --input-padding-y: var(--space-2);
+  --input-radius: var(--radius-component);
+  --input-font-size: var(--font-size-sm);
+  --input-height: 2.5rem;
+  --input-height-sm: 2rem;
+
+  /* Select */
+  --select-bg: var(--color-card);
+  --select-border: var(--color-input);
+  --select-fg: var(--color-foreground);
+  --select-focus-border: var(--color-ring);
+  --select-radius: var(--radius-component);
+  --select-menu-bg: var(--color-popover);
+  --select-menu-border: var(--color-border);
+  --select-option-hover-bg: var(--color-accent);
+  --select-option-selected-bg: var(--color-primary);
+  --select-option-selected-fg: var(--color-primary-foreground);
+
+  /* Card / Panel */
+  --card-bg: var(--color-card);
+  --card-fg: var(--color-card-foreground);
+  --card-border: var(--color-border);
+  --card-padding: var(--spacing-component-lg);
+  --card-padding-sm: var(--spacing-component);
+  --card-radius: var(--radius-card);
+  --card-shadow: var(--shadow-card);
+
+  /* Table */
+  --table-header-bg: var(--color-muted);
+  --table-header-fg: var(--color-muted-foreground);
+  --table-row-bg: var(--color-card);
+  --table-row-hover-bg: var(--color-muted);
+  --table-row-fg: var(--color-foreground);
+  --table-border: var(--color-border);
+  --table-cell-padding-x: var(--space-4);
+  --table-cell-padding-y: var(--space-3);
+  --table-header-height: 2.5rem;
+  --table-row-height: 2.5rem;
+
+  /* Dialog / Modal */
+  --dialog-bg: var(--color-popover);
+  --dialog-fg: var(--color-popover-foreground);
+  --dialog-border: var(--color-border);
+  --dialog-padding: var(--space-6);
+  --dialog-radius: var(--radius-dialog);
+  --dialog-shadow: var(--shadow-dialog);
+  --dialog-overlay-bg: var(--color-overlay);
+  --dialog-max-width: 32rem;
+
+  /* Menu / Sidebar Navigation */
+  --nav-item-height: 2.5rem;
+  --nav-item-padding-x: var(--space-4);
+  --nav-item-font-size: var(--font-size-sm);
+  --nav-item-font-weight: var(--font-weight-medium);
+  --nav-item-radius: var(--radius-default);
+
+  /* Sidebar */
+  --sidebar-bg: var(--color-card);
+  --sidebar-width: 196px;
+  --sidebar-width-collapsed: 64px;
+  --sidebar-border: var(--color-border);
+  --sidebar-selected-bg: var(--color-primary);
+  --sidebar-selected-fg: var(--color-primary-foreground);
+
+  /* Badge */
+  --badge-padding-x: var(--space-2-5);
+  --badge-padding-y: var(--space-0-5);
+  --badge-radius: var(--radius-default);
+  --badge-font-size: var(--font-size-xs);
+
+  /* Alert */
+  --alert-padding: var(--space-4);
+  --alert-radius: var(--radius-card);
+
+  /* Tooltip */
+  --tooltip-bg: var(--color-foreground);
+  --tooltip-fg: var(--color-background);
+  --tooltip-radius: var(--radius-default);
+  --tooltip-font-size: var(--font-size-xs);
+
+  /* DAG Node Component */
+  --dag-node-radius: var(--radius-dag-node);
+  --dag-node-shadow: var(--shadow-dag-node);
+  --dag-node-label-size: 12px;
+  --dag-node-label-weight: var(--font-weight-medium);
+  --dag-node-left-bar-width: 4px;
+}
+
+/* =========================================================
+   BASE / GLOBAL STYLES
+   ========================================================= */
 body {
-  font-family: 'Fira Sans', system-ui, -apple-system, sans-serif;
-  background-color: var(--bg-body);
-  color: var(--text-primary);
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -99,4 +497,25 @@ body {
 *::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 3px;
+}
+
+/* =========================================================
+   GLOBAL UTILITY CLASSES
+   ========================================================= */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background),
+              0 0 0 4px var(--color-ring);
+}
+
+.interactive {
+  transition-property: color, background-color, border-color, box-shadow;
+  transition-duration: var(--duration-150);
+  transition-timing-function: ease-in-out;
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
 }

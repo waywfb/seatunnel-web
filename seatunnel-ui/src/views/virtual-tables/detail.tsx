@@ -225,9 +225,9 @@ const VirtualTablesDetail = defineComponent({
             <NText>
               <pre
                 style={{
-                  background: '#f5f5f5',
-                  padding: '12px',
-                  borderRadius: '4px',
+                  background: 'var(--color-surface)',
+                  padding: 'var(--spacing-md)',
+                  borderRadius: 'var(--radius-sm)',
                   overflow: 'auto',
                   maxHeight: '320px',
                   whiteSpace: 'pre-wrap',

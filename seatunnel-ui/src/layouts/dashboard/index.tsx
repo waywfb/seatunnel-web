@@ -42,8 +42,9 @@ const Dashboard = defineComponent({
             <Sidebar />
             <NLayoutContent
               native-scrollbar={false}
-              style='padding: 16px 22px 0px 22px'
-              class='p-16-22-0-22'
+              style={{
+                padding: 'var(--spacing-page-y) var(--spacing-page-x) 0 var(--spacing-page-x)'
+              }}
               contentStyle={'height: 100%'}
             >
               <NSpace
