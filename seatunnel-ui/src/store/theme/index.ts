@@ -61,12 +61,7 @@ export const useThemeStore = defineStore({
       }
     },
     init(theme?: ITheme): void {
-      const restored = theme || this.theme
-      if (restored === 'dark-blue') {
-        this.setTheme('dark' as ITheme)
-      } else {
-        this.setTheme(restored)
-      }
+      this.setTheme(theme || this.theme)
     }
   }
 })

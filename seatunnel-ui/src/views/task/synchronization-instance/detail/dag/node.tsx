@@ -19,7 +19,7 @@ import { defineComponent, inject, computed } from 'vue'
 import { NTooltip, NProgress } from 'naive-ui'
 import styles from './index.module.scss'
 import { ModernNodeData, determineNodeType } from './use-dag-node'
-import { CanvasDesignTokens, getNodeStateColor, NodeType } from './design-tokens'
+import { CanvasDesignTokens, getNodeStateColor } from './design-tokens'
 
 const Node = defineComponent({
   name: 'Node',
@@ -58,24 +58,6 @@ const Node = defineComponent({
     )
     
 
-    const getNodeIcon = (type: NodeType) => {
-
-      if (metadata.icon) {
-        return metadata.icon
-      }
-      
-      switch (type) {
-        case 'source':
-          return '📊'
-        case 'sink':
-          return '🎯'
-        case 'transform':
-          return '⚙️'
-        default:
-          return null
-      }
-    }
-    
 
     const nodeClass = computed(() => {
       return {

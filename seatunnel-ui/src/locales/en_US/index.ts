@@ -29,6 +29,7 @@ import project from '@/locales/en_US/project'
 import hook from '@/locales/en_US/hook'
 import common from '@/locales/en_US/common'
 import security from '@/locales/en_US/security'
+import data_pipes from '@/locales/en_US/data-pipes'
 import transforms from '@/locales/en_US/transforms'
 
 export default {
@@ -46,6 +47,7 @@ export default {
   theme,
   project,
   hook,
+  data_pipes,
   transforms,
   dag: {
     nodeConfigHint: 'Double click to configure. After configure, Connect each node ends to another.'
