@@ -990,6 +990,8 @@ export default {
     create_synchronization_task: '创建同步任务',
     edit_synchronization_task: '编辑同步任务',
     synchronization_task_name: '同步任务名称',
+    state: '状态',
+    job_type: '类型',
     task_describe: '任务描述',
     create_user: '创建用户',
     create_time: '创建时间',
@@ -1109,6 +1111,7 @@ export default {
     view_mode_split: '切换到分栏视图'
   },
   synchronization_instance: {
+    total: '总计',
     pipeline_id: '管道 ID',
     source: '来源',
     sink: '目标',

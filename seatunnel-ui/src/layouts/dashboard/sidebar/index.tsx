@@ -39,39 +39,67 @@ const Sidebar = defineComponent({
 
     const sideMenuOptions = [
       {
-        label: () => h(NEllipsis, null, { default: () => t('menu.dashboard') }),
-        key: 'dashboard',
-        icon: () => h(NIcon, null, { default: () => h(AppstoreOutlined) })
-      },
-      {
-        label: () => h(NEllipsis, null, { default: () => t('menu.datasource') }),
-        key: 'datasource',
-        icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) })
-      },
-      {
-        label: () => h(NEllipsis, null, { default: () => t('menu.tasks') }),
-        key: 'tasks',
-        icon: () => h(NIcon, null, { default: () => h(PartitionOutlined) }),
+        type: 'group',
+        label: () => h('span', { class: 'sidebar-section-label' }, t('menu.section_overview')),
+        key: 'section-overview',
         children: [
           {
-            label: () => h(NEllipsis, null, { default: () => t('menu.sync_task_definition') }),
-            key: 'synchronization-definition'
-          },
-          {
-            label: () => h(NEllipsis, null, { default: () => t('menu.sync_task_instance') }),
-            key: 'synchronization-instance'
+            label: () => h(NEllipsis, null, { default: () => t('menu.dashboard') }),
+            key: 'dashboard',
+            icon: () => h(NIcon, null, { default: () => h(AppstoreOutlined) })
           }
         ]
       },
       {
-        label: () => h(NEllipsis, null, { default: () => t('menu.virtual_tables') }),
-        key: 'virtual-tables',
-        icon: () => h(NIcon, null, { default: () => h(TableOutlined) })
+        type: 'group',
+        label: () => h('span', { class: 'sidebar-section-label' }, t('menu.section_pipeline')),
+        key: 'section-pipeline',
+        children: [
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.tasks') }),
+            key: 'tasks',
+            icon: () => h(NIcon, null, { default: () => h(PartitionOutlined) }),
+            children: [
+              {
+                label: () => h(NEllipsis, null, { default: () => t('menu.sync_task_definition') }),
+                key: 'synchronization-definition'
+              },
+              {
+                label: () => h(NEllipsis, null, { default: () => t('menu.sync_task_instance') }),
+                key: 'synchronization-instance'
+              }
+            ]
+          }
+        ]
       },
       {
-        label: () => h(NEllipsis, null, { default: () => t('menu.user_manage') }),
-        key: 'user-manage',
-        icon: () => h(NIcon, null, { default: () => h(TeamOutlined) })
+        type: 'group',
+        label: () => h('span', { class: 'sidebar-section-label' }, t('menu.section_resources')),
+        key: 'section-resources',
+        children: [
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.datasource') }),
+            key: 'datasource',
+            icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) })
+          },
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.virtual_tables') }),
+            key: 'virtual-tables',
+            icon: () => h(NIcon, null, { default: () => h(TableOutlined) })
+          }
+        ]
+      },
+      {
+        type: 'group',
+        label: () => h('span', { class: 'sidebar-section-label' }, t('menu.section_admin')),
+        key: 'section-admin',
+        children: [
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.user_manage') }),
+            key: 'user-manage',
+            icon: () => h(NIcon, null, { default: () => h(TeamOutlined) })
+          }
+        ]
       }
     ]
 

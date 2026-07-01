@@ -51,7 +51,7 @@ const light: GlobalThemeOverrides = {
     boxShadowFocus: '0 0 0 2px rgba(59, 130, 246, 0.2)',
     boxShadowFocusOutset: '0 0 0 2px rgba(59, 130, 246, 0.2)',
     boxShadowFocusOutsetInset: 'inset 0 0 0 2px rgba(59, 130, 246, 0.2)',
-    boxShadowFromPopup: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+    boxShadowFromPopup: '0 2px 8px rgba(0, 0, 0, 0.06)',
 
     /**************** Opacity */
     opacityDisabled: '0.5',
@@ -210,7 +210,7 @@ const light: GlobalThemeOverrides = {
     menuColor: '#FFFFFF',
     menuColorModal: '#FFFFFF',
     menuColorPopover: '#FFFFFF',
-    menuBoxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+    menuBoxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
     menuBorder: '1px solid #E5E7EB',
     menuBorderRadius: '4px',
     optionTextColor: '#374151',
@@ -244,7 +244,7 @@ const light: GlobalThemeOverrides = {
     paddingBottom: '16px',
     paddingLeft: '16px',
     paddingRight: '16px',
-    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+    boxShadow: 'none',
     titleFontSize: '16px',
     titleFontWeight: '500',
     titleTextColor: '#111827'
@@ -256,7 +256,7 @@ const light: GlobalThemeOverrides = {
     colorPopover: '#FFFFFF',
     border: '1px solid #E5E7EB',
     borderRadius: '8px',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
     titleFontSize: '16px',
     titleFontWeight: '600',
     titleTextColor: '#111827',
@@ -270,14 +270,14 @@ const light: GlobalThemeOverrides = {
     textColor: '#F9FAFB',
     borderRadius: '4px',
     fontSize: '12px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)'
   },
 
   Popover: {
     color: '#FFFFFF',
     border: '1px solid #E5E7EB',
     borderRadius: '8px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
     padding: '12px',
     fontSize: '14px',
     textColor: '#374151'
@@ -345,7 +345,7 @@ const light: GlobalThemeOverrides = {
     optionColorActive: '#EFF6FF',
     borderRadius: '4px',
     border: '1px solid #E5E7EB',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
     dividerColor: '#E5E7EB'
   },
 
@@ -397,7 +397,7 @@ const light: GlobalThemeOverrides = {
     colorWarning: '#FFFBEB',
     colorError: '#FEF2F2',
     borderRadius: '8px',
-    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     iconColor: '#3B82F6',
     textColor: '#374151',
     closeColor: '#9CA3AF'
@@ -406,7 +406,7 @@ const light: GlobalThemeOverrides = {
   Notification: {
     color: '#FFFFFF',
     borderRadius: '8px',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
     titleTextColor: '#111827',
     textColor: '#374151',
     closeColor: '#9CA3AF'
@@ -476,7 +476,7 @@ const light: GlobalThemeOverrides = {
   Drawer: {
     color: '#FFFFFF',
     border: '1px solid #E5E7EB',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
     bodyPadding: '16px 24px',
     headerPadding: '16px 24px',
     footerPadding: '12px 24px'

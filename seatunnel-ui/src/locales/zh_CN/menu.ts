@@ -27,4 +27,8 @@ export default {
   sync_task_definition: '同步任务定义',
   sync_task_instance: '同步任务实例',
   synchronization_instance: '同步任务实例',
+  section_overview: '概览',
+  section_pipeline: '数据集成',
+  section_resources: '资源',
+  section_admin: '管理',
 }

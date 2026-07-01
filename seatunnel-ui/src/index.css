@@ -164,14 +164,26 @@
    Purpose-based aliases that reference primitives.
    ========================================================= */
 :root {
+  /* Surface Ladder (0 = deepest, 4 = highest) */
+  --color-surface-0: var(--color-gray-50);
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #FFFFFF;
+  --color-surface-3: #FFFFFF;
+  --color-surface-4: #FFFFFF;
+
+  /* Hairline Borders (alternative to shadows for depth) */
+  --color-hairline: var(--color-gray-200);
+  --color-hairline-strong: var(--color-gray-300);
+  --color-hairline-tertiary: var(--color-gray-100);
+
   /* Background & Foreground */
-  --color-background: var(--color-gray-50);
+  --color-background: var(--color-surface-1);
   --color-foreground: var(--color-gray-900);
 
-  --color-card: #FFFFFF;
+  --color-card: var(--color-surface-2);
   --color-card-foreground: var(--color-gray-900);
 
-  --color-popover: #FFFFFF;
+  --color-popover: var(--color-surface-3);
   --color-popover-foreground: var(--color-gray-900);
 
   /* Brand Primary */
@@ -209,9 +221,9 @@
   --color-info-foreground: #FFFFFF;
 
   /* Border & Ring */
-  --color-border: var(--color-gray-200);
-  --color-border-hover: var(--color-gray-300);
-  --color-input: var(--color-gray-200);
+  --color-border: var(--color-hairline);
+  --color-border-hover: var(--color-hairline-strong);
+  --color-input: var(--color-hairline);
   --color-ring: var(--color-blue-500);
 
   /* DAG Node Type Colors */
@@ -228,7 +240,7 @@
   --color-overlay: rgb(0 0 0 / 0.4);
 
   /* Scrollbar */
-  --scrollbar-track: var(--color-gray-50);
+  --scrollbar-track: var(--color-surface-0);
   --scrollbar-thumb: var(--color-gray-300);
 
   /* ---- Spacing Semantics ---- */
@@ -258,10 +270,10 @@
   --radius-dag-node: var(--radius-md);
 
   /* ---- Shadow Semantics ---- */
-  --shadow-card: var(--shadow-sm);
-  --shadow-dialog: var(--shadow-lg);
-  --shadow-dag-node: var(--shadow-sm);
-  --shadow-dropdown: var(--shadow-md);
+  --shadow-card: var(--shadow-none);
+  --shadow-dialog: var(--shadow-md);
+  --shadow-dag-node: var(--shadow-none);
+  --shadow-dropdown: var(--shadow-sm);
 }
 
 /* =========================================================
@@ -269,13 +281,25 @@
    Override semantic tokens for dark theme.
    ========================================================= */
 .dark {
-  --color-background: var(--color-gray-950);
+  /* Surface Ladder — dark mode uses distinct shades */
+  --color-surface-0: #000000;
+  --color-surface-1: var(--color-gray-950);
+  --color-surface-2: var(--color-gray-900);
+  --color-surface-3: #1A1A1A;
+  --color-surface-4: #1E1E1E;
+
+  /* Hairline Borders */
+  --color-hairline: var(--color-gray-800);
+  --color-hairline-strong: var(--color-gray-700);
+  --color-hairline-tertiary: var(--color-gray-800);
+
+  --color-background: var(--color-surface-1);
   --color-foreground: var(--color-gray-50);
 
-  --color-card: var(--color-gray-900);
+  --color-card: var(--color-surface-2);
   --color-card-foreground: var(--color-gray-50);
 
-  --color-popover: var(--color-gray-900);
+  --color-popover: var(--color-surface-3);
   --color-popover-foreground: var(--color-gray-50);
 
   --color-primary: var(--color-blue-500);
@@ -306,9 +330,9 @@
   --color-info: var(--color-blue-500);
   --color-info-foreground: #FFFFFF;
 
-  --color-border: var(--color-gray-700);
-  --color-border-hover: var(--color-gray-600);
-  --color-input: var(--color-gray-700);
+  --color-border: var(--color-hairline);
+  --color-border-hover: var(--color-hairline-strong);
+  --color-input: var(--color-hairline);
   --color-ring: var(--color-blue-500);
 
   --color-source: var(--color-green-400);
@@ -325,10 +349,10 @@
   --scrollbar-track: #1A1A1A;
   --scrollbar-thumb: #333333;
 
-  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-dialog: 0 10px 15px -3px rgb(0 0 0 / 0.4);
-  --shadow-dag-node: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-  --shadow-dropdown: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --shadow-card: var(--shadow-none);
+  --shadow-dialog: 0 4px 12px rgb(0 0 0 / 0.5);
+  --shadow-dag-node: var(--shadow-none);
+  --shadow-dropdown: 0 2px 8px rgb(0 0 0 / 0.4);
 }
 
 /* =========================================================
@@ -421,7 +445,7 @@
   --table-row-height: 2.5rem;
 
   /* Dialog / Modal */
-  --dialog-bg: var(--color-popover);
+  --dialog-bg: var(--color-surface-4);
   --dialog-fg: var(--color-popover-foreground);
   --dialog-border: var(--color-border);
   --dialog-padding: var(--space-6);
@@ -518,4 +542,18 @@ body {
   opacity: 0.5;
   pointer-events: none;
   cursor: not-allowed;
+}
+
+/* =========================================================
+   SIDEBAR SECTION LABELS
+   ========================================================= */
+.sidebar-section-label {
+  display: block;
+  padding: var(--space-3) var(--nav-item-padding-x) var(--space-1-5);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-muted-foreground);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  pointer-events: none;
 }

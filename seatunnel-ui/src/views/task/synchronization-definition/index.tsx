@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-import { defineComponent, onMounted, toRefs, watch } from 'vue'
+import { defineComponent, onMounted, toRefs, watch, computed, ref, h } from 'vue'
 import {
   NSpace,
   NCard,
   NButton,
+  NButtonGroup,
   NInput,
   NIcon,
   NDataTable,
   NPagination
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { SearchOutlined, ReloadOutlined } from '@vicons/antd'
+import { SearchOutlined, UnorderedListOutlined, AppstoreOutlined } from '@vicons/antd'
 import { useTable } from './use-table'
 import { TaskModal } from './task-modal'
+import StatCard from '@/components/stat-card'
+import TaskCard from '@/components/task-card'
 import { useRoute, useRouter } from 'vue-router'
 import _ from 'lodash'
 
@@ -38,8 +41,34 @@ const SynchronizationDefinition = defineComponent({
     const { t } = useI18n()
     const route = useRoute()
     const router = useRouter()
-    const { variables, createColumns, getTableData } = useTable()
-    console.log('SynchronizationDefinition')
+    const { variables, createColumns, getTableData, handleRun, handleDelete, loadingStates } = useTable()
+
+    const viewMode = ref((route.query.view as string) || 'table')
+
+    const toggleView = (mode: 'table' | 'card') => {
+      viewMode.value = mode
+      router.replace({ query: { ...route.query, view: mode } })
+    }
+
+    const handleEdit = (task: any) => {
+      router.push({ path: `/task/synchronization-definition/${task.id}` })
+    }
+
+    const stats = computed(() => {
+      const data = variables.tableData || []
+      let running = 0
+      let success = 0
+      let failed = 0
+      for (const row of data) {
+        const s = row.status || row.jobStatus
+        if (!s) continue
+        if (s === 'SUBMITTED_SUCCESS' || s === 'RUNNING_EXECUTION' || s === 'RUNNING') running++
+        else if (s === 'SUCCESS') success++
+        else if (s === 'FAILURE' || s === 'FAILED') failed++
+      }
+      return { total: data.length, running, success, failed }
+    })
+
     const requestData = () => {
       getTableData({
         pageSize: variables.pageSize,
@@ -113,6 +142,12 @@ const SynchronizationDefinition = defineComponent({
     return {
       t,
       ...toRefs(variables),
+      stats,
+      viewMode,
+      handleEdit,
+      handleRun,
+      handleDelete,
+      loadingStates,
       onUpdatePageSize,
       requestData,
       onCancelModal,
@@ -120,6 +155,7 @@ const SynchronizationDefinition = defineComponent({
       handleModalChange,
       onSearch,
       handleKeyup,
+      toggleView,
     }
   },
   render() {
@@ -150,16 +186,100 @@ const SynchronizationDefinition = defineComponent({
                   <SearchOutlined />
                 </NIcon>
               </NButton>
+              <NButtonGroup size='small'>
+                <NButton
+                  type={this.viewMode === 'table' ? 'primary' : 'default'}
+                  onClick={() => this.toggleView('table')}
+                >
+                  {{
+                    icon: () => h(NIcon, null, { default: () => h(UnorderedListOutlined) })
+                  }}
+                </NButton>
+                <NButton
+                  type={this.viewMode === 'card' ? 'primary' : 'default'}
+                  onClick={() => this.toggleView('card')}
+                >
+                  {{
+                    icon: () => h(NIcon, null, { default: () => h(AppstoreOutlined) })
+                  }}
+                </NButton>
+              </NButtonGroup>
             </NSpace>
           </NSpace>
         </NCard>
-        <NCard>
-          <NSpace vertical>
-            <NDataTable
-              loading={this.loadingRef}
-              columns={this.columns}
-              data={this.tableData}
-            />
+        <div
+          style={{
+            display: 'flex',
+            gap: 'var(--space-3)',
+          }}
+        >
+          <StatCard
+            label={this.t('project.synchronization_instance.total')}
+            value={this.stats.total}
+            color='var(--color-info)'
+            loading={this.loadingRef}
+          />
+          <StatCard
+            label={this.t('project.synchronization_instance.running')}
+            value={this.stats.running}
+            color='var(--color-primary)'
+            loading={this.loadingRef}
+          />
+          <StatCard
+            label={this.t('project.synchronization_instance.success')}
+            value={this.stats.success}
+            color='var(--color-success)'
+            loading={this.loadingRef}
+          />
+          <StatCard
+            label={this.t('project.synchronization_instance.fail')}
+            value={this.stats.failed}
+            color='var(--color-error)'
+            loading={this.loadingRef}
+          />
+        </div>
+        {this.viewMode === 'table' ? (
+          <NCard>
+            <NSpace vertical>
+              <NDataTable
+                loading={this.loadingRef}
+                columns={this.columns}
+                data={this.tableData}
+              />
+              <NSpace justify='center'>
+                <NPagination
+                  v-model:page={this.page}
+                  v-model:page-size={this.pageSize}
+                  page-count={this.totalPage}
+                  show-size-picker
+                  page-sizes={[10, 30, 50]}
+                  show-quick-jumper
+                  onUpdatePage={this.requestData}
+                  onUpdatePageSize={this.onUpdatePageSize}
+                />
+              </NSpace>
+            </NSpace>
+          </NCard>
+        ) : (
+          <div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                gap: '12px',
+                marginBottom: '16px'
+              }}
+            >
+              {this.tableData.map((task: any) => (
+                <TaskCard
+                  task={task}
+                  onEdit={this.handleEdit}
+                  onRun={this.handleRun}
+                  onDelete={this.handleDelete}
+                  loadingStates={this.loadingStates}
+                />
+              ))}
+            </div>
             <NSpace justify='center'>
               <NPagination
                 v-model:page={this.page}
@@ -172,8 +292,8 @@ const SynchronizationDefinition = defineComponent({
                 onUpdatePageSize={this.onUpdatePageSize}
               />
             </NSpace>
-          </NSpace>
-        </NCard>
+          </div>
+        )}
         <TaskModal
           showModalRef={this.showModalRef}
           onCancelModal={this.onCancelModal}

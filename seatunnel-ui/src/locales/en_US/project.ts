@@ -992,6 +992,8 @@ export default {
     create_synchronization_task: 'Create Synchronization Task',
     edit_synchronization_task: 'Edit Synchronization Task',
     synchronization_task_name: 'Synchronization Task Name',
+    state: 'State',
+    job_type: 'Type',
     task_describe: 'Task Describe',
     create_user: 'Create User',
     create_time: 'Create Time',
@@ -1111,6 +1113,7 @@ export default {
     view_mode_split: 'Switch to Split View'
   },
   synchronization_instance: {
+    total: 'Total',
     pipeline_id: 'Pipeline Id',
     source: 'Source',
     sink: 'Sink',

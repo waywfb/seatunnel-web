@@ -18,7 +18,7 @@
 import { useI18n } from 'vue-i18n'
 import { h, reactive, ref } from 'vue'
 import { useTableOperation } from '@/hooks'
-import { EditOutlined, PlayCircleOutlined } from '@vicons/antd'
+import { EditOutlined, PlayCircleOutlined, DeleteOutlined } from '@vicons/antd'
 import {
   querySyncTaskDefinitionPaging,
   deleteSyncTaskDefinition,
@@ -30,6 +30,9 @@ import type { JobType } from './dag/types'
 import { COLUMN_WIDTH_CONFIG } from '@/common/column-width-config'
 import { useTableLink } from '@/hooks'
 import { useMessage } from 'naive-ui'
+import { tasksState } from '@/common/common'
+import { NTooltip, NSpin, NIcon, NTag } from 'naive-ui'
+import TimeAgo from '@/components/time-ago'
 
 export function useTable() {
   const { t } = useI18n()
@@ -57,6 +60,44 @@ export function useTable() {
 
   const loadingStates = ref(new Map())
 
+  const renderStateCell = (state: string, t: Function) => {
+    if (!state) return ''
+    const stateOption = tasksState(t)[state]
+    if (!stateOption) return ''
+    const Icon = h(
+      NIcon,
+      {
+        color: stateOption.color,
+        class: stateOption.classNames,
+        style: { display: 'flex' },
+        size: 18
+      },
+      () => h(stateOption.icon)
+    )
+    return h(NTooltip, null, {
+      trigger: () => {
+        if (!stateOption.isSpin) return h('span', { style: { display: 'inline-flex', alignItems: 'center', gap: '6px' } }, [Icon, h('span', { style: { color: stateOption.color, fontSize: '13px' } }, stateOption.desc)])
+        return h(NSpin, { size: 18 }, { icon: () => Icon })
+      },
+      default: () => stateOption.desc
+    })
+  }
+
+  const renderJobTypeTag = (jobType: string) => {
+    if (!jobType) return ''
+    const isReplica = jobType === 'DATA_REPLICA' || jobType === 'whole_library_sync'
+    return h(
+      NTag,
+      {
+        size: 'small',
+        type: isReplica ? 'info' : 'success',
+        bordered: false,
+        round: false
+      },
+      { default: () => t(isReplica ? 'project.synchronization_definition.whole_library_sync' : 'project.synchronization_definition.data_integration') }
+    )
+  }
+
   const createColumns = (variables: any) => {
     variables.columns = [
       {
@@ -66,14 +107,16 @@ export function useTable() {
         key: 'name'
       },
       {
-        title: t('project.synchronization_definition.business_model'),
-        key: 'jobKey',
-        render: (row: { jobType: JobType }) =>
-          t(`project.synchronization_definition.${JOB_TYPE[row.jobType]}`)
+        title: t('project.synchronization_definition.job_type'),
+        key: 'jobType',
+        width: 120,
+        render: (row: any) => renderJobTypeTag(row.jobType)
       },
       {
-        title: t('project.synchronization_definition.task_describe'),
-        key: 'description'
+        title: t('project.synchronization_definition.state'),
+        key: 'status',
+        width: 120,
+        render: (row: any) => renderStateCell(row.status || row.jobStatus, t)
       },
       {
         title: t('project.synchronization_definition.create_user'),
@@ -81,7 +124,8 @@ export function useTable() {
       },
       {
         title: t('project.synchronization_definition.create_time'),
-        key: 'createTime'
+        key: 'createTime',
+        render: (row: any) => row.createTime ? h(TimeAgo, { date: row.createTime }) : ''
       },
       {
         title: t('project.synchronization_definition.update_user'),
@@ -89,14 +133,17 @@ export function useTable() {
       },
       {
         title: t('project.synchronization_definition.update_time'),
-        key: 'updateTime'
+        key: 'updateTime',
+        render: (row: any) => row.updateTime ? h(TimeAgo, { date: row.updateTime }) : ''
       },
       useTableOperation(
         {
           title: t('project.synchronization_definition.operation'),
           key: 'operation',
+          itemNum: 3,
           buttons: [
             {
+              type: 'default',
               text: t('project.synchronization_definition.edit'),
               onClick: (row: any) => {
                 router.push({
@@ -106,6 +153,7 @@ export function useTable() {
               icon: h(EditOutlined)
             },
             {
+              type: 'primary',
               text: t('project.synchronization_definition.start'),
               onClick: (row: any) => {
                 if (loadingStates.value.get(row.id)) return
@@ -114,10 +162,12 @@ export function useTable() {
               icon: h(PlayCircleOutlined)
             },
             {
+              more: true,
               isDelete: true,
               text: t('project.synchronization_definition.delete'),
               onPositiveClick: (row: any) => void handleDelete(row),
-              popTips: t('security.token.delete_confirm')
+              popTips: t('project.synchronization_definition.delete_confirm'),
+              icon: h(DeleteOutlined)
             }
           ]
         }
@@ -180,5 +230,8 @@ export function useTable() {
     variables,
     createColumns,
     getTableData,
+    handleRun,
+    handleDelete,
+    loadingStates,
   }
 }
