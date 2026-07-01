@@ -264,26 +264,43 @@ export function useNodeModel(
             let table = await getSqlTransformOutputData()
             state.outputTableData = table
           } else if(transformType === 'JsonPath'){
-            // extract the dest_field in columns
-            const fixedInput = refForm.value.getValues().columns.replace(/=/g, ':');
-            const destFieldMatches = fixedInput.match(/"dest_field"\s*:\s*"([^"]*)"/g);
-            const destFields = destFieldMatches.map(match => match.match(/"([^"]+)"$/)[1]);
+            // extract destField + destType from columns (JsonPathColumn.java uses camelCase)
+            const raw = refForm.value.getValues().columns || '[]';
+            const fixedInput = raw.replace(/=/g, ':');
+            const fieldMatches = fixedInput.match(/"destField"\s*:\s*"([^"]*)"\s*,\s*"destType"\s*:\s*"([^"]*)"/g);
+            const destFields: { name: string; type: string }[] = [];
+            if (fieldMatches) {
+              fieldMatches.forEach(match => {
+                const parts = match.match(/"destField"\s*:\s*"([^"]*)"\s*,\s*"destType"\s*:\s*"([^"]*)"/);
+                if (parts) {
+                  destFields.push({ name: parts[1], type: parts[2] });
+                }
+              });
+            }
 
+            const typeMap: Record<string, string> = {
+              string: 'TEXT',
+              bigint: 'BIGINT',
+              double: 'DOUBLE',
+              boolean: 'BOOLEAN'
+            };
+
+            const inputFieldNames = new Set(state.inputTableData.map(item => item.name));
             state.outputTableData = state.inputTableData.map(item => ({ ...item }));
-            destFields.map(item => {
-              state.outputTableData.push(
-                {
-                  "format":"",
-                  "type": "TEXT",
-                  "name": item,
-                  "comment": "",
-                  "primaryKey": false,
-                  "defaultValue": '',
-                  "nullable": false,
-                  "unSupport": false,
-                  "outputDataType": "TEXT"
-              }
-              )
+            destFields.forEach(({ name, type }) => {
+              if (inputFieldNames.has(name)) return;
+              const mappedType = typeMap[type] || 'TEXT';
+              state.outputTableData.push({
+                format: '',
+                type: mappedType,
+                name,
+                comment: '',
+                primaryKey: false,
+                defaultValue: '',
+                nullable: false,
+                unSupport: false,
+                outputDataType: mappedType
+              });
             });
           }
           else {

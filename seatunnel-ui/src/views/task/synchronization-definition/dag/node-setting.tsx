@@ -54,7 +54,8 @@ const NodeSetting = defineComponent({
       modelRef,
       onSave,
       handleTab,
-      handleChangeTable
+      handleChangeTable,
+      handleSmartParseConfirm
     } = useNodeSettingModal(props, ctx)
 
     const cancelModal = () => {
@@ -99,6 +100,7 @@ const NodeSetting = defineComponent({
                     predecessorTableName={props.nodeInfo.predecessorTableName || ''}
                     ref={configurationFormRef}
                     onTableNameChange={handleChangeTable}
+                    onSmartParseConfirm={handleSmartParseConfirm}
                   />
                 </NTabPane>
                 <NTabPane

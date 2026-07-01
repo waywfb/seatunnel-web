@@ -72,7 +72,7 @@ const ConfigurationForm = defineComponent({
       default: ''
     }
   },
-  emits: ['tableNameChange'],
+  emits: ['tableNameChange', 'smartParseConfirm'],
   setup(props, { expose, emit }) {
     const {
       state,
@@ -103,6 +103,11 @@ const ConfigurationForm = defineComponent({
         getTableOptions(state.model.database, '')
       }
       emit('tableNameChange', state.model)
+    }
+
+    const handleSmartParseConfirm = () => {
+      onSmartParseConfirm()
+      emit('smartParseConfirm')
     }
 
     const prevQueryTableName = ref('')
@@ -396,7 +401,7 @@ const ConfigurationForm = defineComponent({
               <NButton onClick={onSmartParseCancel}>
                 {t('project.synchronization_definition.cancel')}
               </NButton>
-              <NButton type="primary" onClick={onSmartParseConfirm}>
+              <NButton type="primary" onClick={handleSmartParseConfirm}>
                 {t('project.synchronization_definition.confirm')}
               </NButton>
             </NSpace>

@@ -312,6 +312,12 @@ export function useNodeSettingModal(
     modelRef.value.initData(obj)
   }
 
+  const handleSmartParseConfirm = () => {
+    if (modelRef.value) {
+      initModelData(configurationFormRef.value.getValues())
+    }
+  }
+
   const handleChangeTable = async (node: any) => {
     if (!modelRef.value) return
     const currentTable = _.isArray(node.tableName)
@@ -348,6 +354,7 @@ export function useNodeSettingModal(
     modelRef,
     onSave,
     handleTab,
-    handleChangeTable
+    handleChangeTable,
+    handleSmartParseConfirm
   }
 }
