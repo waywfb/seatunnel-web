@@ -45,6 +45,17 @@ public class JobTaskDaoImpl implements IJobTaskDao {
     }
 
     @Override
+    public List<JobTask> getTasksByVersionIds(List<Long> jobVersionIds) {
+        if (jobVersionIds == null || jobVersionIds.isEmpty()) {
+            return List.of();
+        }
+        return jobTaskMapper.selectList(
+                Wrappers.lambdaQuery(new JobTask())
+                        .in(JobTask::getVersionId, jobVersionIds)
+                        .eq(JobTask::getWorkspaceId, getCurrentWorkspaceId()));
+    }
+
+    @Override
     public void insertTask(JobTask jobTask) {
         if (jobTask != null) {
             jobTask.setWorkspaceId(getCurrentWorkspaceId());

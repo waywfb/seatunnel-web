@@ -25,6 +25,8 @@ public interface IJobTaskDao {
 
     List<JobTask> getTasksByVersionId(long jobVersionId);
 
+    List<JobTask> getTasksByVersionIds(List<Long> jobVersionIds);
+
     void insertTask(JobTask jobTask);
 
     void updateTask(JobTask jobTask);

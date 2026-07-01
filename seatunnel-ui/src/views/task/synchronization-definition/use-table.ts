@@ -107,6 +107,21 @@ export function useTable() {
         key: 'name'
       },
       {
+        title: 'Source → Target',
+        key: 'sourceConnectorType',
+        width: 200,
+        render: (row: any) => {
+          const source = row.sourceConnectorType
+          const sink = row.sinkConnectorType
+          if (!source && !sink) return ''
+          return h(
+            'span',
+            { style: { fontSize: '13px', color: 'var(--color-foreground)' } },
+            [source || '?', h('span', { style: { margin: '0 6px', color: 'var(--color-muted-foreground)' } }, '→'), sink || '?']
+          )
+        }
+      },
+      {
         title: t('project.synchronization_definition.job_type'),
         key: 'jobType',
         width: 120,

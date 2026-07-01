@@ -135,6 +135,12 @@ const TaskCard = defineComponent({
 
           <div>{renderState(task.status || task.jobStatus)}</div>
 
+          {task.sourceConnectorType || task.sinkConnectorType ? (
+            <div style={{ fontSize: '13px', color: 'var(--color-foreground)' }}>
+              {(task.sourceConnectorType || '?') + ' → ' + (task.sinkConnectorType || '?')}
+            </div>
+          ) : null}
+
           <div
             style={{
               display: 'flex',

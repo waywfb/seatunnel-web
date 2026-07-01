@@ -130,6 +130,36 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
             return job;
         }
 
+        List<Long> jobIds =
+                job.getData().stream().map(JobDefinitionRes::getId).collect(Collectors.toList());
+        List<JobVersion> versions = jobVersionDao.getLatestVersionByJobIds(jobIds);
+        Map<Long, Long> jobIdToVersionId = new HashMap<>();
+        for (JobVersion version : versions) {
+            jobIdToVersionId.putIfAbsent(version.getJobId(), version.getId());
+        }
+
+        if (!jobIdToVersionId.isEmpty()) {
+            List<JobTask> allTasks =
+                    jobTaskDao.getTasksByVersionIds(new ArrayList<>(jobIdToVersionId.values()));
+            Map<Long, List<JobTask>> tasksByVersion =
+                    allTasks.stream().collect(Collectors.groupingBy(JobTask::getVersionId));
+
+            for (JobDefinitionRes res : job.getData()) {
+                Long versionId = jobIdToVersionId.get(res.getId());
+                if (versionId == null) continue;
+                List<JobTask> tasks = tasksByVersion.get(versionId);
+                if (tasks == null) continue;
+                for (JobTask task : tasks) {
+                    String type = task.getType() != null ? task.getType().toUpperCase() : "";
+                    if ("SOURCE".equals(type)) {
+                        res.setSourceConnectorType(task.getConnectorType());
+                    } else if ("SINK".equals(type)) {
+                        res.setSinkConnectorType(task.getConnectorType());
+                    }
+                }
+            }
+        }
+
         List<JobDefinitionRes> filteredJobs =
                 job.getData().stream()
                         .filter(jobDefinitionRes -> hasReadPerm(jobDefinitionRes.getName()))

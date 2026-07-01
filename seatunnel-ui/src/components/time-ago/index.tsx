@@ -1,4 +1,4 @@
-import { defineComponent, ref, onMounted, onUnmounted, PropType } from 'vue'
+import { defineComponent, ref, onMounted, PropType } from 'vue'
 import { formatDistanceToNow, parseISO, format as dateFormat } from 'date-fns'
 
 const TimeAgo = defineComponent({
@@ -6,11 +6,10 @@ const TimeAgo = defineComponent({
   props: {
     date: { type: [String, Number, Date] as PropType<string | number | Date>, required: true },
     interval: { type: Number, default: 60000 },
-    format: { type: String, default: '' }
+    format: { type: String, default: 'yyyy-MM-dd HH:mm' }
   },
   setup(props) {
     const text = ref('')
-    let timer: ReturnType<typeof setInterval> | null = null
 
     const update = () => {
       try {
@@ -27,11 +26,6 @@ const TimeAgo = defineComponent({
 
     onMounted(() => {
       update()
-      timer = setInterval(update, props.interval)
-    })
-
-    onUnmounted(() => {
-      if (timer) clearInterval(timer)
     })
 
     return { text }

@@ -61,4 +61,10 @@ public class JobDefinitionRes {
 
     @ApiModelProperty(value = "project name", dataType = "String")
     private String projectName;
+
+    @ApiModelProperty(value = "source connector type", dataType = "String")
+    private String sourceConnectorType;
+
+    @ApiModelProperty(value = "sink connector type", dataType = "String")
+    private String sinkConnectorType;
 }
