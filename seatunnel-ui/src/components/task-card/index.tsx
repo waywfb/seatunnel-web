@@ -9,6 +9,7 @@ import { tasksState } from '@/common/common'
 import { useI18n } from 'vue-i18n'
 import TimeAgo from '@/components/time-ago'
 import { I18N_KEYS } from '@/common/i18n-keys'
+import type { Task } from '@/types/task'
 
 const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
   'JDBC-Mysql': 'MySQL',
@@ -40,11 +41,11 @@ function getDatasourceDisplayName(name: string): string {
 const TaskCard = defineComponent({
   name: 'TaskCard',
   props: {
-    task: { type: Object as PropType<any>, required: true },
-    onEdit: { type: Function as PropType<(task: any) => void>, default: null },
-    onRun: { type: Function as PropType<(task: any) => void>, default: null },
+    task: { type: Object as PropType<Task>, required: true },
+    onEdit: { type: Function as PropType<(task: Task) => void>, default: null },
+    onRun: { type: Function as PropType<(task: Task) => void>, default: null },
     onDelete: {
-      type: Function as PropType<(task: any) => void>,
+      type: Function as PropType<(task: Task) => void>,
       default: null
     },
     loadingStates: {

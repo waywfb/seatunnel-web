@@ -47,6 +47,7 @@ import StatCard from '@/components/stat-card'
 import TaskCard from '@/components/task-card'
 import { useRoute, useRouter } from 'vue-router'
 import isEmpty from 'lodash/isEmpty'
+import type { Task, TaskStats } from '@/types/task'
 
 const SynchronizationDefinition = defineComponent({
   name: 'SynchronizationDefinition',
@@ -70,12 +71,12 @@ const SynchronizationDefinition = defineComponent({
       router.replace({ query: { ...route.query, view: mode } })
     }
 
-    const handleEdit = (task: any) => {
+    const handleEdit = (task: Task) => {
       router.push({ path: `/task/synchronization-definition/${task.id}` })
     }
 
-    const stats = computed(() => {
-      const data = variables.tableData || []
+    const stats = computed((): TaskStats => {
+      const data = (variables.tableData || []) as Task[]
       let running = 0
       let success = 0
       let failed = 0
@@ -290,7 +291,7 @@ const SynchronizationDefinition = defineComponent({
     const renderCardView = () => (
       <div>
         <div class='grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-3 mb-4'>
-          {this.tableData.map((task: any) => (
+          {this.tableData.map((task: Task) => (
             <TaskCard
               task={task}
               onEdit={this.handleEdit}
