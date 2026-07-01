@@ -153,17 +153,16 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
             Map<Long, List<JobTask>> tasksByVersion =
                     allTasks.stream().collect(Collectors.groupingBy(JobTask::getVersionId));
 
-            // batch resolve sink datasource names
-            Set<Long> sinkDataSourceIds =
+            // batch resolve source & sink datasource names
+            Set<Long> datasourceIds =
                     allTasks.stream()
-                            .filter(t -> "SINK".equalsIgnoreCase(t.getType()))
                             .map(JobTask::getDataSourceId)
                             .filter(Objects::nonNull)
                             .collect(Collectors.toSet());
             Map<Long, String> dsIdToPluginName = Collections.emptyMap();
-            if (!sinkDataSourceIds.isEmpty()) {
+            if (!datasourceIds.isEmpty()) {
                 dsIdToPluginName =
-                        datasourceDao.selectDatasourceByIds(new ArrayList<>(sinkDataSourceIds))
+                        datasourceDao.selectDatasourceByIds(new ArrayList<>(datasourceIds))
                                 .stream()
                                 .collect(
                                         Collectors.toMap(
@@ -184,6 +183,10 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                     String type = task.getType() != null ? task.getType().toUpperCase() : "";
                     if ("SOURCE".equals(type)) {
                         res.setSourceConnectorType(task.getConnectorType());
+                        String pluginName = dsIdToPluginName.get(task.getDataSourceId());
+                        if (pluginName != null) {
+                            res.setSourceDatasourceName(pluginName);
+                        }
                     } else if ("SINK".equals(type)) {
                         res.setSinkConnectorType(task.getConnectorType());
                         String pluginName = dsIdToPluginName.get(task.getDataSourceId());

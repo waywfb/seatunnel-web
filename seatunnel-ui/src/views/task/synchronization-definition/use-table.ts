@@ -142,7 +142,7 @@ export function useTable() {
         key: 'name',
         width: 260,
         render: (row: any) => {
-          const source = row.sourceConnectorType
+          const source = row.sourceDatasourceName || row.sourceConnectorType
           const sink = row.sinkDatasourceName || row.sinkConnectorType
 
           const pipelineNodes: string[] = []
