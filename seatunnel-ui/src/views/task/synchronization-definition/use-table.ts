@@ -320,7 +320,7 @@ export function useTable() {
             },
             disabled: (row: any) => {
               const status = row.status || row.jobStatus
-              return !status || isUnreadyStatus(status) || isRunningStatus(status)
+              return isUnreadyStatus(status) || isRunningStatus(status)
             },
             onClick: (row: any) => {
               if (loadingStates.value.get(row.id)) return
