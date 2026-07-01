@@ -38,7 +38,7 @@ import isEmpty from 'lodash/isEmpty'
 const SynchronizationDefinition = defineComponent({
   name: 'SynchronizationDefinition',
   setup() {
-    const { t } = useI18n()
+    const { t, locale } = useI18n()
     const route = useRoute()
     const router = useRouter()
     const { variables, createColumns, getTableData, handleRun, handleDelete, loadingStates } = useTable()
@@ -135,7 +135,7 @@ const SynchronizationDefinition = defineComponent({
       requestData()
     })
 
-    watch(useI18n().locale, () => {
+    watch(locale, () => {
       createColumns(variables)
     })
 
