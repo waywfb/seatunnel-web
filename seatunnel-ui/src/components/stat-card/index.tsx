@@ -1,5 +1,5 @@
-import { defineComponent, PropType, VNode, h } from 'vue'
-import { NSkeleton, NIcon } from 'naive-ui'
+import { defineComponent, PropType, VNode } from 'vue'
+import { NSkeleton } from 'naive-ui'
 
 const StatCard = defineComponent({
   name: 'StatCard',
@@ -14,66 +14,24 @@ const StatCard = defineComponent({
     return () => {
       if (props.loading) {
         return (
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-              padding: '16px 20px',
-              borderRadius: 'var(--radius-card)',
-              border: '1px solid var(--color-border)',
-              background: 'var(--color-card)',
-            }}
-          >
-            <NSkeleton text style={{ width: '40%' }} />
-            <NSkeleton text style={{ width: '60%' }} />
+          <div class='flex flex-col gap-2 p-5 rounded-card border border-border bg-card'>
+            <NSkeleton text class='w-[40%]' />
+            <NSkeleton text class='w-[60%]' />
           </div>
         )
       }
 
       return (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '16px 20px',
-            borderRadius: 'var(--radius-card)',
-            border: '1px solid var(--color-border)',
-            background: 'var(--color-card)',
-            minWidth: 0,
-            flex: 1,
-          }}
-        >
+        <div class='flex items-center gap-4 p-5 rounded-card border border-border bg-card min-w-0 flex-1'>
           <div
-            style={{
-              width: '4px',
-              height: '40px',
-              borderRadius: '2px',
-              background: props.color,
-              flexShrink: 0,
-            }}
+            class='w-1 h-10 rounded-sm flex-shrink-0'
+            style={{ background: props.color }}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
-            <span
-              style={{
-                fontSize: 'var(--font-page-title)',
-                fontWeight: 'var(--font-weight-semibold)',
-                color: 'var(--color-foreground)',
-                lineHeight: 1.2,
-              }}
-            >
+          <div class='flex flex-col gap-0.5 min-w-0'>
+            <span class='text-xl font-semibold text-foreground leading-tight'>
               {props.value}
             </span>
-            <span
-              style={{
-                fontSize: 'var(--font-caption)',
-                color: 'var(--color-muted-foreground)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
+            <span class='text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis'>
               {props.label}
             </span>
           </div>

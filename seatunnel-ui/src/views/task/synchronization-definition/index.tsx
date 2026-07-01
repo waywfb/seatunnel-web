@@ -47,7 +47,6 @@ import StatCard from '@/components/stat-card'
 import TaskCard from '@/components/task-card'
 import { useRoute, useRouter } from 'vue-router'
 import isEmpty from 'lodash/isEmpty'
-import { statCardContainerStyles, taskCardGridStyles } from '@/common/styles'
 
 const SynchronizationDefinition = defineComponent({
   name: 'SynchronizationDefinition',
@@ -232,7 +231,7 @@ const SynchronizationDefinition = defineComponent({
     )
 
     const renderStatCards = () => (
-      <div style={statCardContainerStyles}>
+      <div class='flex gap-3'>
         <StatCard
           label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.TOTAL)}
           value={this.stats.total}
@@ -290,7 +289,7 @@ const SynchronizationDefinition = defineComponent({
 
     const renderCardView = () => (
       <div>
-        <div style={taskCardGridStyles}>
+        <div class='grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-3 mb-4'>
           {this.tableData.map((task: any) => (
             <TaskCard
               task={task}

@@ -9,14 +9,6 @@ import { tasksState } from '@/common/common'
 import { useI18n } from 'vue-i18n'
 import TimeAgo from '@/components/time-ago'
 import { I18N_KEYS } from '@/common/i18n-keys'
-import {
-  cardStyles,
-  cardHeaderStyles,
-  cardTitleStyles,
-  cardContentStyles,
-  cardFooterStyles,
-  cardMetaStyles
-} from '@/common/styles'
 
 const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
   'JDBC-Mysql': 'MySQL',
@@ -69,7 +61,7 @@ const TaskCard = defineComponent({
       if (!option) return null
       const icon = h(
         NIcon,
-        { color: option.color, size: 16, style: { display: 'inline-flex' } },
+        { color: option.color, size: 16, class: 'inline-flex' },
         { default: () => h(option.icon) }
       )
       if (option.isSpin) {
@@ -78,12 +70,7 @@ const TaskCard = defineComponent({
       return h(
         'span',
         {
-          style: {
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontSize: '13px'
-          }
+          class: 'inline-flex items-center gap-1 text-[13px]'
         },
         [icon, h('span', { style: { color: option.color } }, option.desc)]
       )
@@ -135,16 +122,12 @@ const TaskCard = defineComponent({
       const isRunning = props.loadingStates.get(task.id)
 
       return (
-        <div
-          style={{
-            ...cardStyles,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px'
-          }}
-        >
-          <div style={cardHeaderStyles}>
-            <span style={cardTitleStyles} onClick={() => props.onEdit?.(task)}>
+        <div class='bg-card border border-border rounded-card p-5 flex flex-col gap-2.5'>
+          <div class='flex justify-between items-start gap-2'>
+            <span
+              class='font-semibold text-sm text-primary cursor-pointer leading-relaxed'
+              onClick={() => props.onEdit?.(task)}
+            >
               {task.name}
             </span>
             {renderJobTypeTag(task.jobType)}
@@ -153,7 +136,7 @@ const TaskCard = defineComponent({
           <div>{renderState(task.status || task.jobStatus)}</div>
 
           {task.sourceConnectorType || task.sinkConnectorType ? (
-            <div style={cardContentStyles}>
+            <div class='text-[13px] text-foreground'>
               {(task.sourceConnectorType || '?') +
                 ' → ' +
                 (getDatasourceDisplayName(
@@ -162,7 +145,7 @@ const TaskCard = defineComponent({
             </div>
           ) : null}
 
-          <div style={cardMetaStyles}>
+          <div class='flex gap-3 text-xs text-muted-foreground'>
             {task.createTime
               ? h('span', null, [
                   t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TIME) + ' ',
@@ -177,7 +160,7 @@ const TaskCard = defineComponent({
               : null}
           </div>
 
-          <div style={cardFooterStyles}>
+          <div class='flex gap-2 mt-0.5'>
             <NButton size='small' tertiary onClick={() => props.onEdit?.(task)}>
               {{
                 icon: () => h(NIcon, null, { default: () => h(EditOutlined) }),
