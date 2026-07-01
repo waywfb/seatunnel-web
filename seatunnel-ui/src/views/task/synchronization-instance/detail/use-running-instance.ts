@@ -16,12 +16,42 @@
  */
 
 import { h, reactive, ref } from 'vue'
-import { NIcon, NSpin, NTooltip } from 'naive-ui'
+import { NIcon, NSpin, NTag, NTooltip } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { queryRunningInstancePaging } from '@/service/sync-task-instance'
 import { useRoute } from 'vue-router'
 import { tasksState } from '@/common/common'
 import type { ITaskState } from '@/common/types'
+
+const PIPELINE_DISPLAY_NAMES: Record<string, string> = {
+  'JDBC-Mysql': 'MySQL',
+  'JDBC-Postgres': 'PostgreSQL',
+  'JDBC-SQLServer': 'SQLServer',
+  'JDBC-Oracle': 'Oracle',
+  'JDBC-Db2': 'Db2',
+  'JDBC-Hive': 'Hive',
+  'JDBC-KingBase': 'Kingbase',
+  'JDBC-TiDB': 'TiDB',
+  'MySQL-CDC': 'MySQL-CDC',
+  'Postgres-CDC': 'Postgres-CDC',
+  'SqlServer-CDC': 'SQLServer-CDC',
+  Kafka: 'Kafka',
+  Http: 'HTTP',
+  ElasticSearch: 'Elasticsearch',
+  S3: 'S3',
+  MongoDB: 'MongoDB',
+  FakeSource: 'FakeSource',
+  Hive: 'Hive',
+  Console: 'Console',
+  StarRocks: 'StarRocks',
+  'Jdbc-MultiTableSink': 'JDBC'
+}
+
+function formatPipelineName(raw: string): string {
+  if (!raw) return ''
+  const cleaned = raw.replace(/^(Source|Sink)\[\d+\]-/, '')
+  return PIPELINE_DISPLAY_NAMES[cleaned] || cleaned || raw
+}
 
 export function useRunningInstance() {
   const { t } = useI18n()
@@ -37,11 +67,32 @@ export function useRunningInstance() {
     variables.columns = [
       {
         title: t('project.synchronization_instance.pipeline_id'),
-        key: 'pipelineId'
+        key: 'pipelineId',
+        render: (row: any) => {
+          if (row.pipelineId === undefined || row.pipelineId === null) return ''
+          return h(NTag, {
+            size: 'tiny',
+            color: { textColor: '#555', borderColor: '#d0d0d0', color: '#f5f5f5' },
+            bordered: false,
+            round: false
+          }, { default: () => `Pipeline #${row.pipelineId}` })
+        }
       },
       {
         title: t('project.synchronization_instance.source'),
-        key: 'sourceTableNames'
+        key: 'sourceTableNames',
+        render: (row: any) => {
+          if (!row.sourceTableNames) return ''
+          const labels = row.sourceTableNames.split(',').filter(Boolean)
+          return h('span', { style: { display: 'inline-flex', gap: '4px', flexWrap: 'wrap' } },
+            labels.map((l: string) => h(NTag, {
+              size: 'tiny',
+              color: { textColor: '#6172a0', borderColor: '#d2d9ed', color: '#eef1f8' },
+              bordered: false,
+              round: false
+            }, { default: () => formatPipelineName(l.trim()) }))
+          )
+        }
       },
       {
         title: t('project.synchronization_instance.read_rate'),
@@ -58,7 +109,19 @@ export function useRunningInstance() {
       },
       {
         title: t('project.synchronization_instance.sink'),
-        key: 'sinkTableNames'
+        key: 'sinkTableNames',
+        render: (row: any) => {
+          if (!row.sinkTableNames) return ''
+          const labels = row.sinkTableNames.split(',').filter(Boolean)
+          return h('span', { style: { display: 'inline-flex', gap: '4px', flexWrap: 'wrap' } },
+            labels.map((l: string) => h(NTag, {
+              size: 'tiny',
+              color: { textColor: '#6172a0', borderColor: '#d2d9ed', color: '#eef1f8' },
+              bordered: false,
+              round: false
+            }, { default: () => formatPipelineName(l.trim()) }))
+          )
+        }
       },
       {
         title: t('project.synchronization_instance.processing_rate'),
