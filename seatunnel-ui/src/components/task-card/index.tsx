@@ -42,18 +42,13 @@ const TaskCard = defineComponent({
   name: 'TaskCard',
   props: {
     task: { type: Object as PropType<Task>, required: true },
-    onEdit: { type: Function as PropType<(task: Task) => void>, default: null },
-    onRun: { type: Function as PropType<(task: Task) => void>, default: null },
-    onDelete: {
-      type: Function as PropType<(task: Task) => void>,
-      default: null
-    },
     loadingStates: {
       type: Object as PropType<Map<number, boolean>>,
       default: () => new Map()
     }
   },
-  setup(props) {
+  emits: ['edit', 'run', 'delete'],
+  setup(props, { emit }) {
     const { t } = useI18n()
 
     const renderState = (state: string) => {
@@ -111,7 +106,7 @@ const TaskCard = defineComponent({
                 t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.DELETE_CONFIRM)
               )
             ) {
-              props.onDelete?.(props.task)
+              emit('delete', props.task)
             }
           }
         }
@@ -127,7 +122,7 @@ const TaskCard = defineComponent({
           <div class='flex justify-between items-start gap-2'>
             <span
               class='font-semibold text-sm text-primary cursor-pointer leading-relaxed'
-              onClick={() => props.onEdit?.(task)}
+              onClick={() => emit('edit', task)}
             >
               {task.name}
             </span>
@@ -162,7 +157,7 @@ const TaskCard = defineComponent({
           </div>
 
           <div class='flex gap-2 mt-0.5'>
-            <NButton size='small' tertiary onClick={() => props.onEdit?.(task)}>
+            <NButton size='small' tertiary onClick={() => emit('edit', task)}>
               {{
                 icon: () => h(NIcon, null, { default: () => h(EditOutlined) }),
                 default: () => t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.EDIT)
@@ -174,7 +169,7 @@ const TaskCard = defineComponent({
               secondary
               loading={isRunning}
               disabled={isRunning}
-              onClick={() => props.onRun?.(task)}
+              onClick={() => emit('run', task)}
             >
               {{
                 icon: () =>
