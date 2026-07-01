@@ -33,7 +33,7 @@ import { TaskModal } from './task-modal'
 import StatCard from '@/components/stat-card'
 import TaskCard from '@/components/task-card'
 import { useRoute, useRouter } from 'vue-router'
-import _ from 'lodash'
+import isEmpty from 'lodash/isEmpty'
 
 const SynchronizationDefinition = defineComponent({
   name: 'SynchronizationDefinition',
@@ -104,7 +104,7 @@ const SynchronizationDefinition = defineComponent({
       }
 
       router.replace({
-        query: !_.isEmpty(query)
+        query: !isEmpty(query)
           ? {
               ...query,
               ...route.query,
