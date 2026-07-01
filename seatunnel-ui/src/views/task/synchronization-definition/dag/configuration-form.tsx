@@ -384,11 +384,7 @@ const ConfigurationForm = defineComponent({
             title={t('project.synchronization_definition.smart_parse_title')}
             preset="card"
             style={{ width: '720px' }}
-            onPositiveClick={onSmartParseConfirm}
-            onNegativeClick={onSmartParseCancel}
             onUpdateShow={(val: boolean) => { if (!val) onSmartParseCancel() }}
-            positiveText={t('project.synchronization_definition.confirm')}
-            negativeText={t('project.synchronization_definition.cancel')}
           >
             <SmartParseModal
               fields={smartParseState.fields}
@@ -396,6 +392,14 @@ const ConfigurationForm = defineComponent({
               loading={smartParseState.loading}
               onUpdateStrategy={onSmartParseStrategyChange}
             />
+            <NSpace justify="end" style={{ marginTop: '16px' }}>
+              <NButton onClick={onSmartParseCancel}>
+                {t('project.synchronization_definition.cancel')}
+              </NButton>
+              <NButton type="primary" onClick={onSmartParseConfirm}>
+                {t('project.synchronization_definition.confirm')}
+              </NButton>
+            </NSpace>
           </NModal>
         </NForm>
       </NSpin>

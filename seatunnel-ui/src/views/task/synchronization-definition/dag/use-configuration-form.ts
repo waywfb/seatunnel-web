@@ -506,7 +506,7 @@ export const useConfigurationForm = (
   const onSmartParseConfirm = () => {
     const fields = smartParseState.fields
     if (!fields || fields.length === 0) return
-    const srcField = (state.inputTableData?.[0] as any)?.name || resolveDatasourceName() || 'value'
+    const srcField = (state.inputTableData?.[0] as any)?.name || 'value'
     const columnsJson = fields.map((f: any) => ({
       src_field: srcField,
       path: f.path,

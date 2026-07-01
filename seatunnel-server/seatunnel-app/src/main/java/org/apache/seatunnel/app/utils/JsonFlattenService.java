@@ -51,7 +51,7 @@ public class JsonFlattenService {
             strategy = FlattenStrategy.KEEP_JSON;
         }
         try {
-            JsonNode root = JsonUtils.toJsonNode(json);
+            JsonNode root = JsonUtils.stringToJsonNode(json);
             return flattenNode(root, strategy, "$");
         } catch (Exception e) {
             throw new IllegalArgumentException("Invalid JSON: " + e.getMessage(), e);
