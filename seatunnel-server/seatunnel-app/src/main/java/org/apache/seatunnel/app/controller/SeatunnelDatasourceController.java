@@ -29,8 +29,10 @@ import org.apache.seatunnel.app.domain.request.datasource.DatasourceReq;
 import org.apache.seatunnel.app.domain.response.PageInfo;
 import org.apache.seatunnel.app.domain.response.datasource.DatasourceDetailRes;
 import org.apache.seatunnel.app.domain.response.datasource.DatasourceRes;
+import org.apache.seatunnel.app.domain.response.datasource.FlattenedField;
 import org.apache.seatunnel.app.service.IDatasourceService;
 import org.apache.seatunnel.app.utils.CartesianProductUtils;
+import org.apache.seatunnel.app.utils.JsonFlattenService;
 import org.apache.seatunnel.app.utils.PropertyUtils;
 import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.datasource.plugin.api.DataSourcePluginInfo;
@@ -349,6 +351,16 @@ public class SeatunnelDatasourceController extends BaseController {
             return Result.success(Collections.emptyList());
         }
         return Result.success(JsonSchemaDerivationUtils.deriveFromJson(value));
+    }
+
+    @PostMapping("/json/flatten")
+    Result<List<FlattenedField>> flattenJson(@RequestBody Map<String, String> body) {
+        String value = body.get("value");
+        String strategy = body.get("strategy");
+        if (value == null || value.trim().isEmpty()) {
+            return Result.success(Collections.emptyList());
+        }
+        return Result.success(JsonFlattenService.flatten(value, strategy));
     }
 
     @PostMapping("/schemas")

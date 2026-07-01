@@ -1095,7 +1095,18 @@ export default {
     query_validate: 'please input the SQL statement',
     target_name_tips: 'Please enter or select table name',
     start_success: 'Start success',
-    start_failed: 'Start failed'
+    start_failed: 'Start failed',
+    smart_parse_button: 'Smart Parse',
+    smart_parse_title: 'JSON Smart Parse',
+    smart_parse_strategy: 'Parse Strategy',
+    smart_parse_smart: 'Smart - Expand objects, keep arrays as JSON strings, infer types for values (recommended)',
+    smart_parse_flat_all: 'Flatten All - Recursively expand all levels including arrays',
+    smart_parse_keep_json: 'Keep JSON - Keep the entire message as a single JSON string field',
+    smart_parse_preview: 'Preview',
+    smart_parse_no_cache: 'No cached message found. Please go to the virtual table to fetch a message first.',
+    smart_parse_required_tips: 'Please select a data source and table first',
+    smart_parse_error: 'Smart parse failed',
+    smart_parse_success: 'Columns filled successfully'
   },
   synchronization_instance: {
     pipeline_id: 'Pipeline Id',

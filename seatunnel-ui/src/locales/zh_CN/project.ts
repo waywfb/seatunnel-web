@@ -1093,7 +1093,18 @@ export default {
     query_validate: '请输入SQL语句',
     target_name_tips: '请输入或选择表名(必填)',
     start_success: '启动成功',
-    start_failed: '启动失败'
+    start_failed: '启动失败',
+    smart_parse_button: '智能解析',
+    smart_parse_title: 'JSON 智能解析',
+    smart_parse_strategy: '解析策略',
+    smart_parse_smart: '智能模式 - Object递归展开，Array保持JSON字符串，Value推断类型（推荐）',
+    smart_parse_flat_all: '全部展开 - 递归展开所有层级（含数组元素）',
+    smart_parse_keep_json: '全部保存 JSON - 整条消息保留为单个 JSON 字符串字段',
+    smart_parse_preview: '预览',
+    smart_parse_no_cache: '未找到缓存消息，请先到虚拟表中拉取消息',
+    smart_parse_required_tips: '请先选择数据源和表名',
+    smart_parse_error: '智能解析失败',
+    smart_parse_success: '自动填充字段成功'
   },
   synchronization_instance: {
     pipeline_id: '管道 ID',

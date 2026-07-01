@@ -32,6 +32,7 @@ import {
   findSink,
   fetchSourceDatasourceTypes
 } from '@/service/sync-task-definition'
+import { flattenJson } from '@/service/virtual-table'
 import { useSynchronizationDefinitionStore } from '@/store/synchronization-definition'
 import type { NodeType, TableOption, State } from './types'
 import type { SelectOption } from 'naive-ui'
@@ -414,6 +415,84 @@ export const useConfigurationForm = (
     }
   }
 
+  const smartParseState = reactive({
+    showModal: false,
+    loading: false,
+    strategy: 'SMART' as string,
+    fields: [] as any[],
+    hasMessage: false
+  })
+
+  const onSmartParseOpen = async () => {
+    const datasourceName = state.model.datasourceName
+    const tableName = typeof state.model.tableName === 'string' ? state.model.tableName : ''
+    if (!datasourceName || !tableName) {
+      window.$message.warning(t('project.synchronization_definition.smart_parse_required_tips'))
+      return
+    }
+    smartParseState.showModal = true
+    smartParseState.loading = true
+    smartParseState.hasMessage = false
+    smartParseState.fields = []
+    try {
+      const cacheKey = `seatunnel_preview_msg_${datasourceName}_${tableName}`
+      const cachedValue = localStorage.getItem(cacheKey)
+      if (cachedValue) {
+        smartParseState.hasMessage = true
+        const res = await flattenJson(cachedValue, smartParseState.strategy)
+        smartParseState.fields = res || []
+      } else {
+        smartParseState.hasMessage = false
+        smartParseState.fields = []
+      }
+    } catch {
+      smartParseState.hasMessage = false
+      smartParseState.fields = []
+      window.$message.error(t('project.synchronization_definition.smart_parse_error'))
+    } finally {
+      smartParseState.loading = false
+    }
+  }
+
+  const onSmartParseStrategyChange = async (strategy: string) => {
+    smartParseState.strategy = strategy
+    const datasourceName = state.model.datasourceName
+    const tableName = typeof state.model.tableName === 'string' ? state.model.tableName : ''
+    if (!datasourceName || !tableName) return
+    smartParseState.loading = true
+    try {
+      const cacheKey = `seatunnel_preview_msg_${datasourceName}_${tableName}`
+      const cachedValue = localStorage.getItem(cacheKey)
+      if (cachedValue) {
+        const res = await flattenJson(cachedValue, strategy)
+        smartParseState.fields = res || []
+      }
+    } catch {
+      smartParseState.fields = []
+    } finally {
+      smartParseState.loading = false
+    }
+  }
+
+  const onSmartParseConfirm = () => {
+    const fields = smartParseState.fields
+    if (!fields || fields.length === 0) return
+    const srcField = (state.inputTableData?.[0] as any)?.name || state.model.datasourceName || 'value'
+    const columnsJson = fields.map((f: any) => ({
+      src_field: srcField,
+      path: f.path,
+      destField: f.destField,
+      destType: f.destType
+    }))
+    ;(state.model as any).columns = JSON.stringify(columnsJson, null, 2)
+    smartParseState.showModal = false
+    window.$message.success(t('project.synchronization_definition.smart_parse_success'))
+  }
+
+  const onSmartParseCancel = () => {
+    smartParseState.showModal = false
+  }
+
   return {
     state,
     dagStore,
@@ -422,7 +501,12 @@ export const useConfigurationForm = (
     getTableOptions,
     getFormStructure,
     updateFormValues,
-    getSinks
+    getSinks,
+    smartParseState,
+    onSmartParseOpen,
+    onSmartParseStrategyChange,
+    onSmartParseConfirm,
+    onSmartParseCancel
   }
 }
 

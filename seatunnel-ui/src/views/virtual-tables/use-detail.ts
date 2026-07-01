@@ -233,6 +233,10 @@ export const useDetail = (id: string) => {
       state.stepTwo.list = fields
       state.previewModal.show = false
       window.$message.success(t('virtual_tables.derive_schema_success'))
+      const { datasourceName, tableName } = state.stepOne
+      if (datasourceName && tableName) {
+        localStorage.setItem(`seatunnel_preview_msg_${datasourceName}_${tableName}`, value)
+      }
     } catch {
       window.$message.error(t('virtual_tables.derive_schema_error'))
     } finally {
@@ -261,6 +265,14 @@ export const useDetail = (id: string) => {
     }
   }
 
+  const onCacheMessage = () => {
+    const { datasourceName, tableName } = state.stepOne
+    const value = state.previewModal.value
+    if (value && datasourceName && tableName) {
+      localStorage.setItem(`seatunnel_preview_msg_${datasourceName}_${tableName}`, value)
+    }
+  }
+
   const onPreviewClose = () => {
     state.previewModal.show = false
     state.previewModal.value = ''
@@ -277,6 +289,7 @@ export const useDetail = (id: string) => {
     onDeriveSchema,
     onPreviewUse,
     onPreviewFetchNext,
-    onPreviewClose
+    onPreviewClose,
+    onCacheMessage
   }
 }

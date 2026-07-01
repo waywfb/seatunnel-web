@@ -117,3 +117,14 @@ export function deriveFromMessage(value: string): any {
     data: { value }
   })
 }
+
+export function flattenJson(value: string, strategy: string): any {
+  return axios({
+    url: '/datasource/json/flatten',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    },
+    data: { value, strategy }
+  })
+}

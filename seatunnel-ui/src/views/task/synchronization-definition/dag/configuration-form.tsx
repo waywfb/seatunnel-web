@@ -35,9 +35,11 @@ import {
   useConfigurationForm,
   getSceneModeOptions
 } from './use-configuration-form'
+import SmartParseModal from './smart-parse-modal'
 import { useI18n } from 'vue-i18n'
 import type { NodeType, TableOption, State } from './types'
 import { debounce } from 'lodash'
+import { NButton, NModal, NButtonGroup } from 'naive-ui'
 
 const ConfigurationForm = defineComponent({
   name: 'ConfigurationForm',
@@ -68,7 +70,12 @@ const ConfigurationForm = defineComponent({
       getDatasourceOptions,
       getDatabaseOptions,
       getTableOptions,
-      updateFormValues
+      updateFormValues,
+      smartParseState,
+      onSmartParseOpen,
+      onSmartParseStrategyChange,
+      onSmartParseConfirm,
+      onSmartParseCancel
     } = useConfigurationForm(
       props.nodeType as NodeType,
       props.transformType as string,
@@ -351,6 +358,32 @@ const ConfigurationForm = defineComponent({
               advancedLabel={props.nodeType === 'source' || props.nodeType === 'sink' ? '高级设置' : ''}
             />
           )}
+
+          {props.transformType === 'JsonPath' && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+              <NButton type="primary" onClick={onSmartParseOpen}>
+                {t('project.synchronization_definition.smart_parse_button')}
+              </NButton>
+            </div>
+          )}
+
+          <NModal
+            show={smartParseState.showModal}
+            title={t('project.synchronization_definition.smart_parse_title')}
+            preset="card"
+            style={{ width: '720px' }}
+            onPositiveClick={onSmartParseConfirm}
+            onNegativeClick={onSmartParseCancel}
+            positiveText={t('project.synchronization_definition.confirm')}
+            negativeText={t('project.synchronization_definition.cancel')}
+          >
+            <SmartParseModal
+              fields={smartParseState.fields}
+              hasMessage={smartParseState.hasMessage}
+              loading={smartParseState.loading}
+              onUpdateStrategy={onSmartParseStrategyChange}
+            />
+          </NModal>
         </NForm>
       </NSpin>
     )
