@@ -8,6 +8,7 @@ import {
 import { tasksState } from '@/common/common'
 import { useI18n } from 'vue-i18n'
 import TimeAgo from '@/components/time-ago'
+import { I18N_KEYS } from '@/common/i18n-keys'
 
 const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
   'JDBC-Mysql': 'MySQL',
@@ -97,21 +98,21 @@ const TaskCard = defineComponent({
         default: () =>
           t(
             isReplica
-              ? 'project.synchronization_definition.whole_library_sync'
-              : 'project.synchronization_definition.data_integration'
+              ? I18N_KEYS.SYNCHRONIZATION_DEFINITION.WHOLE_LIBRARY_SYNC
+              : I18N_KEYS.SYNCHRONIZATION_DEFINITION.DATA_INTEGRATION
           )
       })
     }
 
     const dropdownOptions = [
       {
-        label: t('project.synchronization_definition.delete'),
+        label: t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.DELETE),
         key: 'delete',
         props: {
           onClick: () => {
             if (
               window.confirm(
-                t('project.synchronization_definition.delete_confirm')
+                t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.DELETE_CONFIRM)
               )
             ) {
               props.onDelete?.(props.task)
@@ -181,7 +182,7 @@ const TaskCard = defineComponent({
                   'span',
                   null,
                   [
-                    t('project.synchronization_definition.create_time') + ' ',
+                    t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TIME) + ' ',
                     h(TimeAgo, { date: task.createTime })
                   ]
               )
@@ -191,7 +192,7 @@ const TaskCard = defineComponent({
                   'span',
                   null,
                   [
-                    t('project.synchronization_definition.update_time') + ' ',
+                    t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.UPDATE_TIME) + ' ',
                     h(TimeAgo, { date: task.updateTime })
                   ]
               )
@@ -203,7 +204,7 @@ const TaskCard = defineComponent({
               {{
                 icon: () =>
                   h(NIcon, null, { default: () => h(EditOutlined) }),
-                default: () => t('project.synchronization_definition.edit')
+                default: () => t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.EDIT)
               }}
             </NButton>
             <NButton
@@ -217,7 +218,7 @@ const TaskCard = defineComponent({
               {{
                 icon: () =>
                   h(NIcon, null, { default: () => h(PlayCircleOutlined) }),
-                default: () => t('project.synchronization_definition.start')
+                default: () => t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.START)
               }}
             </NButton>
             <NDropdown

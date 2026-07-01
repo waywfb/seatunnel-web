@@ -28,6 +28,7 @@ import {
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { SearchOutlined, UnorderedListOutlined, AppstoreOutlined } from '@vicons/antd'
+import { I18N_KEYS } from '@/common/i18n-keys'
 import { useTable } from './use-table'
 import { TaskModal } from './task-modal'
 import StatCard from '@/components/stat-card'
@@ -167,17 +168,13 @@ const SynchronizationDefinition = defineComponent({
               type='info'
               onClick={this.handleModalChange}
             >
-              {this.t(
-                'project.synchronization_definition.create_synchronization_task'
-              )}
+              {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TASK)}
             </NButton>
             <NSpace justify='end'>
               <NInput
                 clearable
                 v-model={[this.searchName, 'value']}
-                placeholder={this.t(
-                  'project.synchronization_definition.task_name'
-                )}
+                placeholder={this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME)}
                 onKeyup={this.handleKeyup}
               />
 
@@ -214,25 +211,25 @@ const SynchronizationDefinition = defineComponent({
           }}
         >
           <StatCard
-            label={this.t('project.synchronization_instance.total')}
+            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.TOTAL)}
             value={this.stats.total}
             color='var(--color-info)'
             loading={this.loadingRef}
           />
           <StatCard
-            label={this.t('project.synchronization_instance.running')}
+            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.RUNNING)}
             value={this.stats.running}
             color='var(--color-primary)'
             loading={this.loadingRef}
           />
           <StatCard
-            label={this.t('project.synchronization_instance.success')}
+            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.SUCCESS)}
             value={this.stats.success}
             color='var(--color-success)'
             loading={this.loadingRef}
           />
           <StatCard
-            label={this.t('project.synchronization_instance.fail')}
+            label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.FAIL)}
             value={this.stats.failed}
             color='var(--color-error)'
             loading={this.loadingRef}
