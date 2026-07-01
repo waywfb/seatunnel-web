@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, watch, computed } from 'vue'
+import { defineComponent, watch, computed, ref } from 'vue'
 import {
   NFormItemGi,
   NGrid,
@@ -58,18 +58,14 @@ const DynamicFormItem = defineComponent({
   name: 'DynamicFormItem',
   props,
   setup(props) {
-    const { t, te } = useI18n()
+    const { t, te, locale } = useI18n()
+
+    const formLocales = ref<Record<string, Record<string, string>>>({})
 
     const mergeFormLocales = (locales: any) => {
-      if (locales?.zh_CN && Object.keys(locales.zh_CN).length > 0) {
-        useI18n().mergeLocaleMessage('zh_CN', {
-          i18n: locales.zh_CN
-        })
-      }
-      if (locales?.en_US && Object.keys(locales.en_US).length > 0) {
-        useI18n().mergeLocaleMessage('en_US', {
-          i18n: locales.en_US
-        })
+      formLocales.value = {
+        zh_CN: locales?.zh_CN || {},
+        en_US: locales?.en_US || {}
       }
     }
 
@@ -93,6 +89,26 @@ const DynamicFormItem = defineComponent({
       return value.map((v) => field === v).indexOf(false) < 0
     }
 
+    const isTranslationKey = (key: string) => /^[\w.-]+$/.test(key)
+
+    const safeTranslate = (key: string) => {
+      if (!key) return ''
+      if (/^i18n\./.test(key)) {
+        const lang = locale.value as string
+        const msgs = formLocales.value[lang]
+        if (msgs) {
+          const localeKey = key.replace(/^i18n\./, '')
+          if (msgs[localeKey]) return msgs[localeKey]
+        }
+      }
+      if (!isTranslationKey(key)) return key
+      try {
+        return t(key)
+      } catch {
+        return key
+      }
+    }
+
     const getTranslation = (name: string, label: string, suffix: string) => {
       const key = `transforms.${name.toLowerCase()}.${label}_${suffix}`
       return te(key) ? t(key) : ''
@@ -114,12 +130,12 @@ const DynamicFormItem = defineComponent({
         : true
       if (!visible) return null
 
-      const labelText = t(getTranslation(props.name, f.label, 'value') || t(f.label))
+      const labelText = getTranslation(props.name, f.label, 'value') || safeTranslate(f.label)
       const helpText =
         getTranslation(props.name, f.label, 'description') ||
-        t(f.description || '') ||
+        safeTranslate(f.description || '') ||
         getTranslation(props.name, f.label, 'placeholder') ||
-        t(f.placeholder || '')
+        safeTranslate(f.placeholder || '')
 
       return (
         <NFormItemGi
