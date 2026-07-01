@@ -37,6 +37,7 @@ import { tasksState } from '@/common/common'
 import { NTooltip, NSpin, NIcon, NTag } from 'naive-ui'
 import TimeAgo from '@/components/time-ago'
 import { getDatasourceDisplayName } from './dag/sidebar/use-sidebar'
+import type { Task } from '@/types/task'
 
 export function useTable() {
   const { t } = useI18n()
@@ -381,7 +382,7 @@ export function useTable() {
       })
   }
 
-  const handleDelete = (row: any) => {
+  const handleDelete = (row: Task) => {
     if (variables.tableData.length === 1 && variables.page > 1) {
       --variables.page
     }

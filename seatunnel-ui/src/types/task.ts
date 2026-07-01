@@ -24,6 +24,10 @@ export interface Task {
   sourceConnectorType: string
   sinkConnectorType: string
   sinkDatasourceName: string
+  sourceDatasourceName: string
+  jobMode: string
+  dataSaveMode: string
+  projectCode: string
   createTime: string
   updateTime: string
   createUserName: string
@@ -35,10 +39,4 @@ export interface TaskStats {
   running: number
   success: number
   failed: number
-}
-
-export interface TaskQuery {
-  pageSize: number
-  pageNo: number
-  searchName: string
 }
