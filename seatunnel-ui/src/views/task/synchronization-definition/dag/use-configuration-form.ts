@@ -40,7 +40,9 @@ import type { SelectOption } from 'naive-ui'
 export const useConfigurationForm = (
   nodeType: NodeType,
   transformType: string,
-  datasourceName: string
+  datasourceName: string,
+  predecessorDatasourceName: string = '',
+  predecessorTableName: string = ''
 ) => {
   const { t } = useI18n()
   const dagStore = useSynchronizationDefinitionStore()
@@ -78,6 +80,8 @@ export const useConfigurationForm = (
     tableColumnsLoading: boolean;
     rules: any;
     allowedSceneModes: string[];
+    predecessorDatasourceName: string;
+    predecessorTableName: string;
   }>({
     model: cloneDeep(initialModel),
     loading: false,
@@ -95,6 +99,8 @@ export const useConfigurationForm = (
     outputTableData: [],
     tableColumnsLoading: false,
     allowedSceneModes: [],
+    predecessorDatasourceName: predecessorDatasourceName || '',
+    predecessorTableName: predecessorTableName || '',
     rules: {
       name: {
         required: true,
@@ -359,6 +365,14 @@ export const useConfigurationForm = (
         state.model.datasourceName = values.datasourceName
       }
 
+      // 每次切换节点时更新上游源节点的 datasourceName / tableName（transform 节点智能解析用）
+      if (values.predecessorDatasourceName) {
+        state.predecessorDatasourceName = values.predecessorDatasourceName
+      }
+      if (values.predecessorTableName) {
+        state.predecessorTableName = values.predecessorTableName
+      }
+
       if (values.sceneMode === 'SPLIT_TABLE') {
         state.model.database = values.tableOption?.databases || []
       } else {
@@ -423,10 +437,25 @@ export const useConfigurationForm = (
     hasMessage: false
   })
 
+  const resolveDatasourceName = () => {
+    const modelName = state.model.datasourceName
+    if (nodeType === 'transform') {
+      return state.predecessorDatasourceName || modelName || ''
+    }
+    return modelName || ''
+  }
+
+  const resolveTableName = () => {
+    if (nodeType === 'transform') {
+      return state.predecessorTableName || (typeof state.model.tableName === 'string' ? state.model.tableName : '') || ''
+    }
+    return typeof state.model.tableName === 'string' ? state.model.tableName : ''
+  }
+
   const onSmartParseOpen = async () => {
-    const datasourceName = state.model.datasourceName
-    const tableName = typeof state.model.tableName === 'string' ? state.model.tableName : ''
-    if (!datasourceName || !tableName) {
+    const dsName = resolveDatasourceName()
+    const tblName = resolveTableName()
+    if (!dsName || !tblName) {
       window.$message.warning(t('project.synchronization_definition.smart_parse_required_tips'))
       return
     }
@@ -435,7 +464,7 @@ export const useConfigurationForm = (
     smartParseState.hasMessage = false
     smartParseState.fields = []
     try {
-      const cacheKey = `seatunnel_preview_msg_${datasourceName}_${tableName}`
+      const cacheKey = `seatunnel_preview_msg_${dsName}_${tblName}`
       const cachedValue = localStorage.getItem(cacheKey)
       if (cachedValue) {
         smartParseState.hasMessage = true
@@ -456,12 +485,12 @@ export const useConfigurationForm = (
 
   const onSmartParseStrategyChange = async (strategy: string) => {
     smartParseState.strategy = strategy
-    const datasourceName = state.model.datasourceName
-    const tableName = typeof state.model.tableName === 'string' ? state.model.tableName : ''
-    if (!datasourceName || !tableName) return
+    const dsName = resolveDatasourceName()
+    const tblName = resolveTableName()
+    if (!dsName || !tblName) return
     smartParseState.loading = true
     try {
-      const cacheKey = `seatunnel_preview_msg_${datasourceName}_${tableName}`
+      const cacheKey = `seatunnel_preview_msg_${dsName}_${tblName}`
       const cachedValue = localStorage.getItem(cacheKey)
       if (cachedValue) {
         const res = await flattenJson(cachedValue, strategy)
@@ -477,7 +506,7 @@ export const useConfigurationForm = (
   const onSmartParseConfirm = () => {
     const fields = smartParseState.fields
     if (!fields || fields.length === 0) return
-    const srcField = (state.inputTableData?.[0] as any)?.name || state.model.datasourceName || 'value'
+    const srcField = (state.inputTableData?.[0] as any)?.name || resolveDatasourceName() || 'value'
     const columnsJson = fields.map((f: any) => ({
       src_field: srcField,
       path: f.path,

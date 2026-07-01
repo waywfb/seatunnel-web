@@ -90,16 +90,24 @@ const DagCanvas = defineComponent({
           ({ cell }: { cell: any }) => {
             if (cell.isEdge()) return
             let fields = [] as string[]
+            let predecessorDatasourceName = ''
+            let predecessorTableName = ''
             const incomingEdges = graph.value?.getIncomingEdges(cell)
             if (incomingEdges?.length) {
               const sourceNode = incomingEdges[0].getSourceNode()
               const sourceData = sourceNode?.getData()
               fields = sourceData.selectTableFields?.tableFields || []
+              // datasourceName 不持久化，用 connectorType 兜底；connectorType 在保存时持久化
+              predecessorDatasourceName = sourceData?.connectorType || sourceData?.datasourceName || ''
+              const tables = sourceData?.tableOption?.tables
+              predecessorTableName = Array.isArray(tables) ? (tables[0] || '') : (tables || '')
             }
             state.nodeInfo = {
               ...cell.getData(),
               type: cell.getData().type.toLowerCase(),
               sourceFields: fields,
+              predecessorDatasourceName,
+              predecessorTableName,
               predecessorsNodeId: (graph.value?.getPredecessors(cell) as Cell[]).length > 0 ? graph.value?.getPredecessors(cell)[0].id : ''
             }
             currentNodeId = cell.id

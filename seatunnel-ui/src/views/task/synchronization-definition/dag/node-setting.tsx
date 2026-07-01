@@ -38,7 +38,7 @@ const props = {
   },
   nodeInfo: {
     type: Object as PropType<NodeInfo>,
-    default: {}
+    default: {} as NodeInfo
   }
 }
 
@@ -95,6 +95,8 @@ const NodeSetting = defineComponent({
                     nodeId={props.nodeInfo.pluginId}
                     transformType={props.nodeInfo.connectorType}
                     datasourceName={props.nodeInfo.datasourceName || props.nodeInfo.connectorType || ''}
+                    predecessorDatasourceName={props.nodeInfo.predecessorDatasourceName || ''}
+                    predecessorTableName={props.nodeInfo.predecessorTableName || ''}
                     ref={configurationFormRef}
                     onTableNameChange={handleChangeTable}
                   />

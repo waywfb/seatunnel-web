@@ -233,9 +233,9 @@ export const useDetail = (id: string) => {
       state.stepTwo.list = fields
       state.previewModal.show = false
       window.$message.success(t('virtual_tables.derive_schema_success'))
-      const { datasourceName, tableName } = state.stepOne
-      if (datasourceName && tableName) {
-        localStorage.setItem(`seatunnel_preview_msg_${datasourceName}_${tableName}`, value)
+      const { pluginName, tableName } = state.stepOne
+      if (pluginName && tableName) {
+        localStorage.setItem(`seatunnel_preview_msg_${pluginName}_${tableName}`, value)
       }
     } catch {
       window.$message.error(t('virtual_tables.derive_schema_error'))
@@ -266,10 +266,10 @@ export const useDetail = (id: string) => {
   }
 
   const onCacheMessage = () => {
-    const { datasourceName, tableName } = state.stepOne
+    const { pluginName, tableName } = state.stepOne
     const value = state.previewModal.value
-    if (value && datasourceName && tableName) {
-      localStorage.setItem(`seatunnel_preview_msg_${datasourceName}_${tableName}`, value)
+    if (value && pluginName && tableName) {
+      localStorage.setItem(`seatunnel_preview_msg_${pluginName}_${tableName}`, value)
     }
   }
 

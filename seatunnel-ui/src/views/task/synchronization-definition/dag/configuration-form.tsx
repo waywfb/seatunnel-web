@@ -60,6 +60,16 @@ const ConfigurationForm = defineComponent({
     datasourceName: {
       type: String as PropType<string>,
       default: ''
+    },
+    // eslint-disable-next-line vue/require-default-prop
+    predecessorDatasourceName: {
+      type: String as PropType<string>,
+      default: ''
+    },
+    // eslint-disable-next-line vue/require-default-prop
+    predecessorTableName: {
+      type: String as PropType<string>,
+      default: ''
     }
   },
   emits: ['tableNameChange'],
@@ -79,7 +89,9 @@ const ConfigurationForm = defineComponent({
     } = useConfigurationForm(
       props.nodeType as NodeType,
       props.transformType as string,
-      props.datasourceName as string
+      props.datasourceName as string,
+      props.predecessorDatasourceName as string,
+      props.predecessorTableName as string
     )
     const { t } = useI18n()
     const formRef = ref()
@@ -374,6 +386,7 @@ const ConfigurationForm = defineComponent({
             style={{ width: '720px' }}
             onPositiveClick={onSmartParseConfirm}
             onNegativeClick={onSmartParseCancel}
+            onUpdateShow={(val: boolean) => { if (!val) onSmartParseCancel() }}
             positiveText={t('project.synchronization_definition.confirm')}
             negativeText={t('project.synchronization_definition.cancel')}
           >
