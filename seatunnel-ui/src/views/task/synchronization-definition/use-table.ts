@@ -196,6 +196,52 @@ export function useTable() {
         render: (row: any) => renderJobTypeTag(row.jobType)
       },
       {
+        title: t('project.synchronization_definition.job_mode'),
+        key: 'jobMode',
+        width: 100,
+        render: (row: any) => {
+          if (!row.jobMode) return ''
+          const label = row.jobMode === 'STREAMING' ? '实时同步' : '离线同步'
+          return h(
+            NTag,
+            {
+              size: 'small',
+              color:
+                row.jobMode === 'STREAMING'
+                  ? { textColor: '#7c3aed', borderColor: '#ddd6fe', color: '#f5f3ff' }
+                  : { textColor: '#1a5c8a', borderColor: '#b8dff5', color: '#e8f4fd' },
+              bordered: false,
+              round: false
+            },
+            { default: () => label }
+          )
+        }
+      },
+      {
+        title: t('project.synchronization_definition.data_save_mode'),
+        key: 'dataSaveMode',
+        width: 140,
+        render: (row: any) => {
+          if (!row.dataSaveMode) return ''
+          const labels: Record<string, string> = {
+            APPEND_DATA: '追加数据',
+            DROP_DATA: '清空数据',
+            CUSTOM_PROCESSING: '自定义处理',
+            ERROR_WHEN_DATA_EXISTS: '数据已存在时报错'
+          }
+          return h(
+            NTag,
+            {
+              size: 'small',
+              color: { textColor: '#555', borderColor: '#d0d0d0', color: '#f0f0f0' },
+              bordered: false,
+              round: false
+            },
+            { default: () => labels[row.dataSaveMode] || row.dataSaveMode }
+          )
+        }
+      },
+      {
         title: t('project.synchronization_definition.state'),
         key: 'status',
         width: 120,

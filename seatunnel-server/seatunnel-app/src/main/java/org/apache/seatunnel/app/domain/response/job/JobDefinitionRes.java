@@ -70,4 +70,10 @@ public class JobDefinitionRes {
 
     @ApiModelProperty(value = "sink datasource plugin name, eg JDBC-Mysql", dataType = "String")
     private String sinkDatasourceName;
+
+    @ApiModelProperty(value = "job mode: BATCH / STREAMING", dataType = "String")
+    private String jobMode;
+
+    @ApiModelProperty(value = "data save mode", dataType = "String")
+    private String dataSaveMode;
 }

@@ -1005,6 +1005,8 @@ export default {
     unconfigured_pipeline: 'Unconfigured Pipeline',
     unconfigured: 'Unconfigured',
     running: 'Running',
+    job_mode: 'Job Mode',
+    data_save_mode: 'Data Save Mode',
     operation: 'Operation',
     edit: 'Edit',
     start: 'start',

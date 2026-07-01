@@ -141,8 +141,10 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                 job.getData().stream().map(JobDefinitionRes::getId).collect(Collectors.toList());
         List<JobVersion> versions = jobVersionDao.getLatestVersionByJobIds(jobIds);
         Map<Long, Long> jobIdToVersionId = new HashMap<>();
+        Map<Long, JobMode> jobIdToJobMode = new HashMap<>();
         for (JobVersion version : versions) {
             jobIdToVersionId.putIfAbsent(version.getJobId(), version.getId());
+            jobIdToJobMode.putIfAbsent(version.getJobId(), version.getJobMode());
         }
 
         if (!jobIdToVersionId.isEmpty()) {
@@ -169,6 +171,11 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
             }
 
             for (JobDefinitionRes res : job.getData()) {
+                JobMode mode = jobIdToJobMode.get(res.getId());
+                if (mode != null) {
+                    res.setJobMode(mode.name());
+                }
+
                 Long versionId = jobIdToVersionId.get(res.getId());
                 if (versionId == null) continue;
                 List<JobTask> tasks = tasksByVersion.get(versionId);
@@ -182,6 +189,20 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                         String pluginName = dsIdToPluginName.get(task.getDataSourceId());
                         if (pluginName != null) {
                             res.setSinkDatasourceName(pluginName);
+                        }
+                        if (StringUtils.isNotEmpty(task.getConfig())) {
+                            try {
+                                Map<String, Object> configMap =
+                                        JsonUtils.parseObject(task.getConfig(), Map.class);
+                                if (configMap != null
+                                        && configMap.containsKey("data_save_mode")
+                                        && configMap.get("data_save_mode") != null) {
+                                    res.setDataSaveMode(
+                                            configMap.get("data_save_mode").toString());
+                                }
+                            } catch (Exception e) {
+                                // ignore parse errors for individual task configs
+                            }
                         }
                     }
                 }

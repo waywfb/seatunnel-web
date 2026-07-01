@@ -1003,6 +1003,8 @@ export default {
     unconfigured_pipeline: '未配置链路',
     unconfigured: '未配置',
     running: '运行中',
+    job_mode: '作业模式',
+    data_save_mode: '数据保存模式',
     operation: '操作',
     edit: '编辑',
     start: '运行',
