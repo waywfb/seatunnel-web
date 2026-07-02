@@ -51,7 +51,7 @@ import { LogRes } from '@/service/log/types'
 import ColumnSelector from '@/components/column-selector'
 import { getRangeShortCuts } from '@/utils/timePickeroption'
 import { useRoute, useRouter } from 'vue-router'
-import _ from 'lodash'
+import isEmpty from 'lodash/isEmpty'
 import { DownOutlined } from '@vicons/antd'
 
 const props = {
@@ -165,7 +165,7 @@ const SyncTask = defineComponent({
       }
 
       router.replace({
-        query: !_.isEmpty(query)
+        query: !isEmpty(query)
           ? {
             ...route.query,
             ...query,
