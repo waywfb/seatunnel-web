@@ -47,7 +47,7 @@ const DISPLAY_NAMES: Record<string, string> = {
 
 function formatNodeName(raw: string): string {
   if (!raw) return ''
-  const cleaned = raw.replace(/^pipeline-\d+\s*\[(Source|Sink)\[\d+\]-/, '')
+  const cleaned = raw.replace(/^pipeline-\d+\s*\[(Source|Sink)\[\d+\]-/, '').replace(/\]$/, '')
   return DISPLAY_NAMES[cleaned] || cleaned || raw
 }
 

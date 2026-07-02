@@ -49,7 +49,7 @@ const PIPELINE_DISPLAY_NAMES: Record<string, string> = {
 
 function formatPipelineName(raw: string): string {
   if (!raw) return ''
-  const cleaned = raw.replace(/^(Source|Sink)\[\d+\]-/, '')
+  const cleaned = raw.replace(/^(Source|Sink)\[\d+\]-/, '').replace(/\]$/, '')
   return PIPELINE_DISPLAY_NAMES[cleaned] || cleaned || raw
 }
 
