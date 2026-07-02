@@ -74,7 +74,7 @@ const useDagLayout = (graph: any) => {
       if (edges && edges.length > 0) {
         edges.forEach((edge: any) => {
           const edgeView = graph.findViewByCell(edge)
-            const labelView = edgeView?.findAttr(
+          const labelView = edgeView?.findAttr(
             'width',
             get(edgeView, ['labelSelectors', '0', 'body'], null)
           )

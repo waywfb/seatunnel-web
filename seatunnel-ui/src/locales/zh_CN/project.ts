@@ -1104,6 +1104,7 @@ export default {
     target_name_tips: '请输入或选择表名(必填)',
     start_success: '启动成功',
     start_failed: '启动失败',
+    delete_failed: '删除失败',
     smart_parse_button: '智能解析',
     smart_parse_title: 'JSON 智能解析',
     smart_parse_strategy: '解析策略',

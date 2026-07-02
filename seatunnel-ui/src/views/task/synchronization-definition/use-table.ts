@@ -396,9 +396,8 @@ export function useTable() {
         pageNo: variables.page,
         searchName: variables.searchName
       })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Delete failed:', error)
+    } catch {
+      message.error(t('project.synchronization_definition.delete_failed'))
     }
   }
 

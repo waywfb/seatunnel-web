@@ -60,16 +60,13 @@ export function useDagAddShape(
       zIndex: 1,
       attrs: {
         body:
-          String(nodes[i].status.toLowerCase()) === 'failed' &&
-            'finished' &&
-            'canceled'
-            ? stateColor.running
-            : stateColor[
+          stateColor[
             nodes[i].status.toLowerCase() as
-            | 'failed'
-            | 'finished'
-            | 'canceled'
-            ]
+              | 'failed'
+              | 'running'
+              | 'finished'
+              | 'canceled'
+          ] || stateColor.running
       }
     })
 
@@ -89,7 +86,7 @@ export function useDagAddShape(
           },
           {
             tagName: 'text',
-            textContent: `状态: ${statusLabels[nodes[i].status] || nodes[i].status}`,
+            textContent: `状态: ${statusLabels[nodes[i].status.toUpperCase()] || nodes[i].status}`,
             attrs: {
               fill: '#868686',
               'font-size': 12,

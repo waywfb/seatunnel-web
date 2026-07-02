@@ -1106,6 +1106,7 @@ export default {
     target_name_tips: 'Please enter or select table name',
     start_success: 'Start success',
     start_failed: 'Start failed',
+    delete_failed: 'Delete failed',
     smart_parse_button: 'Smart Parse',
     smart_parse_title: 'JSON Smart Parse',
     smart_parse_strategy: 'Parse Strategy',
