@@ -17,6 +17,8 @@
 
 import {
   defineComponent,
+  getCurrentInstance,
+  nextTick,
   onMounted,
   onUnmounted,
   PropType,
@@ -80,6 +82,18 @@ const SyncTask = defineComponent({
     const router = useRouter()
 
     const tableColumn = ref([]) as any
+    const vm = getCurrentInstance()!
+    const containerStyle = ref('display: flex; flex-direction: column; gap: 12px;')
+
+    function updateHeight() {
+      nextTick(() => {
+        const el = vm.refs.containerRef as HTMLElement | undefined
+        if (!el) return
+        const top = el.getBoundingClientRect().top
+        const h = window.innerHeight - top - 12
+        containerStyle.value = `display: flex; flex-direction: column; gap: 12px; height: ${Math.max(h, 300)}px;`
+      })
+    }
 
     const stats = computed(() => {
       const data = variables.tableData || []
@@ -87,7 +101,7 @@ const SyncTask = defineComponent({
       let success = 0
       let failed = 0
       for (const row of data as any[]) {
-        const s = row.state || row.status
+        const s = row.jobStatus || row.state || row.status
         if (!s) continue
         if (s === 'RUNNING' || s === 'SUBMITTED_SUCCESS') running++
         else if (s === 'SUCCESS') success++
@@ -222,11 +236,14 @@ const SyncTask = defineComponent({
       creatInstanceButtons(variables)
       requestData()
       refreshTimer = window.setInterval(requestData, 3000)
+      updateHeight()
+      window.addEventListener('resize', updateHeight)
     })
 
     onUnmounted(() => {
       clearTimeout(logTimer)
       clearInterval(refreshTimer)
+      window.removeEventListener('resize', updateHeight)
     })
 
     watch(locale, () => {
@@ -259,6 +276,7 @@ const SyncTask = defineComponent({
       t,
       ...toRefs(variables),
       stats,
+      containerStyle,
       requestData,
       onUpdatePageSize,
       refreshLogs,
@@ -355,10 +373,10 @@ const SyncTask = defineComponent({
     )
 
     return (
-      <NSpace vertical>
+      <div ref="containerRef" style={this.containerStyle}>
         {renderSearchBar()}
         {renderStatCards()}
-        <NCard title={t('project.synchronizing_task_instance')}>
+        <NCard title={t('project.synchronizing_task_instance')} style='flex: 1; overflow: hidden; display: flex; flex-direction: column;' contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
           {{
             'header-extra': () => (
               <NSpace justify='space-between'>
@@ -370,16 +388,18 @@ const SyncTask = defineComponent({
               </NSpace>
             ),
             default: () => (
-              <NSpace vertical>
-                <NDataTable
-                  loading={this.loadingRef}
-                  columns={this.tableColumn}
-                  data={this.tableData}
-                  rowKey={(row) => row.id}
-                  scrollX={this.tableWidth}
-                  v-model:checked-row-keys={this.checkedRowKeys}
-                />
-                <NSpace justify='center'>
+              <div style='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
+                <div style='flex: 1; overflow: auto;'>
+                  <NDataTable
+                    loading={this.loadingRef}
+                    columns={this.tableColumn}
+                    data={this.tableData}
+                    rowKey={(row) => row.id}
+                    scrollX={this.tableWidth}
+                    v-model:checked-row-keys={this.checkedRowKeys}
+                  />
+                </div>
+                <NSpace justify='center' style='padding: 12px 0;'>
                   <NPagination
                     v-model:page={this.page}
                     v-model:page-size={this.pageSize}
@@ -391,7 +411,7 @@ const SyncTask = defineComponent({
                     onUpdatePageSize={this.onUpdatePageSize}
                   />
                 </NSpace>
-              </NSpace>
+              </div>
             )
           }}
         </NCard>
@@ -409,7 +429,7 @@ const SyncTask = defineComponent({
           jobName={this.currentJobName}
           onUpdateShow={(v: boolean) => this.showLogViewerModal = v}
         />
-      </NSpace>
+      </div>
     )
   }
 })

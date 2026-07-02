@@ -17,7 +17,7 @@
 
 import { defineComponent, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { NSpace, NTabs, NTabPane } from 'naive-ui'
+import { NTabs, NTabPane } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { SyncTask } from './sync-task'
 
@@ -28,12 +28,12 @@ const SynchronizationInstance = defineComponent({
     const router = useRouter()
     const { t } = useI18n()
     let syncTaskType = ref(route.query.syncTaskType || 'BATCH')
-   
+    
     return { t, syncTaskType }
   },
   render() {
     return (
-      <NSpace vertical>
+      <div class='h-full flex flex-col overflow-hidden'>
         <NTabs type='segment' v-model:value={this.syncTaskType}>
           <NTabPane
             name='BATCH'
@@ -48,7 +48,7 @@ const SynchronizationInstance = defineComponent({
             <SyncTask syncTaskType='STREAMING' />
           </NTabPane>
         </NTabs>
-      </NSpace>
+      </div>
     )
   }
 })

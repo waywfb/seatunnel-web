@@ -99,6 +99,9 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     refreshTimerId: ref(0)
   })
 
+  const isRunning = (jobStatus?: string) =>
+    !!jobStatus && ['RUNNING', 'RUNNING_EXECUTION', 'SUBMITTED_SUCCESS'].includes(jobStatus)
+
   const creatInstanceButtons = (variables: any) => {
     variables.buttonList = [
       {
@@ -197,16 +200,18 @@ export function useSyncTask(syncTaskType = 'BATCH') {
         {
           title: t('project.synchronization_instance.operation'),
           key: 'operation',
-          itemNum: 4,
+          itemNum: 3,
           buttons: [
             {
               text: t('project.workflow.recovery_suspend'),
               icon: h(PlayCircleOutlined),
+              show: (row) => !isRunning(row.jobStatus),
               onClick: (row) => void handleRecover(row.id)
             },
             {
               text: t('project.workflow.pause'),
               icon: h(PauseCircleOutlined),
+              show: (row) => isRunning(row.jobStatus),
               onClick: (row) => void handlePause(row.id)
             },
             {

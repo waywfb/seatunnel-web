@@ -276,20 +276,33 @@ const SynchronizationDefinition = defineComponent({
     )
 
     const renderTableView = () => (
-      <NCard>
-        <NSpace vertical>
-          <NDataTable
-            loading={this.loadingRef}
-            columns={this.columns}
-            data={this.tableData}
-          />
-          {renderPagination()}
-        </NSpace>
+      <NCard style='height: 100%; overflow: hidden; display: flex; flex-direction: column;' contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
+        <div style='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
+          <div style='flex: 1; overflow: auto;'>
+            <NDataTable
+              loading={this.loadingRef}
+              columns={this.columns}
+              data={this.tableData}
+            />
+          </div>
+          <NSpace justify='center' style='padding: 12px 0; flex-shrink: 0;'>
+            <NPagination
+              v-model:page={this.page}
+              v-model:page-size={this.pageSize}
+              page-count={this.totalPage}
+              show-size-picker
+              page-sizes={[10, 30, 50]}
+              show-quick-jumper
+              onUpdatePage={this.requestData}
+              onUpdatePageSize={this.onUpdatePageSize}
+            />
+          </NSpace>
+        </div>
       </NCard>
     )
 
     const renderCardView = () => (
-      <div>
+      <div style='height: 100%; overflow: auto;'>
         <div class='grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-3 mb-4'>
           {this.tableData.map((task: Task) => (
             <TaskCard
@@ -306,16 +319,18 @@ const SynchronizationDefinition = defineComponent({
     )
 
     return (
-      <NSpace vertical>
+      <div class='h-full flex flex-col overflow-hidden'>
         {renderSearchBar()}
         {renderStatCards()}
-        {this.viewMode === 'table' ? renderTableView() : renderCardView()}
+        <div style='flex: 1; overflow: hidden;'>
+          {this.viewMode === 'table' ? renderTableView() : renderCardView()}
+        </div>
         <TaskModal
           showModalRef={this.showModalRef}
           onCancelModal={this.onCancelModal}
           onConfirmModal={this.onConfirmModal}
         />
-      </NSpace>
+      </div>
     )
   }
 })
