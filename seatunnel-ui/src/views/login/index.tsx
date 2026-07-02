@@ -71,7 +71,7 @@ const Login = defineComponent({
                 </svg>
                 <h2 style={{
                   fontSize: 'var(--font-size-xl)',
-                  fontWeight: 'var(--font-weight-bold)',
+                  fontWeight: 700,
                   color: 'var(--color-foreground)',
                   marginTop: 'var(--space-4)'
                 }}>
