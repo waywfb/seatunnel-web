@@ -58,8 +58,8 @@ const dark: GlobalThemeOverrides = {
     fontWeightStrong: '500',
 
     /**************** Radius */
-    borderRadius: '4px',
-    borderRadiusSmall: '4px'
+    borderRadius: '8px',
+    borderRadiusSmall: '6px'
   },
 
   Layout: {
@@ -86,7 +86,7 @@ const dark: GlobalThemeOverrides = {
     itemIconColorHover: '#D1D5DB',
     itemColorHover: '#1F2937',
     itemHeight: '40px',
-    borderRadius: '4px',
+    borderRadius: '8px',
     borderColor: '#374151',
     color: '#111827',
     groupTextColor: '#6B7280',
@@ -97,8 +97,8 @@ const dark: GlobalThemeOverrides = {
     thColor: '#1F2937',
     thColorModal: '#1F2937',
     thColorPopover: '#1F2937',
-    thTextColor: '#9CA3AF',
-    thFontWeight: '500',
+    thTextColor: '#D1D5DB',
+    thFontWeight: '600',
     tdColor: '#111827',
     tdColorModal: '#111827',
     tdColorPopover: '#111827',
@@ -106,7 +106,6 @@ const dark: GlobalThemeOverrides = {
     borderColor: '#374151',
     borderColorModal: '#374151',
     borderColorPopover: '#374151',
-    tdColorStriped: '#1A1A1A',
     tdColorHover: '#1F2937'
   },
 
@@ -126,7 +125,7 @@ const dark: GlobalThemeOverrides = {
     textColorDisabled: '#6B7280',
     opacityDisabled: '0.5',
     fontWeight: '500',
-    borderRadius: '4px',
+    borderRadius: '8px',
     height: '40px',
     padding: '0 16px',
     fontSize: '14px',
@@ -198,7 +197,7 @@ const dark: GlobalThemeOverrides = {
     colorDisabled: '#1F2937',
     colorDisabledModal: '#1F2937',
     textColorDisabled: '#4B5563',
-    borderRadius: '4px',
+    borderRadius: '8px',
     height: '40px',
     fontSize: '14px',
     padding: '0 12px',
@@ -211,7 +210,7 @@ const dark: GlobalThemeOverrides = {
     menuColorPopover: '#1F2937',
     menuBoxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
     menuBorder: '1px solid #374151',
-    menuBorderRadius: '4px',
+    menuBorderRadius: '8px',
     optionTextColor: '#D1D5DB',
     optionTextColorHover: '#F9FAFB',
     optionTextColorActive: '#60A5FA',
@@ -227,7 +226,7 @@ const dark: GlobalThemeOverrides = {
     borderHover: '1px solid #6B7280',
     borderFocus: '1px solid #3B82F6',
     boxShadowFocus: '0 0 0 2px rgba(59, 130, 246, 0.25)',
-    borderRadius: '4px',
+    borderRadius: '8px',
     height: '40px',
     fontSize: '14px',
     placeholderColor: '#6B7280'
@@ -238,12 +237,12 @@ const dark: GlobalThemeOverrides = {
     colorModal: '#111827',
     colorPopover: '#111827',
     borderColor: '#374151',
-    borderRadius: '8px',
-    paddingTop: '16px',
-    paddingBottom: '16px',
-    paddingLeft: '16px',
-    paddingRight: '16px',
-    boxShadow: 'none',
+    borderRadius: '12px',
+    paddingTop: '20px',
+    paddingBottom: '20px',
+    paddingLeft: '20px',
+    paddingRight: '20px',
+    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.4)',
     titleFontSize: '16px',
     titleFontWeight: '500',
     titleTextColor: '#F9FAFB'
@@ -254,8 +253,8 @@ const dark: GlobalThemeOverrides = {
     colorModal: '#1E1E1E',
     colorPopover: '#1E1E1E',
     border: '1px solid #374151',
-    borderRadius: '8px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
+    borderRadius: '12px',
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
     titleFontSize: '16px',
     titleFontWeight: '600',
     titleTextColor: '#F9FAFB',
@@ -267,7 +266,7 @@ const dark: GlobalThemeOverrides = {
   Tooltip: {
     color: '#F9FAFB',
     textColor: '#111827',
-    borderRadius: '4px',
+    borderRadius: '6px',
     fontSize: '12px',
     boxShadow: '0 1px 4px rgba(0, 0, 0, 0.4)'
   },
@@ -316,7 +315,7 @@ const dark: GlobalThemeOverrides = {
     itemTextColorActive: '#60A5FA',
     itemBorder: '1px solid #374151',
     itemBorderActive: '1px solid #3B82F6',
-    itemBorderRadius: '4px',
+    itemBorderRadius: '6px',
     itemFontSize: '14px',
     itemSize: '36px',
     buttonBorder: '1px solid #374151',
@@ -342,7 +341,7 @@ const dark: GlobalThemeOverrides = {
     optionTextColorActive: '#60A5FA',
     optionColorHover: '#374151',
     optionColorActive: '#1E3A5F',
-    borderRadius: '4px',
+    borderRadius: '8px',
     border: '1px solid #374151',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
     dividerColor: '#374151'
@@ -352,7 +351,7 @@ const dark: GlobalThemeOverrides = {
     color: '#1F2937',
     textColor: '#D1D5DB',
     border: '1px solid #374151',
-    borderRadius: '4px',
+    borderRadius: '6px',
     fontSize: '12px',
     padding: '0 8px',
     height: '24px'
@@ -428,7 +427,7 @@ const dark: GlobalThemeOverrides = {
     tabTextColorHover: '#F9FAFB',
     tabFontSize: '14px',
     tabFontWeight: '500',
-    tabBorderRadius: '0',
+    tabBorderRadius: '6px',
     barColor: '#60A5FA',
     colorSegment: '#1F2937',
     tabColorSegment: '#111827',
@@ -492,14 +491,13 @@ const dark: GlobalThemeOverrides = {
 
   DataTable: {
     thColor: '#1F2937',
-    thTextColor: '#9CA3AF',
-    thFontWeight: '500',
+    thTextColor: '#D1D5DB',
+    thFontWeight: '600',
     tdColor: '#111827',
     tdTextColor: '#F9FAFB',
     borderColor: '#374151',
     tdColorHover: '#1F2937',
-    tdColorStriped: '#1A1A1A',
-    borderRadius: '4px',
+    borderRadius: '8px',
     loadingColor: '#3B82F6',
     paginationColor: '#60A5FA',
     paginationTextColor: '#D1D5DB'

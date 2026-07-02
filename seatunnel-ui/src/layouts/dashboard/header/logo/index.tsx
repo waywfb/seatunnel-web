@@ -22,8 +22,12 @@ const Logo = defineComponent({
   setup() {},
   render() {
     return (
-      <NSpace justify='start' align='center' class='h-16 w-48 ml-12'>
-        <h2 class='text-2xl font-bold'>SeaTunnel</h2>
+      <NSpace justify='start' align='center' class='h-16 ml-12'>
+        <svg width='32' height='32' viewBox='0 0 32 32' fill='none'>
+          <rect width='32' height='32' rx='8' fill='var(--color-primary)'/>
+          <text x='16' y='21' text-anchor='middle' fill='white' font-size='15' font-weight='700' font-family='Inter, sans-serif'>ST</text>
+        </svg>
+        <span class='text-xl font-bold'>SeaTunnel</span>
       </NSpace>
     )
   }

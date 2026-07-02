@@ -52,12 +52,32 @@ const Login = defineComponent({
           <NSpace
             justify='center'
             align='center'
-            class='w-full h-screen bg-gray-100'
+            class='w-full h-screen login-bg'
           >
-            <div class='w-96 bg-white px-16 py-20 border border-gray-100 rounded-2xl'>
-              <h2 class='text-2xl mb-16 font-bold'>
-                {this.t('login.login_to_sea_tunnel')}
-              </h2>
+            <div class='w-96' style={{
+              background: 'var(--color-card)',
+              padding: 'var(--space-12) var(--space-12)',
+              borderRadius: 'var(--card-radius)',
+              boxShadow: 'var(--shadow-card)',
+              border: '1px solid var(--color-border)'
+            }}>
+              <div style={{
+                textAlign: 'center',
+                marginBottom: 'var(--space-8)'
+              }}>
+                <svg width='48' height='48' viewBox='0 0 32 32' fill='none'>
+                  <rect width='32' height='32' rx='8' fill='var(--color-primary)'/>
+                  <text x='16' y='21' text-anchor='middle' fill='white' font-size='15' font-weight='700' font-family='Inter, sans-serif'>ST</text>
+                </svg>
+                <h2 style={{
+                  fontSize: 'var(--font-size-xl)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: 'var(--color-foreground)',
+                  marginTop: 'var(--space-4)'
+                }}>
+                  {this.t('login.login_to_sea_tunnel')}
+                </h2>
+              </div>
               <NForm rules={this.rules} ref='loginFormRef' class='mb-4'>
                 <NFormItem
                   label={this.t('login.username')}

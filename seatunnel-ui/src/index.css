@@ -103,7 +103,7 @@
   --space-24:   6rem;
 
   /* ---- Typography Primitives ---- */
-  --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Inter', 'Fira Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
 
   --font-size-tiny:   0.6875rem;
@@ -134,11 +134,11 @@
   /* ---- Radius Primitives ---- */
   --radius-none:    0;
   --radius-sm:      0.125rem;
-  --radius-default: 0.25rem;
-  --radius-md:      0.375rem;
-  --radius-lg:      0.5rem;
-  --radius-xl:      0.75rem;
-  --radius-2xl:     1rem;
+  --radius-default: 0.375rem;
+  --radius-md:      0.5rem;
+  --radius-lg:      0.75rem;
+  --radius-xl:      1rem;
+  --radius-2xl:     1.25rem;
   --radius-full:    9999px;
 
   /* ---- Shadow Primitives ---- */
@@ -243,15 +243,15 @@
   --scrollbar-track: var(--color-surface-0);
   --scrollbar-thumb: var(--color-gray-300);
 
-  /* ---- Spacing Semantics ---- */
+    /* ---- Spacing Semantics ---- */
   --spacing-component-xs: var(--space-1);
   --spacing-component-sm: var(--space-2);
   --spacing-component: var(--space-3);
   --spacing-component-lg: var(--space-4);
   --spacing-section: var(--space-8);
   --spacing-section-lg: var(--space-12);
-  --spacing-page-x: var(--space-4);
-  --spacing-page-y: var(--space-6);
+  --spacing-page-x: var(--space-6);
+  --spacing-page-y: var(--space-8);
 
   /* ---- Typography Semantics ---- */
   --font-page-title:   var(--font-size-xl);
@@ -264,14 +264,14 @@
   --font-code:         13px;
 
   /* ---- Radius Semantics ---- */
-  --radius-component: var(--radius-default);
-  --radius-card: var(--radius-lg);
-  --radius-dialog: var(--radius-lg);
-  --radius-dag-node: var(--radius-md);
+  --radius-component: var(--radius-md);
+  --radius-card: var(--radius-xl);
+  --radius-dialog: var(--radius-xl);
+  --radius-dag-node: var(--radius-lg);
 
   /* ---- Shadow Semantics ---- */
-  --shadow-card: var(--shadow-none);
-  --shadow-dialog: var(--shadow-md);
+  --shadow-card: var(--shadow-sm);
+  --shadow-dialog: var(--shadow-lg);
   --shadow-dag-node: var(--shadow-none);
   --shadow-dropdown: var(--shadow-sm);
 }
@@ -349,8 +349,8 @@
   --scrollbar-track: #1A1A1A;
   --scrollbar-thumb: #333333;
 
-  --shadow-card: var(--shadow-none);
-  --shadow-dialog: 0 4px 12px rgb(0 0 0 / 0.5);
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.6), 0 2px 6px 0 rgb(0 0 0 / 0.4);
+  --shadow-dialog: 0 8px 24px rgb(0 0 0 / 0.5);
   --shadow-dag-node: var(--shadow-none);
   --shadow-dropdown: 0 2px 8px rgb(0 0 0 / 0.4);
 }
@@ -556,4 +556,37 @@ body {
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   pointer-events: none;
+}
+
+/* =========================================================
+   SIDEBAR SELECTED INDICATOR
+   3px left color bar on active menu item
+   ========================================================= */
+.tab-vertical .n-menu-item-content--selected {
+  position: relative;
+}
+.tab-vertical .n-menu-item-content--selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 20px;
+  background: var(--color-primary);
+  border-radius: 0 3px 3px 0;
+  transform: translateY(-50%);
+}
+
+/* =========================================================
+   LOGIN PAGE
+   ========================================================= */
+.login-bg {
+  background: linear-gradient(135deg, var(--color-surface-0) 0%, var(--color-surface-1) 100%);
+}
+
+.login-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-card);
 }
