@@ -42,6 +42,15 @@ export function useDagAddShape(
   edges: Array<any>,
   t: any
 ) {
+  const statusLabels: Record<string, string> = {
+    RUNNING: '运行中',
+    FINISHED: '已完成',
+    FAILED: '失败',
+    CANCELED: '已取消',
+    INITIALIZING: '初始化中',
+    WAITING: '等待中'
+  }
+
   for (const i in nodes) {
     const group = graph.addNode({
       x: 40,
@@ -70,7 +79,7 @@ export function useDagAddShape(
         markup: [
           {
             tagName: 'text',
-            textContent: `pipeline#${nodes[i].pipelineId}`,
+            textContent: `数据管道 #${nodes[i].pipelineId}`,
             attrs: {
               fill: '#333333',
               'font-size': 14,
@@ -80,9 +89,7 @@ export function useDagAddShape(
           },
           {
             tagName: 'text',
-            textContent: `${t('project.synchronization_instance.state')}: ${
-              nodes[i].status
-            }`,
+            textContent: `状态: ${statusLabels[nodes[i].status] || nodes[i].status}`,
             attrs: {
               fill: '#868686',
               'font-size': 12,

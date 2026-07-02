@@ -21,6 +21,36 @@ import styles from './index.module.scss'
 import { ModernNodeData, determineNodeType } from './use-dag-node'
 import { CanvasDesignTokens, getNodeStateColor } from './design-tokens'
 
+const DISPLAY_NAMES: Record<string, string> = {
+  'JDBC-Mysql': 'MySQL',
+  'JDBC-Postgres': 'PostgreSQL',
+  'JDBC-SQLServer': 'SQLServer',
+  'JDBC-Oracle': 'Oracle',
+  'JDBC-Db2': 'Db2',
+  'JDBC-Hive': 'Hive',
+  'JDBC-KingBase': 'Kingbase',
+  'JDBC-TiDB': 'TiDB',
+  'MySQL-CDC': 'MySQL-CDC',
+  'Postgres-CDC': 'Postgres-CDC',
+  'SqlServer-CDC': 'SQLServer-CDC',
+  Kafka: 'Kafka',
+  Http: 'HTTP',
+  ElasticSearch: 'Elasticsearch',
+  S3: 'S3',
+  MongoDB: 'MongoDB',
+  FakeSource: 'FakeSource',
+  Hive: 'Hive',
+  Console: 'Console',
+  StarRocks: 'StarRocks',
+  'Jdbc-MultiTableSink': 'JDBC'
+}
+
+function formatNodeName(raw: string): string {
+  if (!raw) return ''
+  const cleaned = raw.replace(/^pipeline-\d+\s*\[(Source|Sink)\[\d+\]-/, '')
+  return DISPLAY_NAMES[cleaned] || cleaned || raw
+}
+
 const Node = defineComponent({
   name: 'Node',
   setup() {
@@ -180,12 +210,12 @@ const Node = defineComponent({
           {{
             trigger: () => (
               <div class={styles['dag-node-label']} style={{ color: getTextColor() }}>
-                <span>{name}</span>
+                <span>{formatNodeName(name)}</span>
               </div>
             ),
             default: () => (
               <div>
-                <div><strong>{name}</strong></div>
+                <div><strong>{formatNodeName(name)}</strong></div>
                 <div style={{ fontSize: '12px', opacity: 0.8 }}>
                   类型: {actualNodeType.value === 'source' ? '数据源' : actualNodeType.value === 'sink' ? '数据目标' : '数据转换'}
                 </div>
