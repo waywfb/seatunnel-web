@@ -67,7 +67,7 @@ const SyncTask = defineComponent({
   setup(props) {
     let logTimer: number
     let refreshTimer: number
-    const { t } = useI18n()
+    const { t, locale } = useI18n()
     const {
       variables,
       getTableData,
@@ -209,7 +209,7 @@ const SyncTask = defineComponent({
       clearInterval(refreshTimer)
     })
 
-    watch(useI18n().locale, () => {
+    watch(locale, () => {
       createColumns(variables)
       creatInstanceButtons(variables)
       rangeShortCuts.rangeOption = getRangeShortCuts(t)
