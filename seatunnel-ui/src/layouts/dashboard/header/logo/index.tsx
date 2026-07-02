@@ -19,15 +19,15 @@ import { defineComponent } from 'vue'
 import { NSpace } from 'naive-ui'
 
 const Logo = defineComponent({
-  setup() {},
+  setup() { },
   render() {
     return (
       <NSpace justify='start' align='center' class='h-16 ml-12'>
         <svg width='32' height='32' viewBox='0 0 32 32' fill='none'>
-          <rect width='32' height='32' rx='8' fill='var(--color-primary)'/>
+          <rect width='32' height='32' rx='8' fill='var(--color-primary)' />
           <text x='16' y='21' text-anchor='middle' fill='white' font-size='15' font-weight='700' font-family='Inter, sans-serif'>ST</text>
         </svg>
-        <span class='text-xl font-bold'>SeaTunnel</span>
+        <span class='text-xl font-bold'>数据接入平台</span>
       </NSpace>
     )
   }

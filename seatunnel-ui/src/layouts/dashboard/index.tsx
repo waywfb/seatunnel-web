@@ -47,14 +47,9 @@ const Dashboard = defineComponent({
               }}
               contentStyle={'height: 100%'}
             >
-              <NSpace
-                vertical
-                justify='space-between'
-                style={'height: 100%'}
-                size='small'
-              >
+              <div style='height: 100%;'>
                 <router-view key={this['$route'].fullPath} />
-              </NSpace>
+              </div>
             </NLayoutContent>
           </NLayout>
         </NLayoutContent>
