@@ -274,7 +274,6 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     variables.showLogViewerModal = true
     variables.currentJobId = row.jobEngineId || row.id
     variables.currentJobName = row.jobDefineName
-    console.log('handleViewLogs row:', row)
   }
 
   const handleCleanState = (row: any) => {
