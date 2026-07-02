@@ -16,7 +16,7 @@
  */
 
 import { DagreLayout } from '@antv/layout'
-import _ from 'lodash'
+import get from 'lodash/get'
 import { DagEdgeName, DagNodeName } from './dag-setting'
 
 const updateParentNodePosition = (nodes: any, node: any) => {
@@ -74,9 +74,9 @@ const useDagLayout = (graph: any) => {
       if (edges && edges.length > 0) {
         edges.forEach((edge: any) => {
           const edgeView = graph.findViewByCell(edge)
-          const labelView = edgeView?.findAttr(
+            const labelView = edgeView?.findAttr(
             'width',
-            _.get(edgeView, ['labelSelectors', '0', 'body'], null)
+            get(edgeView, ['labelSelectors', '0', 'body'], null)
           )
           const labelWidth = labelView ? +labelView : 0
           max = Math.max(max, labelWidth)
