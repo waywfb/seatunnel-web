@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import {
   NButton,
   NInput,
@@ -28,11 +28,13 @@ import {
   SelectOption,
   SelectGroupOption
 } from 'naive-ui'
+import { SearchOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useTable } from './use-table'
 import { useColumns } from './use-columns'
 import { useSource } from '@/views/datasource/list/use-source'
+import StatCard from '@/components/stat-card'
 
 const VirtualTablesList = defineComponent({
   setup() {
@@ -56,11 +58,36 @@ const VirtualTablesList = defineComponent({
       onPageSizeChange
     } = useTable()
 
-    return () => (
-      <NSpace vertical>
-        <NCard title={t('virtual_tables.virtual_tables')}>
-          {{
-            'header-extra': () => <NSpace>
+    const stats = computed(() => {
+      const list = state.list || []
+      const typeCounts: Record<string, number> = {}
+      for (const item of list as any[]) {
+        const type = item.pluginName || 'Other'
+        typeCounts[type] = (typeCounts[type] || 0) + 1
+      }
+      return {
+        total: state.itemCount || list.length,
+        typeCounts
+      }
+    })
+
+    const handleKeyup = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        onSearch()
+      }
+    }
+
+    return () => {
+      const renderSearchBar = () => (
+        <NCard>
+          <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
+            <NButton
+              type='info'
+              onClick={() => router.push({ name: 'virtual-tables-create' })}
+            >
+              {t('virtual_tables.create')}
+            </NButton>
+            <NSpace justify='end'>
               <NSelect
                 v-model:value={state.params.pluginName}
                 clearable
@@ -68,50 +95,63 @@ const VirtualTablesList = defineComponent({
                 options={
                  sourceState.types as Array<SelectGroupOption | SelectOption>
                 }
-                 style={{width: '220px'}}
+                style={{width: '180px'}}
               />
               <NInput
                 v-model:value={state.params.datasourceName}
                 clearable
                 placeholder={t('virtual_tables.source_name_tips')}
+                onKeyup={handleKeyup}
               />
               <NButton type='primary' onClick={onSearch}>
-                {t('virtual_tables.search')}
+                <NIcon>
+                  <SearchOutlined />
+                </NIcon>
               </NButton>
-              <NButton
-                onClick={() => {
-                  router.push({ name: 'virtual-tables-create' })
-                }}
-                type='success'
-              >
-                {t('virtual_tables.create')}
-              </NButton>
-            </NSpace>
-          }}
-        </NCard>
-        <NCard>
-          <NSpace vertical>
-            <NDataTable
-              columns={columns.value}
-              data={state.list}
-              loading={state.loading}
-            />
-            <NSpace justify='center'>
-              <NPagination
-                v-model:page={state.page}
-                v-model:page-size={state.pageSize}
-                item-count={state.itemCount}
-                show-size-picker
-                page-sizes={[10, 30, 50]}
-                show-quick-jumper
-                on-update:page={onPageChange}
-                on-update:page-size={onPageSizeChange}
-              />
             </NSpace>
           </NSpace>
         </NCard>
-      </NSpace>
-    )
+      )
+
+      const renderStatCards = () => (
+        <div class='flex gap-3'>
+          <StatCard
+            label={t('virtual_tables.virtual_tables')}
+            value={stats.value.total}
+            color='var(--color-info)'
+            loading={false}
+          />
+        </div>
+      )
+
+      return (
+        <NSpace vertical>
+          {renderSearchBar()}
+          {renderStatCards()}
+          <NCard>
+            <NSpace vertical>
+              <NDataTable
+                columns={columns.value}
+                data={state.list}
+                loading={state.loading}
+              />
+              <NSpace justify='center'>
+                <NPagination
+                  v-model:page={state.page}
+                  v-model:page-size={state.pageSize}
+                  item-count={state.itemCount}
+                  show-size-picker
+                  page-sizes={[10, 30, 50]}
+                  show-quick-jumper
+                  on-update:page={onPageChange}
+                  on-update:page-size={onPageSizeChange}
+                />
+              </NSpace>
+            </NSpace>
+          </NCard>
+        </NSpace>
+      )
+    }
   }
 })
 

@@ -15,18 +15,37 @@
  * limitations under the License.
  */
 
-import { defineComponent, toRefs, onMounted } from 'vue'
-import { NSpace, NCard, NButton, NDataTable, NPagination } from 'naive-ui'
+import { defineComponent, toRefs, onMounted, computed, ref } from 'vue'
+import { NSpace, NCard, NButton, NDataTable, NPagination, NInput, NIcon } from 'naive-ui'
+import { SearchOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
 import { useTable } from './use-table'
 import FormModal from './components/form-modal'
 import DeleteModal from './components/delete-modal'
+import StatCard from '@/components/stat-card'
 
 const UserManageList = defineComponent({
   setup() {
     const { t } = useI18n()
     const { state, createColumns, getTableData, handleConfirmDeleteModal } =
       useTable()
+
+    const searchName = ref('')
+
+    const stats = computed(() => {
+      const data = state.tableData || []
+      let active = 0
+      let inactive = 0
+      for (const row of data as any[]) {
+        if (row.status === 1) active++
+        else inactive++
+      }
+      return {
+        total: state.totalPage * state.pageSize || data.length,
+        active,
+        inactive
+      }
+    })
 
     const handleFormModal = () => {
       state.showFormModal = true
@@ -59,6 +78,17 @@ const UserManageList = defineComponent({
       })
     }
 
+    const handleSearch = () => {
+      state.pageNo = 1
+      requestData()
+    }
+
+    const handleKeyup = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleSearch()
+      }
+    }
+
     onMounted(() => {
       createColumns(state)
       requestData()
@@ -67,27 +97,58 @@ const UserManageList = defineComponent({
     return {
       t,
       ...toRefs(state),
+      stats,
+      searchName,
       requestData,
       handleFormModal,
       handleCancelFormModal,
       handleConfirmFormModal,
       handleCancelDeleteModal,
       handleConfirmDeleteModal,
-      handlePageSize
+      handlePageSize,
+      handleSearch,
+      handleKeyup
     }
   },
   render() {
+    const renderSearchBar = () => (
+      <NCard>
+        <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
+          <NButton type='info' onClick={this.handleFormModal}>
+            {this.t('user_manage.create')}
+          </NButton>
+          <NSpace justify='end'>
+            <NInput
+              v-model={[this.searchName, 'value']}
+              placeholder={this.t('user_manage.username')}
+              onKeyup={this.handleKeyup}
+              clearable
+            />
+            <NButton type='primary' onClick={this.handleSearch}>
+              <NIcon>
+                <SearchOutlined />
+              </NIcon>
+            </NButton>
+          </NSpace>
+        </NSpace>
+      </NCard>
+    )
+
+    const renderStatCards = () => (
+      <div class='flex gap-3'>
+        <StatCard
+          label={this.t('user_manage.user_manage')}
+          value={this.stats.total}
+          color='var(--color-info)'
+          loading={false}
+        />
+      </div>
+    )
+
     return (
       <NSpace vertical>
-        <NCard title={this.t('user_manage.user_manage')}>
-          {{
-            'header-extra': () => (
-              <NButton onClick={this.handleFormModal} type='success'>
-                {this.t('user_manage.create')}
-              </NButton>
-            )
-          }}
-        </NCard>
+        {renderSearchBar()}
+        {renderStatCards()}
         <NCard>
           <NSpace vertical>
             <NDataTable

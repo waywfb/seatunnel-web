@@ -23,7 +23,8 @@ import {
   toRefs,
   watch,
   ref,
-  reactive
+  reactive,
+  computed
 } from 'vue'
 import { useSyncTask } from './use-sync-task'
 import {
@@ -36,8 +37,6 @@ import {
   NDatePicker,
   NIcon,
   NButton,
-  NGrid,
-  NGi,
   NDropdown
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
@@ -53,6 +52,7 @@ import { getRangeShortCuts } from '@/utils/timePickeroption'
 import { useRoute, useRouter } from 'vue-router'
 import isEmpty from 'lodash/isEmpty'
 import { DownOutlined } from '@vicons/antd'
+import StatCard from '@/components/stat-card'
 
 const props = {
   syncTaskType: {
@@ -80,6 +80,26 @@ const SyncTask = defineComponent({
     const router = useRouter()
 
     const tableColumn = ref([]) as any
+
+    const stats = computed(() => {
+      const data = variables.tableData || []
+      let running = 0
+      let success = 0
+      let failed = 0
+      for (const row of data as any[]) {
+        const s = row.state || row.status
+        if (!s) continue
+        if (s === 'RUNNING' || s === 'SUBMITTED_SUCCESS') running++
+        else if (s === 'SUCCESS') success++
+        else if (s === 'FAILURE' || s === 'FAILED') failed++
+      }
+      return {
+        total: variables.totalPage * variables.pageSize || data.length,
+        running,
+        success,
+        failed
+      }
+    })
     const requestData = () => {
       getTableData({
         pageNo: variables.page,
@@ -238,6 +258,7 @@ const SyncTask = defineComponent({
     return {
       t,
       ...toRefs(variables),
+      stats,
       requestData,
       onUpdatePageSize,
       refreshLogs,
@@ -252,67 +273,91 @@ const SyncTask = defineComponent({
   },
   render() {
     const { t } = this
-    return (
-      <NSpace vertical>
-        <NCard>
-          <NGrid cols={26} yGap={10} xGap={5}>
-            
-            <NGi span={5}>
+    const renderSearchBar = () => (
+      <NCard>
+        <NSpace vertical>
+          <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
+            <NSpace>
               <NInput
                 v-model={[this.taskName, 'value']}
-                placeholder={this.t(
-                  'project.synchronization_instance.task_name'
-                )}
+                placeholder={t('project.synchronization_instance.task_name')}
                 onKeyup={this.handleKeyup}
+                clearable
+                style={{ width: '200px' }}
               />
-            </NGi>
-            <NGi span={4}>
               <NInput
                 v-model={[this.executeUser, 'value']}
-                placeholder={this.t(
-                  'project.synchronization_instance.execute_user'
-                )}
+                placeholder={t('project.synchronization_instance.execute_user')}
                 onKeyup={this.handleKeyup}
-              />
-            </NGi>
-            <NGi span={6}>
-              <NSelect
-                style={{ width: '100%' }}
-                v-model={[this.stateType, 'value']}
-                options={stateType(this.t).slice(1)}
-                placeholder={this.t('project.synchronization_instance.state')}
                 clearable
+                style={{ width: '160px' }}
               />
-            </NGi>
-            <NGi span={7}>
+              <NSelect
+                v-model={[this.stateType, 'value']}
+                options={stateType(t).slice(1)}
+                placeholder={t('project.synchronization_instance.state')}
+                clearable
+                style={{ width: '160px' }}
+              />
               <NDatePicker
                 v-model={[this.datePickerRange, 'formattedValue']}
                 type='datetimerange'
-                start-placeholder={this.t(
-                  'project.synchronization_instance.start_time'
-                )}
-                end-placeholder={this.t(
-                  'project.synchronization_instance.end_time'
-                )}
+                start-placeholder={t('project.synchronization_instance.start_time')}
+                end-placeholder={t('project.synchronization_instance.end_time')}
                 shortcuts={this.rangeShortCuts.rangeOption}
+                style={{ width: '340px' }}
               />
-            </NGi>
-            <NGi span={4}>
-              <NSpace justify='end'>
-                <NButton onClick={this.onReset}>
-                  <NIcon>
-                    <ReloadOutlined />
-                  </NIcon>
-                </NButton>
-                <NButton type='primary' onClick={this.handleSearch}>
-                  <NIcon>
-                    <SearchOutlined />
-                  </NIcon>
-                </NButton>
-              </NSpace>
-            </NGi>
-          </NGrid>
-        </NCard>
+            </NSpace>
+            <NSpace justify='end'>
+              <NButton onClick={this.onReset}>
+                <NIcon>
+                  <ReloadOutlined />
+                </NIcon>
+              </NButton>
+              <NButton type='primary' onClick={this.handleSearch}>
+                <NIcon>
+                  <SearchOutlined />
+                </NIcon>
+              </NButton>
+            </NSpace>
+          </NSpace>
+        </NSpace>
+      </NCard>
+    )
+
+    const renderStatCards = () => (
+      <div class='flex gap-3'>
+        <StatCard
+          label={t('project.synchronization_instance.total')}
+          value={this.stats.total}
+          color='var(--color-info)'
+          loading={false}
+        />
+        <StatCard
+          label={t('project.synchronization_instance.running')}
+          value={this.stats.running}
+          color='var(--color-primary)'
+          loading={false}
+        />
+        <StatCard
+          label={t('project.synchronization_instance.success')}
+          value={this.stats.success}
+          color='var(--color-success)'
+          loading={false}
+        />
+        <StatCard
+          label={t('project.synchronization_instance.fail')}
+          value={this.stats.failed}
+          color='var(--color-error)'
+          loading={false}
+        />
+      </div>
+    )
+
+    return (
+      <NSpace vertical>
+        {renderSearchBar()}
+        {renderStatCards()}
         <NCard title={t('project.synchronizing_task_instance')}>
           {{
             'header-extra': () => (
@@ -322,19 +367,6 @@ const SyncTask = defineComponent({
                   tableColumns={this.columns}
                   onChangeOptions={this.handleChangeColumn}
                 ></ColumnSelector>
-                {/* <NDropdown
-                  options={this.buttonList}
-                  trigger={'click'}
-                  onSelect={this.batchBtnListClick}
-                  width={150}
-                >
-                  <NButton>
-                    {t('project.workflow.operation')}
-                    <NIcon style={{ marginLeft: '5px' }}>
-                      <DownOutlined />
-                    </NIcon>
-                  </NButton>
-                </NDropdown> */}
               </NSpace>
             ),
             default: () => (

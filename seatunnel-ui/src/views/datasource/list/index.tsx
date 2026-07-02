@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, onMounted, ref, toRefs, watch } from 'vue'
+import { defineComponent, onMounted, ref, toRefs, watch, computed } from 'vue'
 import {
   NButton,
   NInput,
@@ -25,12 +25,13 @@ import {
   NSpace,
   NCard
 } from 'naive-ui'
-import { SearchOutlined, ReloadOutlined } from '@vicons/antd'
+import { SearchOutlined } from '@vicons/antd'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useColumns } from './use-columns'
 import { useTable } from './use-table'
 import SourceModal from '../components/source-modal'
+import StatCard from '@/components/stat-card'
 import type { Ref } from 'vue'
 import type { TableColumns } from 'naive-ui/es/data-table/src/interface'
 
@@ -44,8 +45,28 @@ const DatasourceList = defineComponent({
     const { data, changePage, changePageSize, deleteRecord, updateList } =
       useTable()
 
+    const stats = computed(() => {
+      const list = data.list || []
+      const typeCounts: Record<string, number> = {}
+      for (const item of list as any[]) {
+        const type = item.pluginName || 'Other'
+        typeCounts[type] = (typeCounts[type] || 0) + 1
+      }
+      return {
+        total: data.itemCount || list.length,
+        typeCounts
+      }
+    })
+
     const handleSearch = () => {
+      data.page = 1
       updateList()
+    }
+
+    const handleKeyup = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleSearch()
+      }
     }
 
     const { getColumns } = useColumns((id: string, type: 'edit' | 'delete') => {
@@ -93,10 +114,12 @@ const DatasourceList = defineComponent({
       showSourceModal,
       columns,
       ...toRefs(data),
+      stats,
       changePage,
       changePageSize,
       onCreate,
       handleSearch,
+      handleKeyup,
       handleSelectSourceType,
       closeSourceModal
     }
@@ -110,6 +133,7 @@ const DatasourceList = defineComponent({
       page,
       pageSize,
       itemCount,
+      stats,
       changePage,
       changePageSize,
       onCreate,
@@ -117,30 +141,44 @@ const DatasourceList = defineComponent({
       closeSourceModal
     } = this
 
+    const renderSearchBar = () => (
+      <NCard>
+        <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
+          <NButton type='info' onClick={onCreate}>
+            {t('datasource.create')}
+          </NButton>
+          <NSpace justify='end'>
+            <NInput
+              v-model={[this.searchVal, 'value']}
+              placeholder={t('datasource.search_input_tips')}
+              onKeyup={this.handleKeyup}
+              clearable
+            />
+            <NButton type='primary' onClick={this.handleSearch}>
+              <NIcon>
+                <SearchOutlined />
+              </NIcon>
+            </NButton>
+          </NSpace>
+        </NSpace>
+      </NCard>
+    )
+
+    const renderStatCards = () => (
+      <div class='flex gap-3'>
+        <StatCard
+          label={t('datasource.datasource')}
+          value={stats.total}
+          color='var(--color-info)'
+          loading={false}
+        />
+      </div>
+    )
+
     return (
       <NSpace vertical>
-        <NCard title={t('datasource.datasource')}>
-          {{
-            'header-extra': () => (
-              <NSpace>
-                <NInput
-                  v-model={[this.searchVal, 'value']}
-                  placeholder={t('datasource.search_input_tips')}
-                  style={{ width: '200px' }}
-                />
-                <NButton onClick={this.handleSearch} type='primary'>
-                  {this.t('datasource.search')}
-                </NButton>
-                <NButton
-                  onClick={onCreate}
-                  type='success'
-                >
-                  {t('datasource.create')}
-                </NButton>
-              </NSpace>
-            )
-          }}
-        </NCard>
+        {renderSearchBar()}
+        {renderStatCards()}
         <NCard>
           <NSpace vertical>
             <NDataTable
