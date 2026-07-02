@@ -30,7 +30,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useColumns } from './use-columns'
 import { useTable } from './use-table'
-import styles from '../index.module.scss'
 import SourceModal from '../components/source-modal'
 import type { Ref } from 'vue'
 import type { TableColumns } from 'naive-ui/es/data-table/src/interface'
@@ -143,23 +142,25 @@ const DatasourceList = defineComponent({
           }}
         </NCard>
         <NCard>
-          <NDataTable
-            row-class-name='data-source-items'
-            columns={columns}
-            data={list}
-            striped
-          />
-          <NPagination
-            page={page}
-            page-size={pageSize}
-            item-count={itemCount}
-            show-quick-jumper
-            show-size-picker
-            page-sizes={[10, 30, 50]}
-            class={styles['pagination']}
-            on-update:page={changePage}
-            on-update:page-size={changePageSize}
-          />
+          <NSpace vertical>
+            <NDataTable
+              row-class-name='data-source-items'
+              columns={columns}
+              data={list}
+            />
+            <NSpace justify='center'>
+              <NPagination
+                page={page}
+                page-size={pageSize}
+                item-count={itemCount}
+                show-quick-jumper
+                show-size-picker
+                page-sizes={[10, 30, 50]}
+                on-update:page={changePage}
+                on-update:page-size={changePageSize}
+              />
+            </NSpace>
+          </NSpace>
         </NCard>
         <SourceModal
           show={showSourceModal}

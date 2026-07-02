@@ -33,7 +33,6 @@ import { useRouter } from 'vue-router'
 import { useTable } from './use-table'
 import { useColumns } from './use-columns'
 import { useSource } from '@/views/datasource/list/use-source'
-import styles from '../index.module.scss'
 
 const VirtualTablesList = defineComponent({
   setup() {
@@ -69,7 +68,7 @@ const VirtualTablesList = defineComponent({
                 options={
                  sourceState.types as Array<SelectGroupOption | SelectOption>
                 }
-                class={styles['type-width']}
+                 style={{width: '220px'}}
               />
               <NInput
                 v-model:value={state.params.datasourceName}
@@ -96,7 +95,6 @@ const VirtualTablesList = defineComponent({
               columns={columns.value}
               data={state.list}
               loading={state.loading}
-              striped
             />
             <NSpace justify='center'>
               <NPagination
