@@ -1135,7 +1135,7 @@ export default {
     real_time_sync: '实时同步',
     offline_sync: '离线同步',
     sync_task_definition: '同步任务定义',
-    data_pipeline_running_instance: '数据管道运行实例',
+    data_pipeline_running_instance: '数据链路运行实例',
     task_name: '任务名称',
     workflow_instance: '工作流实例',
     execute_user: '执行用户',

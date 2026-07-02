@@ -62,7 +62,14 @@ module.exports = {
         process: {
           DEFAULT: '#8B5CF6',
           dark: '#A78BFA'
-        }
+        },
+        /* CSS variable-based semantic colors */
+        card: 'var(--color-card)',
+        border: 'var(--color-border)',
+        foreground: 'var(--color-foreground)',
+        'muted-foreground': 'var(--color-muted-foreground)',
+        'card-foreground': 'var(--color-card-foreground)',
+        primary: 'var(--color-primary)',
       },
       fontFamily: {
         sans: ['Fira Sans', 'system-ui', '-apple-system', 'sans-serif'],
@@ -91,7 +98,8 @@ module.exports = {
         lg: '8px',
         xl: '12px',
         '2xl': '16px',
-        full: '9999px'
+        full: '9999px',
+        card: 'var(--radius-card)',
       },
       boxShadow: {
         none: 'none',

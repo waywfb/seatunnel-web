@@ -61,15 +61,15 @@ export function useDagAddShape(
       attrs: {
         body:
           String(nodes[i].status.toLowerCase()) === 'failed' &&
-          'finished' &&
-          'canceled'
+            'finished' &&
+            'canceled'
             ? stateColor.running
             : stateColor[
-                nodes[i].status.toLowerCase() as
-                  | 'failed'
-                  | 'finished'
-                  | 'canceled'
-              ]
+            nodes[i].status.toLowerCase() as
+            | 'failed'
+            | 'finished'
+            | 'canceled'
+            ]
       }
     })
 
@@ -79,7 +79,7 @@ export function useDagAddShape(
         markup: [
           {
             tagName: 'text',
-            textContent: `数据管道 #${nodes[i].pipelineId}`,
+            textContent: `数据链路 #${nodes[i].pipelineId}`,
             attrs: {
               fill: '#333333',
               'font-size': 14,
@@ -99,13 +99,12 @@ export function useDagAddShape(
           },
           {
             tagName: 'text',
-            textContent: `${t('project.synchronization_instance.read')} ${
-              nodes[i].readRowCount
-            }${t('project.synchronization_instance.line')}/${t(
-              'project.synchronization_instance.write'
-            )} ${nodes[i].writeRowCount}${t(
-              'project.synchronization_instance.line'
-            )}`,
+            textContent: `${t('project.synchronization_instance.read')} ${nodes[i].readRowCount
+              }${t('project.synchronization_instance.line')}/${t(
+                'project.synchronization_instance.write'
+              )} ${nodes[i].writeRowCount}${t(
+                'project.synchronization_instance.line'
+              )}`,
             attrs: {
               fill: '#868686',
               'font-size': 12,
@@ -122,14 +121,14 @@ export function useDagAddShape(
 
     nodes[i].child.forEach((n: any) => {
 
-      const nodeType = (n.nodeType && n.nodeType.toLowerCase()) || 
-        (n.label.toLowerCase().includes('source') ? 'source' : 
-         n.label.toLowerCase().includes('sink') ? 'sink' : 'transform');
-      
+      const nodeType = (n.nodeType && n.nodeType.toLowerCase()) ||
+        (n.label.toLowerCase().includes('source') ? 'source' :
+          n.label.toLowerCase().includes('sink') ? 'sink' : 'transform');
+
 
       const portItems = [];
 
-      
+
       group.addChild(
         graph.addNode({
           id: n.id,

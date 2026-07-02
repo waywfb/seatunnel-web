@@ -17,7 +17,7 @@
 
 export default {
   id: 'Id',
-  data_pipes: '数据管道',
+  data_pipes: '数据链路',
   create: '创建',
   name: '名称',
   state: '状态',
@@ -39,7 +39,7 @@ export default {
   value: '值',
   name_tips: '必填字段，数字，字母大小写，100个字符',
   data_pipes_delete_tips:
-    '是否删除数据管道，删除后无法恢复',
-  data_pipes_publish_tips: '是否发布数据管道',
+    '是否删除数据链路，删除后无法恢复',
+  data_pipes_publish_tips: '是否发布数据链路',
   model_validate_tips: '必填字段'
 }
