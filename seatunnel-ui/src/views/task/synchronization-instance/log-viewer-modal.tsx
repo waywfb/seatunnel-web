@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, PropType, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { defineComponent, PropType, ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NModal,
@@ -25,8 +25,12 @@ import {
   NButton,
   NEmpty,
   NAlert,
-  NSwitch
+  NSwitch,
+  NInput,
+  NTag,
+  NIcon
 } from 'naive-ui'
+import { SearchOutlined, CopyOutlined } from '@vicons/antd'
 import { getLogNodes, getLogContent } from '@/service/log'
 import styles from './log-viewer-modal.module.scss'
 
@@ -49,8 +53,7 @@ const LogViewerModal = defineComponent({
   emits: ['update:show'],
   setup(props) {
     const { t } = useI18n()
-    
-    // State
+
     const logNodes = ref<any[]>([])
     const selectedLogNode = ref('')
     const logContent = ref('')
@@ -62,8 +65,9 @@ const LogViewerModal = defineComponent({
     const error = ref('')
     const refreshTimerId = ref<number | null>(null)
     const userScrolled = ref(false)
-    
-    // Refresh interval options
+    const searchQuery = ref('')
+    const logStats = ref({ total: 0, error: 0, warn: 0 })
+
     const refreshIntervalOptions = [
       { label: t('project.synchronization_instance.refresh_off'), value: 0 },
       { label: t('project.synchronization_instance.refresh_1s'), value: 1 },
@@ -72,100 +76,98 @@ const LogViewerModal = defineComponent({
       { label: t('project.synchronization_instance.refresh_30s'), value: 30 },
       { label: t('project.synchronization_instance.refresh_60s'), value: 60 }
     ]
-    
-    // Fetch log node list
+
+    const filteredLogLines = computed(() => {
+      if (!logContent.value) return []
+      const lines = logContent.value.split('\n')
+      if (!searchQuery.value) {
+        return lines
+      }
+      const q = searchQuery.value.toLowerCase()
+      return lines.filter(l => l.toLowerCase().includes(q))
+    })
+
+    function countLogLevels(content: string) {
+      const lines = content.split('\n')
+      let err = 0, warn = 0
+      for (const l of lines) {
+        if (/\bERROR\b/.test(l)) err++
+        else if (/\bWARN\b/.test(l)) warn++
+      }
+      return { total: lines.length, error: err, warn }
+    }
+
+    function getLineClass(line: string): string {
+      if (/\bERROR\b/.test(line)) return styles['line-error']
+      if (/\bWARN\b/.test(line)) return styles['line-warn']
+      return ''
+    }
+
     const fetchLogNodes = async () => {
       if (!props.jobId) return
-      
+
       loading.value = true
       error.value = ''
-      
+
       try {
         const response = await getLogNodes(props.jobId)
-        console.log('Log nodes response:', response)
-        
-        // Ensure response.data is an array
         if (Array.isArray(response.data)) {
           logNodes.value = response.data
-        } else {
-          console.error('Log nodes response is not an array:', response.data)
-          logNodes.value = []
         }
-        
-        console.log('Log nodes:', logNodes.value)
-        
+
         if (logNodes.value.length > 0) {
           selectedLogNode.value = logNodes.value[0].logLink
-          console.log('Selected log node:', selectedLogNode.value)
           fetchLogContent()
         } else {
           loading.value = false
           logContent.value = ''
         }
       } catch (err: any) {
-        console.error('Error fetching log nodes:', err)
         error.value = err.message || t('project.synchronization_instance.fetch_logs_error')
         loading.value = false
       }
     }
-    
-    // Fetch log content
+
     const fetchLogContent = async () => {
       if (!selectedLogNode.value) return
-      
-      // Only show loading status on first load to avoid flicker when refreshing
+
       if (logContent.value === '') {
         loadingLogs.value = true
       }
       error.value = ''
-      
+
       try {
-        console.log('Fetching log content for:', selectedLogNode.value)
         const response = await getLogContent(selectedLogNode.value)
-        console.log('Log content response:', response)
-        
-        // Check if response.data exists
+
         if (response && response.data !== undefined) {
-          // Ensure log content is a string
-          let newContent = '';
+          let newContent = ''
           if (typeof response.data === 'string') {
             newContent = response.data
           } else if (typeof response.data === 'object') {
-            // If it's an object, convert it to string
             newContent = JSON.stringify(response.data, null, 2)
           } else {
-            // For other cases, force convert to string
             newContent = String(response.data)
           }
-          
-          // Only update content, not replace entire content, to avoid flicker
+
           if (newContent !== logContent.value) {
             logContent.value = newContent
-            console.log('Log content updated:', newContent.substring(0, 100) + '...')
-            
-            // Only scroll to bottom when auto-scroll is enabled and user hasn't manually scrolled
+            logStats.value = countLogLevels(newContent)
+
             if (autoScroll.value && !userScrolled.value) {
               scrollToBottom()
             }
           }
-        } else {
-          console.error('Log content response is empty or invalid')
-          if (logContent.value === '') {
-            logContent.value = ''
-          }
         }
-        
+
         loading.value = false
         loadingLogs.value = false
       } catch (err: any) {
-        console.error('Error fetching log content:', err)
         error.value = err.message || t('project.synchronization_instance.fetch_log_content_error')
         loading.value = false
         loadingLogs.value = false
       }
     }
-    
-    // Scroll to bottom
+
     const scrollToBottom = () => {
       nextTick(() => {
         if (logContentRef.value) {
@@ -173,51 +175,52 @@ const LogViewerModal = defineComponent({
         }
       })
     }
-    
-    // Set refresh timer
+
     const setupRefreshInterval = () => {
       clearRefreshTimer()
-      
+
       if (refreshInterval.value > 0) {
         refreshTimerId.value = window.setInterval(() => {
           fetchLogContent()
         }, refreshInterval.value * 1000)
       }
     }
-    
-    // Clear refresh timer
+
     const clearRefreshTimer = () => {
       if (refreshTimerId.value !== null) {
         clearInterval(refreshTimerId.value)
         refreshTimerId.value = null
       }
     }
-    
-    // Manual refresh
+
     const handleRefresh = () => {
       fetchLogContent()
     }
-    
-    // Handle scroll event
+
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement
       const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 10
-      
       userScrolled.value = !isAtBottom
     }
-    
-    // Handle node selection change
+
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(logContent.value)
+        window.$message.success(t('project.synchronization_instance.copy_success'))
+      } catch {
+        window.$message.error(t('project.synchronization_instance.copy_failed'))
+      }
+    }
+
     watch(() => selectedLogNode.value, () => {
       logContent.value = ''
       fetchLogContent()
     })
-    
-    // Handle refresh interval change
+
     watch(() => refreshInterval.value, () => {
       setupRefreshInterval()
     })
-    
-    // Handle modal show status change
+
     watch(() => props.show, (newVal) => {
       if (newVal) {
         fetchLogNodes()
@@ -226,20 +229,18 @@ const LogViewerModal = defineComponent({
         clearRefreshTimer()
       }
     })
-    
-    // Component mounted
+
     onMounted(() => {
       if (props.show) {
         fetchLogNodes()
         setupRefreshInterval()
       }
     })
-    
-    // Component unmounted
+
     onUnmounted(() => {
       clearRefreshTimer()
     })
-    
+
     return {
       t,
       logNodes,
@@ -253,29 +254,34 @@ const LogViewerModal = defineComponent({
       error,
       refreshIntervalOptions,
       userScrolled,
+      searchQuery,
+      filteredLogLines,
+      logStats,
       handleRefresh,
       handleScroll,
-      scrollToBottom
+      scrollToBottom,
+      handleCopy,
+      getLineClass
     }
   },
   render() {
     const { t } = this
-    
+
     return (
       <NModal
         show={this.show}
         onUpdateShow={(v: boolean) => this.$emit('update:show', v)}
-        title={t('project.synchronization_instance.view_logs') + (this.jobName ? `: ${this.jobName}` : '')}
+        title={t('project.synchronization_instance.view_log') + (this.jobName ? `: ${this.jobName}` : '')}
         style="width: 90%; max-width: 1600px;"
         preset="card"
       >
-        <NSpace vertical size="large">
+        <NSpace vertical size="small">
           {this.error && (
             <NAlert type="error" closable>
               {this.error}
             </NAlert>
           )}
-          
+
           <div class={styles['control-panel']}>
             <div class={styles['control-group']}>
               <label class={styles['control-label']}>{t('project.synchronization_instance.log_node')}:</label>
@@ -290,7 +296,7 @@ const LogViewerModal = defineComponent({
                 disabled={this.loading || this.logNodes.length === 0}
               />
             </div>
-            
+
             <div class={styles['control-group']}>
               <div class={styles['control-item']}>
                 <label class={styles['control-label']}>{t('project.synchronization_instance.auto_scroll')}:</label>
@@ -307,9 +313,34 @@ const LogViewerModal = defineComponent({
               <NButton onClick={this.handleRefresh} loading={this.loadingLogs} class={styles['refresh-button']}>
                 {t('project.synchronization_instance.refresh')}
               </NButton>
+              <NButton onClick={this.handleCopy} class={styles['refresh-button']}>
+                <NIcon><CopyOutlined /></NIcon>
+              </NButton>
             </div>
           </div>
-          
+
+          <div class={styles['toolbar-panel']}>
+            <NInput
+              v-model:value={this.searchQuery}
+              placeholder={t('project.synchronization_instance.search_logs')}
+              clearable
+              style="width: 300px;"
+            >
+              {{
+                prefix: () => <NIcon><SearchOutlined /></NIcon>
+              }}
+            </NInput>
+            <NSpace size="small">
+              {this.logStats.total > 0 && (
+                <>
+                  <NTag size="small">{this.logStats.total + ' ' + t('project.synchronization_instance.lines')}</NTag>
+                  {this.logStats.error > 0 && <NTag type="error" size="small">{'ERROR ' + this.logStats.error}</NTag>}
+                  {this.logStats.warn > 0 && <NTag type="warning" size="small">{'WARN ' + this.logStats.warn}</NTag>}
+                </>
+              )}
+            </NSpace>
+          </div>
+
           <div class={styles['log-content-container']}>
             {this.loading ? (
               <div class={styles['loading-container']}>
@@ -318,19 +349,22 @@ const LogViewerModal = defineComponent({
             ) : this.logNodes.length === 0 ? (
               <NEmpty description={t('project.synchronization_instance.no_logs_available')} />
             ) : (
-              <div 
-                class={styles['log-content']} 
+              <div
+                class={styles['log-content']}
                 ref="logContentRef"
                 onScroll={this.handleScroll}
               >
                 {this.loadingLogs ? (
                   <NSpin size="small" />
                 ) : (
-                  <pre>{this.logContent || t('project.synchronization_instance.no_log_content')}</pre>
+                  <pre>
+                    {this.filteredLogLines.map((line, i) => (
+                      <span key={i} class={this.getLineClass(line)}>{line}{'\n'}</span>
+                    ))}
+                  </pre>
                 )}
-                {/* Add a small hint that will be displayed when the user manually scrolls */}
                 {this.userScrolled && this.autoScroll && (
-                  <div 
+                  <div
                     style="position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;"
                     onClick={this.scrollToBottom}
                   >

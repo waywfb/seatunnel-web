@@ -1194,7 +1194,11 @@ export default {
     read_limit_bytes_per_second: '每秒读取字节数限制',
     savemode_execute_location: '保存模式执行位置',
     custom_parameters: '自定义参数',
-    tag_filter: '节点标签过滤'
+    tag_filter: '节点标签过滤',
+    search_logs: '搜索日志',
+    lines: '行',
+    copy_success: '已复制',
+    copy_failed: '复制失败'
   },
   menu: {
     fav: '收藏组件',
