@@ -34,6 +34,7 @@ const SVG_MAP: Record<string, string> = {
   'StarRocks': starrocksSvg,
   'MongoDB': mongodbSvg,
   'Http': httpSvg,
+  'Plc4x': '',
 }
 
 const ICON_COLORS: Record<string, string> = {
@@ -60,6 +61,7 @@ const ICON_COLORS: Record<string, string> = {
   'Http': '#F16529',
   'FakeSource': '#6B7280',
   'Console': '#6B7280',
+  'Plc4x': '#00A3E0',
 }
 
 export function getDatasourceIcon(name: string): string {

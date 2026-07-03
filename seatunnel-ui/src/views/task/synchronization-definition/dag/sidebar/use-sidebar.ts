@@ -39,7 +39,8 @@ const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
   FakeSource: 'FakeSource',
   Hive: 'Hive',
   Console: 'Console',
-  StarRocks: 'StarRocks'
+  StarRocks: 'StarRocks',
+  Plc4x: 'PLC4X'
 }
 
 export function getDatasourceDisplayName(datasourceName: string): string {
