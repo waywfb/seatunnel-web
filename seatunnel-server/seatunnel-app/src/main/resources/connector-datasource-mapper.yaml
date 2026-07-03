@@ -77,9 +77,17 @@ connector-datasource-mapper:
       dataSources:
         - Hive
 
-    Plc4x:
+    Modbus:
       dataSources:
-        - Plc4x
+        - Modbus
+
+    OPCUA:
+      dataSources:
+        - OPCUA
+
+    S7:
+      dataSources:
+        - S7
 
   sourceDatasourceFeatures:
     JDBC-Mysql:
@@ -190,7 +198,19 @@ connector-datasource-mapper:
         - SINGLE_TABLE
         - MULTIPLE_TABLE
 
-    Plc4x:
+    Modbus:
+      businessMode:
+        - DATA_INTEGRATION
+      sceneMode:
+        - SINGLE_TABLE
+
+    OPCUA:
+      businessMode:
+        - DATA_INTEGRATION
+      sceneMode:
+        - SINGLE_TABLE
+
+    S7:
       businessMode:
         - DATA_INTEGRATION
       sceneMode:

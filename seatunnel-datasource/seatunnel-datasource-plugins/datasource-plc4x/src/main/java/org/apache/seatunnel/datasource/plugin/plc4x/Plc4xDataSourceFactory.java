@@ -18,7 +18,11 @@ public class Plc4xDataSourceFactory implements DataSourceFactory {
 
     @Override
     public Set<DataSourcePluginInfo> supportedDataSources() {
-        return Set.of(Plc4xDataSourceConfig.PLC4X_DATASOURCE_PLUGIN_INFO);
+        return Set.of(
+                Plc4xDataSourceConfig.MODBUS_DATASOURCE_PLUGIN_INFO,
+                Plc4xDataSourceConfig.OPCUA_DATASOURCE_PLUGIN_INFO,
+                Plc4xDataSourceConfig.S7_DATASOURCE_PLUGIN_INFO
+        );
     }
 
     @Override

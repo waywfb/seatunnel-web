@@ -14,7 +14,7 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
 
     @Override
     public OptionRule getDataSourceOptions(String pluginName) {
-        return Plc4xOptionRule.optionRule();
+        return Plc4xOptionRule.optionRule(pluginName);
     }
 
     @Override
@@ -26,24 +26,24 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
     public List<String> getTables(String pluginName, Map<String, String> requestParams,
                                   String database, Map<String, String> options) {
         Plc4xBridgeClient client = buildClient(requestParams);
-        return client.listTables(resolveConnectionId(requestParams));
+        return client.listTables(resolveConnectionId(pluginName, requestParams));
     }
 
     @Override
     public List<String> getDatabases(String pluginName, Map<String, String> requestParams) {
         Plc4xBridgeClient client = buildClient(requestParams);
-        return client.listDatabases(resolveConnectionId(requestParams));
+        return client.listDatabases(resolveConnectionId(pluginName, requestParams));
     }
 
     @Override
     public boolean checkDataSourceConnectivity(String pluginName,
                                                Map<String, String> requestParams) {
         String bridgeUrl = requestParams.get(Plc4xDataSourceConfig.BRIDGE_URL);
-        String protocol = requestParams.get(Plc4xDataSourceConfig.PROTOCOL);
+        String protocol = resolveProtocol(pluginName);
         String host = requestParams.get(Plc4xDataSourceConfig.HOST);
         String portStr = requestParams.get(Plc4xDataSourceConfig.PORT);
-        if (bridgeUrl == null || protocol == null || host == null || portStr == null) {
-            throw new DataSourcePluginException("bridgeUrl, protocol, host, port are required");
+        if (bridgeUrl == null || host == null || portStr == null) {
+            throw new DataSourcePluginException("bridgeUrl, host, port are required");
         }
         Plc4xBridgeClient client = new Plc4xBridgeClient(bridgeUrl);
         return client.testConnection(protocol, host, Integer.parseInt(portStr));
@@ -64,10 +64,18 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
         return new Plc4xBridgeClient(bridgeUrl);
     }
 
-    private String resolveConnectionId(Map<String, String> params) {
-        String protocol = params.get(Plc4xDataSourceConfig.PROTOCOL);
+    private String resolveConnectionId(String pluginName, Map<String, String> params) {
+        String protocol = resolveProtocol(pluginName);
         String host = params.get(Plc4xDataSourceConfig.HOST);
         String port = params.get(Plc4xDataSourceConfig.PORT);
         return protocol + "://" + host + ":" + port;
+    }
+
+    private String resolveProtocol(String pluginName) {
+        String protocol = Plc4xDataSourceConfig.PLUGIN_TO_PROTOCOL.get(pluginName);
+        if (protocol == null) {
+            throw new DataSourcePluginException("Unknown plugin name: " + pluginName);
+        }
+        return protocol;
     }
 }

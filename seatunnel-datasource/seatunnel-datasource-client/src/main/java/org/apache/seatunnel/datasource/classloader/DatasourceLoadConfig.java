@@ -109,7 +109,13 @@ public class DatasourceLoadConfig {
                 "CONSOLE",
                 "org.apache.seatunnel.datasource.plugin.console.ConsoleDataSourceFactory");
         classLoaderFactoryName.put(
-                "PLC4X",
+                "MODBUS",
+                "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
+        classLoaderFactoryName.put(
+                "OPCUA",
+                "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
+        classLoaderFactoryName.put(
+                "S7",
                 "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
 
         classLoaderJarName.put("JDBC-ORACLE", "datasource-jdbc-oracle-");
@@ -136,7 +142,9 @@ public class DatasourceLoadConfig {
         classLoaderJarName.put("JDBC-HIVE", "datasource-jdbc-hive-");
         classLoaderJarName.put("FAKESOURCE", "datasource-fakesource-");
         classLoaderJarName.put("CONSOLE", "datasource-console-");
-        classLoaderJarName.put("PLC4X", "datasource-plc4x-");
+        classLoaderJarName.put("MODBUS", "datasource-plc4x-");
+        classLoaderJarName.put("OPCUA", "datasource-plc4x-");
+        classLoaderJarName.put("S7", "datasource-plc4x-");
     }
 
     public static final Set<String> pluginSet =
@@ -160,7 +168,9 @@ public class DatasourceLoadConfig {
                     "JDBC-Db2",
                     "FakeSource",
                     "Console",
-                    "Plc4x");
+                    "Modbus",
+                    "OPCUA",
+                    "S7");
 
     public static Map<String, DatasourceClassLoader> datasourceClassLoaders = new HashMap<>();
 

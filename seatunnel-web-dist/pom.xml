@@ -397,6 +397,13 @@
 
                 <dependency>
                     <groupId>org.apache.seatunnel</groupId>
+                    <artifactId>datasource-plc4x</artifactId>
+                    <version>${project.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.apache.seatunnel</groupId>
                     <artifactId>datasource-jdbc-redshift</artifactId>
                     <version>${project.version}</version>
                     <scope>provided</scope>
