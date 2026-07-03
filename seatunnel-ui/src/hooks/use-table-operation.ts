@@ -110,7 +110,7 @@ export const useTableOperation = (
       const commonProps = {
         disabled: mergedDisabled,
         tag: 'div',
-        quaternary: true,
+        circle: true,
         size: 'small',
         class: button.class
       } as ButtonProps
@@ -212,7 +212,7 @@ export const useTableOperation = (
           placement: 'bottom-end'
         }, {
           default: () => h(NTooltip, null, {
-            trigger: () => h(NButton, { quaternary: true, size: 'small', type: 'default' }, {
+            trigger: () => h(NButton, { circle: true, size: 'small', type: 'default' }, {
               default: () => h(NIcon, null, { default: () => h(EllipsisOutlined) })
             }),
             default: () => 'More'
