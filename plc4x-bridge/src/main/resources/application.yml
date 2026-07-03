@@ -1,0 +1,9 @@
+server:
+  port: 8081
+
+bridge:
+  version: 1.0.0
+
+spring:
+  jackson:
+    default-property-inclusion: non_null
