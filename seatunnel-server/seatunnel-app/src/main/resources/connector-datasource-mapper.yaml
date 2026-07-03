@@ -77,6 +77,10 @@ connector-datasource-mapper:
       dataSources:
         - Hive
 
+    Plc4x:
+      dataSources:
+        - Plc4x
+
   sourceDatasourceFeatures:
     JDBC-Mysql:
       businessMode:
@@ -185,6 +189,13 @@ connector-datasource-mapper:
       sceneMode:
         - SINGLE_TABLE
         - MULTIPLE_TABLE
+
+    Plc4x:
+      businessMode:
+        - DATA_INTEGRATION
+      sceneMode:
+        - SINGLE_TABLE
+
   sinkDatasourceFeatures:
     JDBC-Mysql:
       businessMode:

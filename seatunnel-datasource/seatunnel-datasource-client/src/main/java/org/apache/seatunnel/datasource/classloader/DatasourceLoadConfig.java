@@ -108,6 +108,9 @@ public class DatasourceLoadConfig {
         classLoaderFactoryName.put(
                 "CONSOLE",
                 "org.apache.seatunnel.datasource.plugin.console.ConsoleDataSourceFactory");
+        classLoaderFactoryName.put(
+                "PLC4X",
+                "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
 
         classLoaderJarName.put("JDBC-ORACLE", "datasource-jdbc-oracle-");
         classLoaderJarName.put("JDBC-CLICKHOUSE", "datasource-jdbc-clickhouse-");
@@ -133,6 +136,7 @@ public class DatasourceLoadConfig {
         classLoaderJarName.put("JDBC-HIVE", "datasource-jdbc-hive-");
         classLoaderJarName.put("FAKESOURCE", "datasource-fakesource-");
         classLoaderJarName.put("CONSOLE", "datasource-console-");
+        classLoaderJarName.put("PLC4X", "datasource-plc4x-");
     }
 
     public static final Set<String> pluginSet =
@@ -155,7 +159,8 @@ public class DatasourceLoadConfig {
                     "MongoDB",
                     "JDBC-Db2",
                     "FakeSource",
-                    "Console");
+                    "Console",
+                    "Plc4x");
 
     public static Map<String, DatasourceClassLoader> datasourceClassLoaders = new HashMap<>();
 
