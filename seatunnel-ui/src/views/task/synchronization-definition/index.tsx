@@ -186,49 +186,49 @@ const SynchronizationDefinition = defineComponent({
   },
   render() {
     const renderSearchBar = () => (
-      <NCard>
-        <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
+      <div class='bg-white rounded-xl border border-[#E5E7EB] px-5 py-4 flex items-center justify-between gap-4'>
+        <div class='flex items-center gap-3'>
+          <NInput
+            clearable
+            v-model={[this.searchName, 'value']}
+            placeholder={this.t(
+              I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME
+            )}
+            onKeyup={this.handleKeyup}
+            style={{ width: '260px' }}
+          />
+          <NButton type='primary' onClick={this.onSearch}>
+            <NIcon>
+              <SearchOutlined />
+            </NIcon>
+          </NButton>
+        </div>
+        <div class='flex items-center gap-3'>
+          <NButtonGroup size='small'>
+            <NButton
+              type={this.viewMode === 'table' ? 'primary' : 'default'}
+              onClick={() => this.toggleView('table')}
+            >
+              {{
+                icon: () =>
+                  h(NIcon, null, { default: () => h(UnorderedListOutlined) })
+              }}
+            </NButton>
+            <NButton
+              type={this.viewMode === 'card' ? 'primary' : 'default'}
+              onClick={() => this.toggleView('card')}
+            >
+              {{
+                icon: () =>
+                  h(NIcon, null, { default: () => h(AppstoreOutlined) })
+              }}
+            </NButton>
+          </NButtonGroup>
           <NButton type='info' onClick={this.handleModalChange}>
             {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TASK)}
           </NButton>
-          <NSpace justify='end'>
-            <NInput
-              clearable
-              v-model={[this.searchName, 'value']}
-              placeholder={this.t(
-                I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME
-              )}
-              onKeyup={this.handleKeyup}
-            />
-
-            <NButton type='primary' onClick={this.onSearch}>
-              <NIcon>
-                <SearchOutlined />
-              </NIcon>
-            </NButton>
-            <NButtonGroup size='small'>
-              <NButton
-                type={this.viewMode === 'table' ? 'primary' : 'default'}
-                onClick={() => this.toggleView('table')}
-              >
-                {{
-                  icon: () =>
-                    h(NIcon, null, { default: () => h(UnorderedListOutlined) })
-                }}
-              </NButton>
-              <NButton
-                type={this.viewMode === 'card' ? 'primary' : 'default'}
-                onClick={() => this.toggleView('card')}
-              >
-                {{
-                  icon: () =>
-                    h(NIcon, null, { default: () => h(AppstoreOutlined) })
-                }}
-              </NButton>
-            </NButtonGroup>
-          </NSpace>
-        </NSpace>
-      </NCard>
+        </div>
+      </div>
     )
 
     const renderStatCards = () => (
@@ -236,26 +236,32 @@ const SynchronizationDefinition = defineComponent({
         <StatCard
           label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.TOTAL)}
           value={this.stats.total}
-          color='var(--color-info)'
+          color='#3B82F6'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '📦')}
         />
         <StatCard
           label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.RUNNING)}
           value={this.stats.running}
-          color='var(--color-primary)'
+          color='#F59E0B'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '⚡')}
+          trend='up'
+          trendText='12%'
         />
         <StatCard
           label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.SUCCESS)}
           value={this.stats.success}
-          color='var(--color-success)'
+          color='#16A34A'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '✅')}
         />
         <StatCard
           label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.FAIL)}
           value={this.stats.failed}
-          color='var(--color-error)'
+          color='#DC2626'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '⚠️')}
         />
       </div>
     )

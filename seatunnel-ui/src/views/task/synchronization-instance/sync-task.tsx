@@ -24,7 +24,8 @@ import {
   watch,
   ref,
   reactive,
-  computed
+  computed,
+  h
 } from 'vue'
 import { useSyncTask } from './use-sync-task'
 import {
@@ -273,53 +274,51 @@ const SyncTask = defineComponent({
   render() {
     const { t } = this
     const renderSearchBar = () => (
-      <NCard>
-        <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
-            <NSpace>
-              <NInput
-                v-model={[this.taskName, 'value']}
-                placeholder={t('project.synchronization_instance.task_name')}
-                onKeyup={this.handleKeyup}
-                clearable
-                style={{ width: '200px' }}
-              />
-              <NInput
-                v-model={[this.executeUser, 'value']}
-                placeholder={t('project.synchronization_instance.execute_user')}
-                onKeyup={this.handleKeyup}
-                clearable
-                style={{ width: '160px' }}
-              />
-              <NSelect
-                v-model={[this.stateType, 'value']}
-                options={stateType(t).slice(1)}
-                placeholder={t('project.synchronization_instance.state')}
-                clearable
-                style={{ width: '160px' }}
-              />
-              <NDatePicker
-                v-model={[this.datePickerRange, 'formattedValue']}
-                type='datetimerange'
-                start-placeholder={t('project.synchronization_instance.start_time')}
-                end-placeholder={t('project.synchronization_instance.end_time')}
-                shortcuts={this.rangeShortCuts.rangeOption}
-                style={{ width: '340px' }}
-              />
-            </NSpace>
-            <NSpace justify='end'>
-              <NButton onClick={this.onReset}>
-                <NIcon>
-                  <ReloadOutlined />
-                </NIcon>
-              </NButton>
-              <NButton type='primary' onClick={this.handleSearch}>
-                <NIcon>
-                  <SearchOutlined />
-                </NIcon>
-              </NButton>
-            </NSpace>
-          </NSpace>
-      </NCard>
+      <div class='bg-white rounded-xl border border-[#E5E7EB] px-5 py-4 flex flex-wrap items-center justify-between gap-3'>
+        <div class='flex flex-wrap items-center gap-3'>
+          <NInput
+            v-model={[this.taskName, 'value']}
+            placeholder={t('project.synchronization_instance.task_name')}
+            onKeyup={this.handleKeyup}
+            clearable
+            style={{ width: '180px' }}
+          />
+          <NInput
+            v-model={[this.executeUser, 'value']}
+            placeholder={t('project.synchronization_instance.execute_user')}
+            onKeyup={this.handleKeyup}
+            clearable
+            style={{ width: '150px' }}
+          />
+          <NSelect
+            v-model={[this.stateType, 'value']}
+            options={stateType(t).slice(1)}
+            placeholder={t('project.synchronization_instance.state')}
+            clearable
+            style={{ width: '150px' }}
+          />
+          <NDatePicker
+            v-model={[this.datePickerRange, 'formattedValue']}
+            type='datetimerange'
+            start-placeholder={t('project.synchronization_instance.start_time')}
+            end-placeholder={t('project.synchronization_instance.end_time')}
+            shortcuts={this.rangeShortCuts.rangeOption}
+            style={{ width: '320px' }}
+          />
+        </div>
+        <div class='flex items-center gap-2'>
+          <NButton onClick={this.onReset}>
+            <NIcon>
+              <ReloadOutlined />
+            </NIcon>
+          </NButton>
+          <NButton type='primary' onClick={this.handleSearch}>
+            <NIcon>
+              <SearchOutlined />
+            </NIcon>
+          </NButton>
+        </div>
+      </div>
     )
 
     const renderStatCards = () => (
@@ -327,26 +326,30 @@ const SyncTask = defineComponent({
         <StatCard
           label={t('project.synchronization_instance.total')}
           value={this.stats.total}
-          color='var(--color-info)'
+          color='#3B82F6'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '📦')}
         />
         <StatCard
           label={t('project.synchronization_instance.running')}
           value={this.stats.running}
-          color='var(--color-primary)'
+          color='#F59E0B'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '⚡')}
         />
         <StatCard
           label={t('project.synchronization_instance.success')}
           value={this.stats.success}
-          color='var(--color-success)'
+          color='#16A34A'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '✅')}
         />
         <StatCard
           label={t('project.synchronization_instance.fail')}
           value={this.stats.failed}
-          color='var(--color-error)'
+          color='#DC2626'
           loading={this.loadingRef}
+          icon={h('span', { class: 'text-lg' }, '⚠️')}
         />
       </div>
     )
