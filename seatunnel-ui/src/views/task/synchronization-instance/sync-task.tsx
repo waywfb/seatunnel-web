@@ -17,8 +17,6 @@
 
 import {
   defineComponent,
-  getCurrentInstance,
-  nextTick,
   onMounted,
   onUnmounted,
   PropType,
@@ -82,19 +80,6 @@ const SyncTask = defineComponent({
     const router = useRouter()
 
     const tableColumn = ref([]) as any
-    const vm = getCurrentInstance()!
-    const containerStyle = ref('display: flex; flex-direction: column; gap: 12px;')
-
-    function updateHeight() {
-      nextTick(() => {
-        const el = vm.refs.containerRef as HTMLElement | undefined
-        if (!el) return
-        const top = el.getBoundingClientRect().top
-        const h = window.innerHeight - top - 12
-        containerStyle.value = `display: flex; flex-direction: column; gap: 12px; height: ${Math.max(h, 300)}px;`
-      })
-    }
-
     const stats = computed(() => {
       const data = variables.tableData || []
       let running = 0
@@ -236,14 +221,11 @@ const SyncTask = defineComponent({
       creatInstanceButtons(variables)
       requestData()
       refreshTimer = window.setInterval(requestData, 3000)
-      updateHeight()
-      window.addEventListener('resize', updateHeight)
     })
 
     onUnmounted(() => {
       clearTimeout(logTimer)
       clearInterval(refreshTimer)
-      window.removeEventListener('resize', updateHeight)
     })
 
     watch(locale, () => {
@@ -276,7 +258,6 @@ const SyncTask = defineComponent({
       t,
       ...toRefs(variables),
       stats,
-      containerStyle,
       requestData,
       onUpdatePageSize,
       refreshLogs,
@@ -293,8 +274,7 @@ const SyncTask = defineComponent({
     const { t } = this
     const renderSearchBar = () => (
       <NCard>
-        <NSpace vertical>
-          <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
+        <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
             <NSpace>
               <NInput
                 v-model={[this.taskName, 'value']}
@@ -339,7 +319,6 @@ const SyncTask = defineComponent({
               </NButton>
             </NSpace>
           </NSpace>
-        </NSpace>
       </NCard>
     )
 
@@ -349,31 +328,31 @@ const SyncTask = defineComponent({
           label={t('project.synchronization_instance.total')}
           value={this.stats.total}
           color='var(--color-info)'
-          loading={false}
+          loading={this.loadingRef}
         />
         <StatCard
           label={t('project.synchronization_instance.running')}
           value={this.stats.running}
           color='var(--color-primary)'
-          loading={false}
+          loading={this.loadingRef}
         />
         <StatCard
           label={t('project.synchronization_instance.success')}
           value={this.stats.success}
           color='var(--color-success)'
-          loading={false}
+          loading={this.loadingRef}
         />
         <StatCard
           label={t('project.synchronization_instance.fail')}
           value={this.stats.failed}
           color='var(--color-error)'
-          loading={false}
+          loading={this.loadingRef}
         />
       </div>
     )
 
     return (
-      <div ref="containerRef" style={this.containerStyle}>
+      <div class='h-full flex flex-col overflow-hidden'>
         {renderSearchBar()}
         {renderStatCards()}
         <NCard title={t('project.synchronizing_task_instance')} style='flex: 1; overflow: hidden; display: flex; flex-direction: column;' contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
