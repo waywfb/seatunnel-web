@@ -14,7 +14,7 @@ const StatCard = defineComponent({
     return () => {
       if (props.loading) {
         return (
-          <div class='flex flex-col gap-2 p-5 rounded-card border border-border bg-card'>
+          <div class='flex flex-col gap-2 p-5 rounded-card bg-card shadow-modern dark:shadow-none dark:border dark:border-border'>
             <NSkeleton text class='w-[40%]' />
             <NSkeleton text class='w-[60%]' />
           </div>
@@ -22,7 +22,7 @@ const StatCard = defineComponent({
       }
 
       return (
-        <div class='flex items-center gap-4 p-5 rounded-card border border-border bg-card min-w-0 flex-1'>
+        <div class='flex items-center gap-4 p-5 rounded-card bg-card shadow-modern dark:shadow-none dark:border dark:border-border min-w-0 flex-1'>
           <div
             class='w-1 h-10 rounded-sm flex-shrink-0'
             style={{ background: props.color }}

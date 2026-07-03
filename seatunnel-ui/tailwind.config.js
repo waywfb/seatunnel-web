@@ -107,7 +107,8 @@ module.exports = {
         DEFAULT: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
         md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
         lg: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-        inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)'
+        inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
+        modern: '0 1px 2px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)'
       },
       spacing: {
         '0': '0',

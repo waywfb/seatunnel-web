@@ -34,7 +34,7 @@ const SynchronizationInstance = defineComponent({
   render() {
     return (
       <div class='h-full flex flex-col overflow-hidden'>
-        <NTabs type='segment' v-model:value={this.syncTaskType}>
+        <NTabs v-model:value={this.syncTaskType}>
           <NTabPane
             name='BATCH'
             tab={this.t('project.synchronization_instance.offline_sync')}
