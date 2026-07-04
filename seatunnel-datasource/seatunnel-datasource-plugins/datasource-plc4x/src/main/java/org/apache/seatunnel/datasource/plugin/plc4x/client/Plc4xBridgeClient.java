@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -55,25 +56,37 @@ public class Plc4xBridgeClient {
     }
 
     public List<String> listDatabases(String connectionId) {
-        return doGetList("/api/databases?connectionId=" + connectionId);
+        return doGetList("/api/databases?connectionId=" + urlEncode(connectionId));
     }
 
     public List<String> listTables(String connectionId) {
-        return doGetList("/api/tables?connectionId=" + connectionId);
+        return doGetList("/api/tables?connectionId=" + urlEncode(connectionId));
     }
 
-    public Map<String, List<String>> getFields(String connectionId, String groupName) {
+    public List<Map<String, Object>> getFields(String connectionId, String groupName) {
         try {
-            StringBuilder url = new StringBuilder(baseUrl + "/api/fields?connectionId=" + connectionId);
+            StringBuilder url = new StringBuilder(baseUrl + "/api/fields?connectionId=" + urlEncode(connectionId));
             if (groupName != null) {
-                url.append("&groupName=").append(groupName);
+                url.append("&groupName=").append(urlEncode(groupName));
             }
-            doGet(url.toString());
-            return Collections.emptyMap();
+            String response = doGet(url.toString());
+            JsonNode node = MAPPER.readTree(response);
+            if (node.get("code").asInt() != 200) return Collections.emptyList();
+            JsonNode data = node.get("data");
+            if (data == null || !data.isArray()) return Collections.emptyList();
+            List<Map<String, Object>> result = new java.util.ArrayList<>();
+            for (JsonNode item : data) {
+                result.add(MAPPER.convertValue(item, Map.class));
+            }
+            return result;
         } catch (Exception e) {
-            LOG.error("getFields failed", e);
-            return Collections.emptyMap();
+            LOG.error("getFields failed for connectionId={}, groupName={}", connectionId, groupName, e);
+            return Collections.emptyList();
         }
+    }
+
+    private static String urlEncode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     @SuppressWarnings("unchecked")

@@ -6,6 +6,7 @@ import org.apache.seatunnel.datasource.plugin.api.DataSourcePluginException;
 import org.apache.seatunnel.datasource.plugin.api.model.TableField;
 import org.apache.seatunnel.datasource.plugin.plc4x.client.Plc4xBridgeClient;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -71,10 +72,48 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<TableField> getTableFields(String pluginName,
                                            Map<String, String> requestParams,
                                            String database, String table) {
+        Plc4xBridgeClient client = buildClient(requestParams);
+        String connectionId = resolveConnectionId(pluginName, requestParams);
+        List<Map<String, Object>> groups = client.getFields(connectionId, table);
+        if (table == null) {
+            List<TableField> allFields = new ArrayList<>();
+            for (Map<String, Object> group : groups) {
+                List<Map<String, String>> tags = (List<Map<String, String>>) group.get("tags");
+                if (tags != null) {
+                    for (Map<String, String> tag : tags) {
+                        allFields.add(toTableField(tag));
+                    }
+                }
+            }
+            return allFields;
+        }
+        for (Map<String, Object> group : groups) {
+            if (table.equals(group.get("groupName"))) {
+                List<Map<String, String>> tags = (List<Map<String, String>>) group.get("tags");
+                if (tags == null) return Collections.emptyList();
+                List<TableField> fields = new ArrayList<>();
+                for (Map<String, String> tag : tags) {
+                    fields.add(toTableField(tag));
+                }
+                return fields;
+            }
+        }
         return Collections.emptyList();
+    }
+
+    private static TableField toTableField(Map<String, String> tag) {
+        TableField field = new TableField();
+        field.setName(tag.getOrDefault("tagName", tag.get("tagAddress")));
+        field.setType(tag.getOrDefault("dataType", "string"));
+        field.setComment(tag.get("tagAddress"));
+        field.setPrimaryKey(false);
+        field.setNullable(true);
+        field.setDefaultValue(null);
+        return field;
     }
 
     private Plc4xBridgeClient buildClient(Map<String, String> params) {

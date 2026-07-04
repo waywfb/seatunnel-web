@@ -35,6 +35,7 @@ import lombok.NonNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -122,6 +123,9 @@ public class ConnectorCache {
                 PluginDiscoveryUtil.getAllConnectorsFromPluginMapping(PluginType.SINK));
         transformCache = PluginDiscoveryUtil.getTransforms(allConnectors);
 
+        // Register virtual PLC connectors (no physical JAR needed)
+        registerPlcConnectors();
+
         sourceFormStructureCache =
                 PluginDiscoveryUtil.getDownloadedConnectorFormStructures(
                         allConnectors, PluginType.SOURCE);
@@ -130,6 +134,21 @@ public class ConnectorCache {
                         allConnectors, PluginType.SINK);
         transformFormStructureCache = PluginDiscoveryUtil.getTransformFormStructures(allConnectors);
         syncSourceFeature();
+    }
+
+    private void registerPlcConnectors() {
+        List<String> plcNames = Arrays.asList("OPCUA", "Modbus", "S7");
+        List<ConnectorInfo> sourceConnectors =
+                new ArrayList<>(downloadConnectorCache.getOrDefault(PluginType.SOURCE, new ArrayList<>()));
+        for (String name : plcNames) {
+            PluginIdentifier id = PluginIdentifier.of("seatunnel", PluginType.SOURCE.getType(), name);
+            boolean alreadyExists = sourceConnectors.stream()
+                    .anyMatch(c -> c.getPluginIdentifier().equals(id));
+            if (!alreadyExists) {
+                sourceConnectors.add(new ConnectorInfo(id, null));
+            }
+        }
+        downloadConnectorCache.put(PluginType.SOURCE, sourceConnectors);
     }
 
     private void syncSourceFeature() throws IOException {
