@@ -85,6 +85,10 @@ public abstract class AbstractDataSourceClient implements DataSourceService {
                 Set<DataSourcePluginInfo> dataSourcePluginInfos = factory.supportedDataSources();
                 dataSourcePluginInfos.forEach(
                         dataSourceInfo -> {
+                            if (supportedDataSourceInfo.containsKey(
+                                    dataSourceInfo.getName().toUpperCase())) {
+                                return;
+                            }
                             supportedDataSourceInfo.put(
                                     dataSourceInfo.getName().toUpperCase(), dataSourceInfo);
                             supportedDataSourceIndex.put(

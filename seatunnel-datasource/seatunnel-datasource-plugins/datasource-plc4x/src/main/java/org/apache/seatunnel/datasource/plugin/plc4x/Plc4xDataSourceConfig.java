@@ -36,25 +36,45 @@ public class Plc4xDataSourceConfig {
                     .supportVirtualTables(false)
                     .build();
 
-    public static final String BRIDGE_URL = "bridgeUrl";
     public static final String HOST = "host";
     public static final String PORT = "port";
     public static final String CONNECT_TIMEOUT = "connectTimeout";
     public static final String READ_TIMEOUT = "readTimeout";
 
+    public static final String UNIT_ID = "unitId";
+    public static final String RACK = "rack";
+    public static final String SLOT = "slot";
+    public static final String LOCAL_TSAP = "localTSAP";
+    public static final String REMOTE_TSAP = "remoteTSAP";
+    public static final String SECURITY_POLICY = "securityPolicy";
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
+
+    public static final String BRIDGE_URL_CONFIG_KEY = "plc4x.bridge.url";
     public static final String DEFAULT_BRIDGE_URL = "http://localhost:8081";
+
+    public static String getBridgeUrl() {
+        return System.getProperty(BRIDGE_URL_CONFIG_KEY, DEFAULT_BRIDGE_URL);
+    }
     public static final int DEFAULT_CONNECT_TIMEOUT = 5000;
     public static final int DEFAULT_READ_TIMEOUT = 30000;
+    public static final int DEFAULT_UNIT_ID = 1;
+    public static final int DEFAULT_RACK = 0;
+    public static final int DEFAULT_SLOT = 2;
+
+    public static final String MODBUS_PROTOCOL = "Modbus";
+    public static final String OPCUA_PROTOCOL = "OPC UA";
+    public static final String S7_PROTOCOL = "S7";
 
     public static final Map<String, String> PLUGIN_TO_PROTOCOL = Map.of(
-            "Modbus", "Modbus",
-            "OPCUA", "OPC UA",
-            "S7", "S7"
+            "Modbus", MODBUS_PROTOCOL,
+            "OPCUA", OPCUA_PROTOCOL,
+            "S7", S7_PROTOCOL
     );
 
     public static final Map<String, Integer> PROTOCOL_DEFAULT_PORTS = Map.of(
-            "S7", 102,
-            "Modbus", 502,
-            "OPC UA", 4840
+            S7_PROTOCOL, 102,
+            MODBUS_PROTOCOL, 502,
+            OPCUA_PROTOCOL, 4840
     );
 }

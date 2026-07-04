@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -78,16 +80,40 @@ public class Plc4xConnectionManager {
 
     private String buildConnectionString(String protocol, String host, int port,
                                           Map<String, String> params) {
-        switch (protocol.toLowerCase()) {
+        String normalized = protocol.toLowerCase().replaceAll("[\\s-]", "");
+        String base;
+        switch (normalized) {
             case "s7":
-                return "s7://" + host + ":" + port;
+                base = "s7://" + host + ":" + port;
+                break;
             case "modbus":
-                return "modbus://" + host + ":" + port;
+            case "modbustcp":
+                base = "modbus://" + host + ":" + port;
+                break;
             case "opcua":
-                return "opcua://" + host + ":" + port;
+                base = "opcua://" + host + ":" + port;
+                break;
             default:
-                return protocol + "://" + host + ":" + port;
+                base = normalized + "://" + host + ":" + port;
         }
+        if (params != null && !params.isEmpty()) {
+            StringBuilder query = new StringBuilder("?");
+            for (Map.Entry<String, String> entry : params.entrySet()) {
+                String value = entry.getValue();
+                if (value == null || value.isEmpty()) {
+                    continue;
+                }
+                if (query.length() > 1) {
+                    query.append("&");
+                }
+                query.append(entry.getKey()).append("=")
+                        .append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+            }
+            if (query.length() > 1) {
+                base += query.toString();
+            }
+        }
+        return base;
     }
 
     private void cleanupIdleConnections() {
