@@ -147,6 +147,7 @@ public class ConnectorCache {
             if (!alreadyExists) {
                 sourceConnectors.add(new ConnectorInfo(id, null));
             }
+            featureMap.putIfAbsent(id, new ConnectorFeature(false));
         }
         downloadConnectorCache.put(PluginType.SOURCE, sourceConnectors);
     }
