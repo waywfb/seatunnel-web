@@ -27,47 +27,28 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
     public List<String> getTables(String pluginName, Map<String, String> requestParams,
                                   String database, Map<String, String> options) {
         Plc4xBridgeClient client = buildClient(requestParams);
+        ensureConnection(pluginName, requestParams, client);
         return client.listTables(resolveConnectionId(pluginName, requestParams));
     }
 
     @Override
     public List<String> getDatabases(String pluginName, Map<String, String> requestParams) {
         Plc4xBridgeClient client = buildClient(requestParams);
+        ensureConnection(pluginName, requestParams, client);
         return client.listDatabases(resolveConnectionId(pluginName, requestParams));
     }
 
     @Override
     public boolean checkDataSourceConnectivity(String pluginName,
                                                Map<String, String> requestParams) {
-        String bridgeUrl = Plc4xDataSourceConfig.getBridgeUrl();
+        Plc4xBridgeClient client = buildClient(requestParams);
         String protocol = resolveProtocol(pluginName);
         String host = requestParams.get(Plc4xDataSourceConfig.HOST);
         String portStr = requestParams.get(Plc4xDataSourceConfig.PORT);
         if (host == null || portStr == null) {
             throw new DataSourcePluginException("host, port are required");
         }
-        Map<String, String> bridgeParams = new java.util.HashMap<>();
-        if (Plc4xDataSourceConfig.MODBUS_PROTOCOL.equals(protocol)) {
-            String unitId = requestParams.get(Plc4xDataSourceConfig.UNIT_ID);
-            if (unitId != null) bridgeParams.put("unitId", unitId);
-        } else if (Plc4xDataSourceConfig.OPCUA_PROTOCOL.equals(protocol)) {
-            String securityPolicy = requestParams.get(Plc4xDataSourceConfig.SECURITY_POLICY);
-            String username = requestParams.get(Plc4xDataSourceConfig.USERNAME);
-            String password = requestParams.get(Plc4xDataSourceConfig.PASSWORD);
-            if (securityPolicy != null) bridgeParams.put("securityPolicy", securityPolicy);
-            if (username != null) bridgeParams.put("username", username);
-            if (password != null) bridgeParams.put("password", password);
-        } else if (Plc4xDataSourceConfig.S7_PROTOCOL.equals(protocol)) {
-            String rack = requestParams.get(Plc4xDataSourceConfig.RACK);
-            String slot = requestParams.get(Plc4xDataSourceConfig.SLOT);
-            String localTSAP = requestParams.get(Plc4xDataSourceConfig.LOCAL_TSAP);
-            String remoteTSAP = requestParams.get(Plc4xDataSourceConfig.REMOTE_TSAP);
-            if (rack != null) bridgeParams.put("rack", rack);
-            if (slot != null) bridgeParams.put("slot", slot);
-            if (localTSAP != null) bridgeParams.put("localTSAP", localTSAP);
-            if (remoteTSAP != null) bridgeParams.put("remoteTSAP", remoteTSAP);
-        }
-        Plc4xBridgeClient client = new Plc4xBridgeClient(bridgeUrl);
+        Map<String, String> bridgeParams = buildBridgeParams(protocol, requestParams);
         return client.testConnection(protocol, host, Integer.parseInt(portStr), bridgeParams);
     }
 
@@ -77,6 +58,7 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
                                            Map<String, String> requestParams,
                                            String database, String table) {
         Plc4xBridgeClient client = buildClient(requestParams);
+        ensureConnection(pluginName, requestParams, client);
         String connectionId = resolveConnectionId(pluginName, requestParams);
         List<Map<String, Object>> groups = client.getFields(connectionId, table);
         if (table == null) {
@@ -114,6 +96,46 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
         field.setNullable(true);
         field.setDefaultValue(null);
         return field;
+    }
+
+    private void ensureConnection(String pluginName, Map<String, String> requestParams,
+                                   Plc4xBridgeClient client) {
+        String protocol = resolveProtocol(pluginName);
+        String host = requestParams.get(Plc4xDataSourceConfig.HOST);
+        String portStr = requestParams.get(Plc4xDataSourceConfig.PORT);
+        if (host == null || portStr == null) {
+            throw new DataSourcePluginException("host, port are required");
+        }
+        Map<String, String> bridgeParams = buildBridgeParams(protocol, requestParams);
+        if (!client.testConnection(protocol, host, Integer.parseInt(portStr), bridgeParams)) {
+            throw new DataSourcePluginException("Failed to establish PLC connection");
+        }
+    }
+
+    private static Map<String, String> buildBridgeParams(String protocol,
+                                                         Map<String, String> requestParams) {
+        Map<String, String> bridgeParams = new java.util.HashMap<>();
+        if (Plc4xDataSourceConfig.MODBUS_PROTOCOL.equals(protocol)) {
+            String unitId = requestParams.get(Plc4xDataSourceConfig.UNIT_ID);
+            if (unitId != null) bridgeParams.put("unitId", unitId);
+        } else if (Plc4xDataSourceConfig.OPCUA_PROTOCOL.equals(protocol)) {
+            String securityPolicy = requestParams.get(Plc4xDataSourceConfig.SECURITY_POLICY);
+            String username = requestParams.get(Plc4xDataSourceConfig.USERNAME);
+            String password = requestParams.get(Plc4xDataSourceConfig.PASSWORD);
+            if (securityPolicy != null) bridgeParams.put("securityPolicy", securityPolicy);
+            if (username != null) bridgeParams.put("username", username);
+            if (password != null) bridgeParams.put("password", password);
+        } else if (Plc4xDataSourceConfig.S7_PROTOCOL.equals(protocol)) {
+            String rack = requestParams.get(Plc4xDataSourceConfig.RACK);
+            String slot = requestParams.get(Plc4xDataSourceConfig.SLOT);
+            String localTSAP = requestParams.get(Plc4xDataSourceConfig.LOCAL_TSAP);
+            String remoteTSAP = requestParams.get(Plc4xDataSourceConfig.REMOTE_TSAP);
+            if (rack != null) bridgeParams.put("rack", rack);
+            if (slot != null) bridgeParams.put("slot", slot);
+            if (localTSAP != null) bridgeParams.put("localTSAP", localTSAP);
+            if (remoteTSAP != null) bridgeParams.put("remoteTSAP", remoteTSAP);
+        }
+        return bridgeParams;
     }
 
     private Plc4xBridgeClient buildClient(Map<String, String> params) {
