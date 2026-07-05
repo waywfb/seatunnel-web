@@ -15,7 +15,7 @@ public class ToolDefinitions {
         tools.add(
                 new ToolDefinition(
                         "create_connection",
-                        "创建数据源连接，例如 MySQL、Kafka、MQTT、Elasticsearch 等",
+                        "创建数据源连接，例如 MySQL、Kafka、MQTT、Elasticsearch、OPCUA、Modbus、S7 等",
                         Map.of(
                                 "type",
                                 "object",
@@ -26,7 +26,7 @@ public class ToolDefinitions {
                                                         "type",
                                                         "string",
                                                         "description",
-                                                        "数据源类型，如 MQTT、MySQL、Kafka、Elasticsearch"),
+                                                        "数据源类型，可选值: MQTT、MySQL、Kafka、Elasticsearch、OPCUA、Modbus、S7"),
                                         "datasourceName",
                                                 Map.of(
                                                         "type",
@@ -38,7 +38,14 @@ public class ToolDefinitions {
                                                         "type",
                                                         "object",
                                                         "description",
-                                                        "连接参数，如 broker、port、username、password 等"))),
+                                                        "连接参数。不同数据源类型需要不同参数：\n"
+                                                                + "OPCUA: host(主机地址), port(端口,默认4840), securityPolicy(安全策略,可选None/Basic128Rsa15/Basic256/Basic256Sha256,默认None), username(用户名,可选), password(密码,可选), connectTimeout(连接超时毫秒,默认5000), readTimeout(读取超时毫秒,默认30000)\n"
+                                                                + "Modbus: host, port(默认502), unitId(单元ID,默认1)\n"
+                                                                + "S7: host, port(默认102), rack(默认0), slot(默认2)\n"
+                                                                + "MySQL: host, port(默认3306), database, username, password\n"
+                                                                + "Kafka: bootstrapServers, topic\n"
+                                                                + "MQTT: broker, port(默认1883), clientId, topic\n"
+                                                                + "Elasticsearch: hosts(逗号分隔的地址列表), index"))),
                         List.of("pluginName", "datasourceName", "config")));
 
         tools.add(

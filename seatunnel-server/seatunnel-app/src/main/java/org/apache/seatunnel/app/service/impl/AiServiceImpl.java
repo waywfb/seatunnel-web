@@ -58,16 +58,17 @@ public class AiServiceImpl implements IAiService {
     @Override
     public SseEmitter chatWithActions(List<Map<String, String>> messages, UserContext userContext) {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
-        executor.execute(() -> {
-            if (userContext != null) {
-                UserContextHolder.setUserContext(userContext);
-            }
-            try {
-                streamChatWithActions(messages, emitter, userContext);
-            } finally {
-                UserContextHolder.clear();
-            }
-        });
+        executor.execute(
+                () -> {
+                    if (userContext != null) {
+                        UserContextHolder.setUserContext(userContext);
+                    }
+                    try {
+                        streamChatWithActions(messages, emitter, userContext);
+                    } finally {
+                        UserContextHolder.clear();
+                    }
+                });
         return emitter;
     }
 

@@ -76,6 +76,8 @@ public class ActionExecutorService {
         @SuppressWarnings("unchecked")
         Map<String, String> config = MAPPER.convertValue(configRaw, Map.class);
 
+        normalizeConfig(pluginName, config);
+
         try {
             String datasourceId =
                     datasourceService.createDatasource(
@@ -142,5 +144,24 @@ public class ActionExecutorService {
     private static String str(Map<String, Object> map, String key) {
         Object v = map.get(key);
         return v == null ? null : v.toString();
+    }
+
+    private void normalizeConfig(String pluginName, Map<String, String> config) {
+        if ("OPCUA".equalsIgnoreCase(pluginName)) {
+            String endpointUrl = config.get("endpointUrl");
+            if (endpointUrl != null && config.get("host") == null) {
+                String cleaned =
+                        endpointUrl.replaceFirst("^opc\\.tcp://", "").replaceFirst("^opcua://", "");
+                String[] parts = cleaned.split("[:/]");
+                if (parts.length >= 1) config.put("host", parts[0]);
+                if (parts.length >= 2) config.put("port", parts[1]);
+            }
+            String security = config.get("security");
+            if (security != null && config.get("securityPolicy") == null) {
+                config.put("securityPolicy", security);
+            }
+            config.remove("endpointUrl");
+            config.remove("security");
+        }
     }
 }

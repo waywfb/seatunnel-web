@@ -91,7 +91,7 @@ public class Plc4xConnectionManager {
                 base = "modbus://" + host + ":" + port;
                 break;
             case "opcua":
-                base = "opcua://" + host + ":" + port;
+                base = "opc.tcp://" + host + ":" + port;
                 break;
             default:
                 base = normalized + "://" + host + ":" + port;

@@ -222,8 +222,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         }
         permCheck(datasource.getDatasourceName(), AccessType.EXECUTE);
         String configJson = datasource.getDatasourceConfig();
-        Map<String, String> datasourceConfig =
-                JsonUtils.toMap(configJson, String.class, String.class);
+        Map<String, String> datasourceConfig = JsonUtils.toMap(configJson);
         configShadeUtil.decryptData(datasourceConfig);
         String pluginName = datasource.getPluginName();
         return DataSourceClientFactory.getDataSourceClient()
@@ -270,8 +269,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         String pluginName = datasource.getPluginName();
         if (Boolean.FALSE.equals(checkIsSupportVirtualTable(pluginName))) {
             String config = datasource.getDatasourceConfig();
-            Map<String, String> datasourceConfig =
-                    JsonUtils.toMap(config, String.class, String.class);
+            Map<String, String> datasourceConfig = JsonUtils.toMap(config);
 
             configShadeUtil.decryptData(datasourceConfig);
             return DataSourceClientFactory.getDataSourceClient()
@@ -298,7 +296,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceName);
         }
         String config = datasource.getDatasourceConfig();
-        Map<String, String> datasourceConfig = JsonUtils.toMap(config, String.class, String.class);
+        Map<String, String> datasourceConfig = JsonUtils.toMap(config);
         Map<String, String> options = new HashMap<>();
         options.put("size", size.toString());
         options.put("filterName", filterName);
@@ -319,7 +317,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceName);
         }
         String config = datasource.getDatasourceConfig();
-        Map<String, String> datasourceConfig = JsonUtils.toMap(config, String.class, String.class);
+        Map<String, String> datasourceConfig = JsonUtils.toMap(config);
         Map<String, String> options = new HashMap<>();
         String pluginName = datasource.getPluginName();
         if (BooleanUtils.isNotTrue(checkIsSupportVirtualTable(pluginName))) {
@@ -339,7 +337,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceName);
         }
         String config = datasource.getDatasourceConfig();
-        Map<String, String> datasourceConfig = JsonUtils.toMap(config, String.class, String.class);
+        Map<String, String> datasourceConfig = JsonUtils.toMap(config);
         String pluginName = datasource.getPluginName();
         ITableSchemaService tableSchemaService =
                 (ITableSchemaService) applicationContext.getBean("tableSchemaServiceImpl");
@@ -376,7 +374,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceId);
         }
         String config = datasource.getDatasourceConfig();
-        Map<String, String> datasourceConfig = JsonUtils.toMap(config, String.class, String.class);
+        Map<String, String> datasourceConfig = JsonUtils.toMap(config);
         configShadeUtil.decryptData(datasourceConfig);
         String pluginName = datasource.getPluginName();
         return DataSourceClientFactory.getDataSourceClient()
@@ -444,10 +442,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
                                     datasourceRes.setCreateTime(datasource.getCreateTime());
                                     datasourceRes.setUpdateTime(datasource.getUpdateTime());
                                     Map<String, String> datasourceConfig =
-                                            JsonUtils.toMap(
-                                                    datasource.getDatasourceConfig(),
-                                                    String.class,
-                                                    String.class);
+                                            JsonUtils.toMap(datasource.getDatasourceConfig());
                                     configShadeUtil.decryptData(datasourceConfig);
                                     datasourceRes.setDatasourceConfig(datasourceConfig);
                                     datasourceRes.setCreateUserId(datasource.getCreateUserId());
@@ -518,8 +513,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceId);
         }
         String configJson = datasource.getDatasourceConfig();
-        Map<String, String> datasourceConfig =
-                JsonUtils.toMap(configJson, String.class, String.class);
+        Map<String, String> datasourceConfig = JsonUtils.toMap(configJson);
         configShadeUtil.decryptData(datasourceConfig);
         return datasourceConfig;
     }
@@ -605,8 +599,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         datasourceDetailRes.setCreateTime(datasource.getCreateTime());
         datasourceDetailRes.setUpdateTime(datasource.getUpdateTime());
 
-        Map<String, String> datasourceConfig =
-                JsonUtils.toMap(datasource.getDatasourceConfig(), String.class, String.class);
+        Map<String, String> datasourceConfig = JsonUtils.toMap(datasource.getDatasourceConfig());
         configShadeUtil.decryptData(datasourceConfig);
         // convert option rule
         datasourceDetailRes.setDatasourceConfig(datasourceConfig);
