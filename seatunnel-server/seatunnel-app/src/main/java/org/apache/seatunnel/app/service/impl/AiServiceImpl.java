@@ -4,6 +4,8 @@ import org.apache.seatunnel.app.ai.ActionExecutorService;
 import org.apache.seatunnel.app.ai.IntentDetectionService;
 import org.apache.seatunnel.app.ai.ToolCallResult;
 import org.apache.seatunnel.app.config.AiConfig;
+import org.apache.seatunnel.app.security.UserContext;
+import org.apache.seatunnel.app.security.UserContextHolder;
 import org.apache.seatunnel.app.service.IAiService;
 
 import org.slf4j.Logger;
@@ -54,9 +56,18 @@ public class AiServiceImpl implements IAiService {
     }
 
     @Override
-    public SseEmitter chatWithActions(List<Map<String, String>> messages, Integer userId) {
+    public SseEmitter chatWithActions(List<Map<String, String>> messages, UserContext userContext) {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
-        executor.execute(() -> streamChatWithActions(messages, emitter, userId));
+        executor.execute(() -> {
+            if (userContext != null) {
+                UserContextHolder.setUserContext(userContext);
+            }
+            try {
+                streamChatWithActions(messages, emitter, userContext);
+            } finally {
+                UserContextHolder.clear();
+            }
+        });
         return emitter;
     }
 
@@ -150,7 +161,7 @@ public class AiServiceImpl implements IAiService {
     }
 
     private void streamChatWithActions(
-            List<Map<String, String>> messages, SseEmitter emitter, Integer userId) {
+            List<Map<String, String>> messages, SseEmitter emitter, UserContext userContext) {
         try {
             emitter.send(SseEmitter.event().name("message").data("🤔 正在分析您的需求...\n\n"));
 

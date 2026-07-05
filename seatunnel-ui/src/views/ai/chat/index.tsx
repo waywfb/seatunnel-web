@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, ref, nextTick, onMounted } from 'vue'
+import { defineComponent, ref, nextTick } from 'vue'
 import {
   NButton,
   NInput,
@@ -36,6 +36,8 @@ interface ChatMessage {
   error?: boolean
 }
 
+let scrollbarEl: any = null
+
 const AiChat = defineComponent({
   name: 'AiChat',
   setup() {
@@ -51,16 +53,12 @@ const AiChat = defineComponent({
     const inputText = ref('')
     const loading = ref(false)
     const abortController = ref<AbortController | null>(null)
-    const scrollbarRef = ref<any>(null)
     const currentAssistantMsg = ref<ChatMessage | null>(null)
 
     const scrollToBottom = async () => {
       await nextTick()
       setTimeout(() => {
-        scrollbarRef.value?.scrollTo?.({
-          top: 99999,
-          behavior: 'instant'
-        } as any)
+        scrollbarEl?.scrollTo?.({ top: 99999, behavior: 'instant' } as any)
       }, 50)
     }
 
@@ -166,102 +164,103 @@ const AiChat = defineComponent({
       sendMessage,
       stopGeneration,
       handleKeydown,
-      renderMarkdown,
-      scrollbarRef
+      renderMarkdown
     }
   },
   render() {
     return (
-      <NCard
-        title={this.t('menu.ai_assistant') || 'AI 助手'}
-        style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
-        contentStyle={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0' }}
-        bordered={false}
-      >
-        <NScrollbar
-          ref="scrollbarRef"
-          style={{ flex: 1, padding: '16px 20px' }}
-          trigger="none"
+      <div class="h-full flex flex-col overflow-hidden">
+        <NCard
+          title={this.t('menu.ai_assistant') || 'AI 助手'}
+          style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+          contentStyle={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '0' }}
+          bordered={false}
         >
-          <div style={{ maxWidth: 720, margin: '0 auto' }}>
-            {this.messages.map((msg, index) => (
-              <div
-                key={index}
-                style={{
-                  display: 'flex',
-                  marginBottom: '16px',
-                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
-                }}
-              >
+          <NScrollbar
+            ref={(el: any) => { scrollbarEl = el }}
+            style={{ flex: 1, padding: '16px 20px' }}
+            trigger="none"
+          >
+            <div style={{ maxWidth: 720, margin: '0 auto' }}>
+              {this.messages.map((msg, index) => (
                 <div
+                  key={index}
                   style={{
-                    maxWidth: '80%',
-                    padding: '10px 16px',
-                    borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                    background: msg.role === 'user' ? '#2080f0' : '#f5f5f5',
-                    color: msg.role === 'user' ? '#fff' : '#333',
-                    fontSize: '14px',
-                    lineHeight: '1.6',
-                    wordBreak: 'break-word'
+                    display: 'flex',
+                    marginBottom: '16px',
+                    justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
                   }}
                 >
-                  {msg.loading && !msg.content ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                      <span style={{ animation: 'pulse 1.2s infinite' }}>●</span>
-                      <span style={{ animation: 'pulse 1.2s infinite 0.2s' }}>●</span>
-                      <span style={{ animation: 'pulse 1.2s infinite 0.4s' }}>●</span>
-                    </span>
-                  ) : msg.role === 'assistant' ? (
-                    <span domPropsInnerHTML={this.renderMarkdown(msg.content)} />
-                  ) : (
-                    <span>{msg.content}</span>
-                  )}
-                  {msg.error && (
-                    <NTag type="error" size="small" style={{ marginTop: 8 }}>
-                      连接失败
-                    </NTag>
-                  )}
+                  <div
+                    style={{
+                      maxWidth: '80%',
+                      padding: '10px 16px',
+                      borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                      background: msg.role === 'user' ? '#2080f0' : '#f5f5f5',
+                      color: msg.role === 'user' ? '#fff' : '#333',
+                      fontSize: '14px',
+                      lineHeight: '1.6',
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    {msg.loading && !msg.content ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ animation: 'pulse 1.2s infinite' }}>●</span>
+                        <span style={{ animation: 'pulse 1.2s infinite 0.2s' }}>●</span>
+                        <span style={{ animation: 'pulse 1.2s infinite 0.4s' }}>●</span>
+                      </span>
+                    ) : msg.role === 'assistant' ? (
+                      <span innerHTML={this.renderMarkdown(msg.content)} />
+                    ) : (
+                      <span>{msg.content}</span>
+                    )}
+                    {msg.error && (
+                      <NTag type="error" size="small" style={{ marginTop: 8 }}>
+                        连接失败
+                      </NTag>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-            {this.loading && (
-              <div style={{ textAlign: 'center', padding: '8px' }}>
-                <NSpin size="small" />
-              </div>
-            )}
-          </div>
-        </NScrollbar>
+              ))}
+              {this.loading && (
+                <div style={{ textAlign: 'center', padding: '8px' }}>
+                  <NSpin size="small" />
+                </div>
+              )}
+            </div>
+          </NScrollbar>
 
-        <div
-          style={{
-            borderTop: '1px solid #eee',
-            padding: '12px 20px',
-            background: '#fff'
-          }}
-        >
-          <div style={{ display: 'flex', gap: '8px', maxWidth: 720, margin: '0 auto' }}>
-            <NInput
-              value={this.inputText}
-              onUpdateValue={(val: string) => (this.inputText = val)}
-              placeholder="输入消息，例如「帮我接 MQTT」..."
-              onKeydown={this.handleKeydown}
-              disabled={this.loading}
-              autosize={{ minRows: 1, maxRows: 4 }}
-              type="textarea"
-              style={{ flex: 1 }}
-            />
-            {this.loading ? (
-              <NButton onClick={this.stopGeneration} type="warning">
-                停止
-              </NButton>
-            ) : (
-              <NButton onClick={this.sendMessage} type="primary" disabled={!this.inputText.trim()}>
-                发送
-              </NButton>
-            )}
+          <div
+            style={{
+              borderTop: '1px solid #eee',
+              padding: '12px 20px',
+              background: '#fff'
+            }}
+          >
+            <div style={{ display: 'flex', gap: '8px', maxWidth: 720, margin: '0 auto' }}>
+              <NInput
+                value={this.inputText}
+                onUpdateValue={(val: string) => (this.inputText = val)}
+                placeholder="输入消息，例如「帮我接 MQTT」..."
+                onKeydown={this.handleKeydown}
+                disabled={this.loading}
+                autosize={{ minRows: 1, maxRows: 4 }}
+                type="textarea"
+                style={{ flex: 1 }}
+              />
+              {this.loading ? (
+                <NButton onClick={this.stopGeneration} type="warning">
+                  停止
+                </NButton>
+              ) : (
+                <NButton onClick={this.sendMessage} type="primary" disabled={!this.inputText.trim()}>
+                  发送
+                </NButton>
+              )}
+            </div>
           </div>
-        </div>
-      </NCard>
+        </NCard>
+      </div>
     )
   }
 })

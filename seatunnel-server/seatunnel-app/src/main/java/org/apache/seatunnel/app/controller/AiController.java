@@ -1,5 +1,6 @@
 package org.apache.seatunnel.app.controller;
 
+import org.apache.seatunnel.app.security.UserContext;
 import org.apache.seatunnel.app.security.UserContextHolder;
 import org.apache.seatunnel.app.service.IAiService;
 
@@ -39,11 +40,11 @@ public class AiController {
             @ApiParam(value = "消息列表", required = true) @RequestBody Map<String, Object> request) {
         @SuppressWarnings("unchecked")
         List<Map<String, String>> messages = (List<Map<String, String>>) request.get("messages");
-        Integer userId = null;
+        UserContext userContext = null;
         try {
-            userId = UserContextHolder.getUserContext().getUser().getId();
+            userContext = UserContextHolder.getUserContext();
         } catch (Exception ignored) {
         }
-        return aiService.chatWithActions(messages, userId);
+        return aiService.chatWithActions(messages, userContext);
     }
 }
