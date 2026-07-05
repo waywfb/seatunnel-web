@@ -86,8 +86,9 @@ export async function chatStream(
 
         try {
           const parsed = JSON.parse(eventBody)
-          if (parsed?.message?.content) {
-            onMessage(parsed.message.content)
+          const text = parsed?.content || parsed?.message?.content
+          if (text) {
+            onMessage(text)
           }
         } catch {
           if (eventBody) {
@@ -144,20 +145,39 @@ export async function actionStream(
       if (done) break
 
       buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
 
-      for (const line of lines) {
-        const trimmed = line.trim()
-        if (!trimmed || !trimmed.startsWith('data:')) continue
-        const eventData = trimmed.slice(5).trim()
+      // Split by blank lines (SSE event boundary), keep incomplete tail
+      const parts = buffer.split('\n\n')
+      buffer = parts.pop() || ''
 
-        if (eventData === '' || eventData === '[DONE]') {
+      for (const part of parts) {
+        const dataLines: string[] = []
+        for (const line of part.split('\n')) {
+          if (line.startsWith('data:')) {
+            dataLines.push(line.slice(5))
+          }
+        }
+
+        let raw = dataLines.join('\n').trim()
+
+        if (raw === '[DONE]') {
           onDone()
           return
         }
 
-        onMessage(eventData)
+        // Try JSON envelope, fall back to raw text
+        let text = raw
+        try {
+          const parsed = JSON.parse(raw)
+          if (parsed?.content) text = parsed.content
+          else if (parsed?.message?.content) text = parsed.message.content
+        } catch {
+          // not JSON, use raw
+        }
+
+        if (text && !text.startsWith('🤔') && !text.startsWith('🔧')) {
+          onMessage(text)
+        }
       }
     }
 

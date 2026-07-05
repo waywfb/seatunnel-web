@@ -133,10 +133,7 @@ public class AiServiceImpl implements IAiService {
                             Map<String, Object> msg = (Map<String, Object>) chunk.get("message");
                             Object content = msg.get("content");
                             if (content != null) {
-                                emitter.send(
-                                        SseEmitter.event()
-                                                .name("message")
-                                                .data(content.toString()));
+                                sendSseData(emitter, "message", content.toString());
                             }
                         }
                         if (Boolean.TRUE.equals(done)) {
@@ -164,13 +161,13 @@ public class AiServiceImpl implements IAiService {
     private void streamChatWithActions(
             List<Map<String, String>> messages, SseEmitter emitter, UserContext userContext) {
         try {
-            emitter.send(SseEmitter.event().name("message").data("🤔 正在分析您的需求...\n\n"));
+            sendSseData(emitter, "message", "🤔 正在分析您的需求...\n\n");
 
             IntentDetectionService.IntentResult intent = intentDetectionService.detect(messages);
 
             if (intent.isClarification()) {
                 String question = (String) intent.getData().get("question");
-                emitter.send(SseEmitter.event().name("message").data(question));
+                sendSseData(emitter, "message", question);
                 emitter.send(SseEmitter.event().name("done").data(""));
                 emitter.complete();
                 return;
@@ -182,42 +179,43 @@ public class AiServiceImpl implements IAiService {
                 String toolName = (String) data.get("name");
                 String arguments = (String) data.get("arguments");
 
-                emitter.send(
-                        SseEmitter.event()
-                                .name("message")
-                                .data("🔧 正在执行: **" + toolName + "**\n\n"));
+                sendSseData(emitter, "message", "🔧 正在执行: **" + toolName + "**\n\n");
 
                 ToolCallResult result = actionExecutorService.execute(toolName, arguments);
 
+                List<Map<String, String>> augmentedMessages = new ArrayList<>(messages);
+
                 if (result.isSuccess()) {
-                    emitter.send(
-                            SseEmitter.event()
-                                    .name("message")
-                                    .data("✅ " + result.getMessage() + "\n\n"));
-                    if (result.getData() != null) {
-                        String json =
-                                MAPPER.writerWithDefaultPrettyPrinter()
-                                        .writeValueAsString(result.getData());
-                        emitter.send(
-                                SseEmitter.event()
-                                        .name("message")
-                                        .data("```json\n" + json + "\n```\n\n"));
-                    }
+                    String resultJson =
+                            result.getData() != null
+                                    ? MAPPER.writeValueAsString(result.getData())
+                                    : result.getMessage();
+                    augmentedMessages.add(
+                            Map.of(
+                                    "role",
+                                    "system",
+                                    "content",
+                                    "工具 "
+                                            + toolName
+                                            + " 执行成功，返回结果：\n"
+                                            + resultJson
+                                            + "\n请用简洁的自然语言告知用户结果，不要重复输出原始 JSON。"));
                 } else {
-                    emitter.send(
-                            SseEmitter.event()
-                                    .name("message")
-                                    .data("❌ " + result.getMessage() + "\n\n"));
+                    augmentedMessages.add(
+                            Map.of(
+                                    "role",
+                                    "system",
+                                    "content",
+                                    "工具 " + toolName + " 执行失败：" + result.getMessage()));
                 }
 
-                emitter.send(SseEmitter.event().name("done").data(""));
-                emitter.complete();
+                streamChat(augmentedMessages, emitter, true, null);
                 return;
             }
 
             String content = (String) intent.getData().get("content");
             if (content != null && !content.isEmpty()) {
-                emitter.send(SseEmitter.event().name("message").data(content));
+                sendSseData(emitter, "message", content);
                 emitter.send(SseEmitter.event().name("done").data(""));
                 emitter.complete();
                 return;
@@ -229,6 +227,13 @@ public class AiServiceImpl implements IAiService {
             log.error("Chat with actions failed", e);
             streamChat(messages, emitter, true, null);
         }
+    }
+
+    private void sendSseData(SseEmitter emitter, String eventName, String content) throws Exception {
+        emitter.send(
+                SseEmitter.event()
+                        .name(eventName)
+                        .data(MAPPER.writeValueAsString(Map.of("content", content))));
     }
 
     private String buildChatRequest(List<Map<String, String>> messages, boolean stream) {
