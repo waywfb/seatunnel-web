@@ -109,14 +109,11 @@ public class DatasourceLoadConfig {
                 "CONSOLE",
                 "org.apache.seatunnel.datasource.plugin.console.ConsoleDataSourceFactory");
         classLoaderFactoryName.put(
-                "MODBUS",
-                "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
+                "MODBUS", "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
         classLoaderFactoryName.put(
-                "OPCUA",
-                "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
+                "OPCUA", "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
         classLoaderFactoryName.put(
-                "S7",
-                "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
+                "S7", "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
 
         classLoaderJarName.put("JDBC-ORACLE", "datasource-jdbc-oracle-");
         classLoaderJarName.put("JDBC-CLICKHOUSE", "datasource-jdbc-clickhouse-");

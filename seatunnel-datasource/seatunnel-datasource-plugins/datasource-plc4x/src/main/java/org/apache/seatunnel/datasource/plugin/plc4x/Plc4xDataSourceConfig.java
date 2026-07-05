@@ -56,6 +56,7 @@ public class Plc4xDataSourceConfig {
     public static String getBridgeUrl() {
         return System.getProperty(BRIDGE_URL_CONFIG_KEY, DEFAULT_BRIDGE_URL);
     }
+
     public static final int DEFAULT_CONNECT_TIMEOUT = 5000;
     public static final int DEFAULT_READ_TIMEOUT = 30000;
     public static final int DEFAULT_UNIT_ID = 1;
@@ -66,15 +67,15 @@ public class Plc4xDataSourceConfig {
     public static final String OPCUA_PROTOCOL = "OPC UA";
     public static final String S7_PROTOCOL = "S7";
 
-    public static final Map<String, String> PLUGIN_TO_PROTOCOL = Map.of(
-            "Modbus", MODBUS_PROTOCOL,
-            "OPCUA", OPCUA_PROTOCOL,
-            "S7", S7_PROTOCOL
-    );
+    public static final Map<String, String> PLUGIN_TO_PROTOCOL =
+            Map.of(
+                    "Modbus", MODBUS_PROTOCOL,
+                    "OPCUA", OPCUA_PROTOCOL,
+                    "S7", S7_PROTOCOL);
 
-    public static final Map<String, Integer> PROTOCOL_DEFAULT_PORTS = Map.of(
-            S7_PROTOCOL, 102,
-            MODBUS_PROTOCOL, 502,
-            OPCUA_PROTOCOL, 4840
-    );
+    public static final Map<String, Integer> PROTOCOL_DEFAULT_PORTS =
+            Map.of(
+                    S7_PROTOCOL, 102,
+                    MODBUS_PROTOCOL, 502,
+                    OPCUA_PROTOCOL, 4840);
 }

@@ -7,20 +7,22 @@ public class Plc4xOptionRule {
 
     public static OptionRule optionRule(String pluginName) {
         String protocol = Plc4xDataSourceConfig.PLUGIN_TO_PROTOCOL.get(pluginName);
-        int defaultPort = protocol != null
-                ? Plc4xDataSourceConfig.PROTOCOL_DEFAULT_PORTS.getOrDefault(protocol, 0)
-                : 0;
+        int defaultPort =
+                protocol != null
+                        ? Plc4xDataSourceConfig.PROTOCOL_DEFAULT_PORTS.getOrDefault(protocol, 0)
+                        : 0;
 
-        OptionRule.Builder builder = OptionRule.builder()
-                .required(
-                        Options.key(Plc4xDataSourceConfig.HOST)
-                                .stringType()
-                                .noDefaultValue()
-                                .withDescription("PLC host address"),
-                        Options.key(Plc4xDataSourceConfig.PORT)
-                                .intType()
-                                .defaultValue(defaultPort)
-                                .withDescription("PLC port"));
+        OptionRule.Builder builder =
+                OptionRule.builder()
+                        .required(
+                                Options.key(Plc4xDataSourceConfig.HOST)
+                                        .stringType()
+                                        .noDefaultValue()
+                                        .withDescription("PLC host address"),
+                                Options.key(Plc4xDataSourceConfig.PORT)
+                                        .intType()
+                                        .defaultValue(defaultPort)
+                                        .withDescription("PLC port"));
 
         if (Plc4xDataSourceConfig.MODBUS_PROTOCOL.equals(protocol)) {
             builder.required(
@@ -64,8 +66,7 @@ public class Plc4xOptionRule {
                             .withDescription("S7 remote TSAP"));
         }
 
-        return builder
-                .optional(
+        return builder.optional(
                         Options.key(Plc4xDataSourceConfig.CONNECT_TIMEOUT)
                                 .intType()
                                 .defaultValue(Plc4xDataSourceConfig.DEFAULT_CONNECT_TIMEOUT)

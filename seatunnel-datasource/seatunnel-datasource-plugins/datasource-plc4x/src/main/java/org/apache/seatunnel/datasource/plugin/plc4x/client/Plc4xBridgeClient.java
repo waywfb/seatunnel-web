@@ -1,10 +1,10 @@
 package org.apache.seatunnel.datasource.plugin.plc4x.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -27,14 +27,17 @@ public class Plc4xBridgeClient {
     private final int readTimeout;
 
     public Plc4xBridgeClient(String bridgeUrl) {
-        this.baseUrl = bridgeUrl.endsWith("/") ? bridgeUrl.substring(0, bridgeUrl.length() - 1) : bridgeUrl;
+        this.baseUrl =
+                bridgeUrl.endsWith("/")
+                        ? bridgeUrl.substring(0, bridgeUrl.length() - 1)
+                        : bridgeUrl;
         this.connectTimeout = 5000;
         this.readTimeout = 30000;
         LOG.info("Plc4xBridgeClient created, baseUrl={}", this.baseUrl);
     }
 
-    public boolean testConnection(String protocol, String host, int port,
-                                  Map<String, String> params) {
+    public boolean testConnection(
+            String protocol, String host, int port, Map<String, String> params) {
         try {
             Map<String, Object> bodyMap = new java.util.LinkedHashMap<>();
             bodyMap.put("protocol", protocol);
@@ -65,7 +68,9 @@ public class Plc4xBridgeClient {
 
     public List<Map<String, Object>> getFields(String connectionId, String groupName) {
         try {
-            StringBuilder url = new StringBuilder(baseUrl + "/api/fields?connectionId=" + urlEncode(connectionId));
+            StringBuilder url =
+                    new StringBuilder(
+                            baseUrl + "/api/fields?connectionId=" + urlEncode(connectionId));
             if (groupName != null) {
                 url.append("&groupName=").append(urlEncode(groupName));
             }
@@ -80,7 +85,11 @@ public class Plc4xBridgeClient {
             }
             return result;
         } catch (Exception e) {
-            LOG.error("getFields failed for connectionId={}, groupName={}", connectionId, groupName, e);
+            LOG.error(
+                    "getFields failed for connectionId={}, groupName={}",
+                    connectionId,
+                    groupName,
+                    e);
             return Collections.emptyList();
         }
     }

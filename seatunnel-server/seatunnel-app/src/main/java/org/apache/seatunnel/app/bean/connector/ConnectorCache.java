@@ -139,11 +139,13 @@ public class ConnectorCache {
     private void registerPlcConnectors() {
         List<String> plcNames = Arrays.asList("OPCUA", "Modbus", "S7");
         List<ConnectorInfo> sourceConnectors =
-                new ArrayList<>(downloadConnectorCache.getOrDefault(PluginType.SOURCE, new ArrayList<>()));
+                new ArrayList<>(
+                        downloadConnectorCache.getOrDefault(PluginType.SOURCE, new ArrayList<>()));
         for (String name : plcNames) {
-            PluginIdentifier id = PluginIdentifier.of("seatunnel", PluginType.SOURCE.getType(), name);
-            boolean alreadyExists = sourceConnectors.stream()
-                    .anyMatch(c -> c.getPluginIdentifier().equals(id));
+            PluginIdentifier id =
+                    PluginIdentifier.of("seatunnel", PluginType.SOURCE.getType(), name);
+            boolean alreadyExists =
+                    sourceConnectors.stream().anyMatch(c -> c.getPluginIdentifier().equals(id));
             if (!alreadyExists) {
                 sourceConnectors.add(new ConnectorInfo(id, null));
             }

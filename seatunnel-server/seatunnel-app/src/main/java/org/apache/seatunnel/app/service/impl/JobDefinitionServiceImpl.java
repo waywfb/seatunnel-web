@@ -162,8 +162,7 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
             Map<Long, String> dsIdToPluginName = Collections.emptyMap();
             if (!datasourceIds.isEmpty()) {
                 dsIdToPluginName =
-                        datasourceDao.selectDatasourceByIds(new ArrayList<>(datasourceIds))
-                                .stream()
+                        datasourceDao.selectDatasourceByIds(new ArrayList<>(datasourceIds)).stream()
                                 .collect(
                                         Collectors.toMap(
                                                 Datasource::getId, Datasource::getPluginName));
@@ -200,8 +199,7 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                                 if (configMap != null
                                         && configMap.containsKey("data_save_mode")
                                         && configMap.get("data_save_mode") != null) {
-                                    res.setDataSaveMode(
-                                            configMap.get("data_save_mode").toString());
+                                    res.setDataSaveMode(configMap.get("data_save_mode").toString());
                                 }
                             } catch (Exception e) {
                                 // ignore parse errors for individual task configs

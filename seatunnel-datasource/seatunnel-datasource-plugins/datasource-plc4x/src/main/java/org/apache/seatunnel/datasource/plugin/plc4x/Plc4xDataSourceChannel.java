@@ -24,8 +24,11 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
     }
 
     @Override
-    public List<String> getTables(String pluginName, Map<String, String> requestParams,
-                                  String database, Map<String, String> options) {
+    public List<String> getTables(
+            String pluginName,
+            Map<String, String> requestParams,
+            String database,
+            Map<String, String> options) {
         Plc4xBridgeClient client = buildClient(requestParams);
         ensureConnection(pluginName, requestParams, client);
         return client.listTables(resolveConnectionId(pluginName, requestParams));
@@ -39,8 +42,8 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
     }
 
     @Override
-    public boolean checkDataSourceConnectivity(String pluginName,
-                                               Map<String, String> requestParams) {
+    public boolean checkDataSourceConnectivity(
+            String pluginName, Map<String, String> requestParams) {
         Plc4xBridgeClient client = buildClient(requestParams);
         String protocol = resolveProtocol(pluginName);
         String host = requestParams.get(Plc4xDataSourceConfig.HOST);
@@ -54,9 +57,8 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<TableField> getTableFields(String pluginName,
-                                           Map<String, String> requestParams,
-                                           String database, String table) {
+    public List<TableField> getTableFields(
+            String pluginName, Map<String, String> requestParams, String database, String table) {
         Plc4xBridgeClient client = buildClient(requestParams);
         ensureConnection(pluginName, requestParams, client);
         String connectionId = resolveConnectionId(pluginName, requestParams);
@@ -98,8 +100,8 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
         return field;
     }
 
-    private void ensureConnection(String pluginName, Map<String, String> requestParams,
-                                   Plc4xBridgeClient client) {
+    private void ensureConnection(
+            String pluginName, Map<String, String> requestParams, Plc4xBridgeClient client) {
         String protocol = resolveProtocol(pluginName);
         String host = requestParams.get(Plc4xDataSourceConfig.HOST);
         String portStr = requestParams.get(Plc4xDataSourceConfig.PORT);
@@ -112,8 +114,8 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
         }
     }
 
-    private static Map<String, String> buildBridgeParams(String protocol,
-                                                         Map<String, String> requestParams) {
+    private static Map<String, String> buildBridgeParams(
+            String protocol, Map<String, String> requestParams) {
         Map<String, String> bridgeParams = new java.util.HashMap<>();
         if (Plc4xDataSourceConfig.MODBUS_PROTOCOL.equals(protocol)) {
             String unitId = requestParams.get(Plc4xDataSourceConfig.UNIT_ID);
