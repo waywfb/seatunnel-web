@@ -31,4 +31,5 @@ export default {
   section_pipeline: 'Pipeline',
   section_resources: 'Resources',
   section_admin: 'Administration',
+  ai_assistant: 'AI Assistant',
 }

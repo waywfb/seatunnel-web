@@ -16,52 +16,28 @@
  */
 
 import utils from '@/utils'
-import tasks from '@/router/tasks'
-import userManage from '@/router/user-manage'
-import datasource from '@/router/datasource'
-import virtualTables from '@/router/virtual-tables'
-import ai from '@/router/ai'
-import type { RouteRecordRaw } from 'vue-router'
 import type { Component } from 'vue'
 
 const modules = import.meta.glob('/src/views/**/**.tsx')
 const components: { [key: string]: Component } = utils.mapping(modules)
 
-const basePage: RouteRecordRaw[] = [
-  {
-    path: '/',
-    redirect: { name: 'login' }
+export default {
+  path: '/ai',
+  name: 'ai',
+  meta: {
+    title: 'ai'
   },
-  tasks,
-  userManage,
-  datasource,
-  virtualTables,
-  ai
-]
-
-const loginPage: RouteRecordRaw[] = [
-  {
-    path: '/login',
-    name: 'login',
-    component: components['login']
-  },
-  {
-    path: '/setting',
-    redirect: { name: 'setting' },
-    component: () => import('@/layouts/dashboard'),
-    children: [
-      {
-        path: '/setting',
-        name: 'setting',
-        component: components['setting'],
-        meta: {
-          title: 'setting'
-        }
+  component: () => import('@/layouts/dashboard'),
+  children: [
+    {
+      path: '/ai/chat',
+      name: 'ai-chat',
+      component: components['ai-chat'],
+      meta: {
+        title: 'ai-chat',
+        activeSide: 'ai-chat',
+        showSide: true
       }
-    ]
-  }
-]
-
-const routes: RouteRecordRaw[] = [...basePage, ...loginPage]
-
-export default routes
+    }
+  ]
+}

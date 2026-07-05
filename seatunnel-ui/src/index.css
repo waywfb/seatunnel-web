@@ -615,3 +615,9 @@ body {
 .n-data-table tr {
   transition: background-color var(--duration-150) ease-in-out;
 }
+
+/* AI Chat loading pulse animation */
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}

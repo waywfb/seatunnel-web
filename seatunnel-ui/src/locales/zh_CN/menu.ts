@@ -31,4 +31,5 @@ export default {
   section_pipeline: '数据集成',
   section_resources: '资源',
   section_admin: '管理',
+  ai_assistant: 'AI 助手',
 }

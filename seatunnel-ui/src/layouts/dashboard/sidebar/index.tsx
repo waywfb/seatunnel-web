@@ -91,6 +91,18 @@ const Sidebar = defineComponent({
       },
       {
         type: 'group',
+        label: () => h('span', { class: 'sidebar-section-label' }, 'AI'),
+        key: 'section-ai',
+        children: [
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.ai_assistant') }),
+            key: 'ai-chat',
+            icon: () => h(NIcon, null, { default: () => h('span', { style: { fontSize: '16px' } }, '🤖') })
+          }
+        ]
+      },
+      {
+        type: 'group',
         label: () => h('span', { class: 'sidebar-section-label' }, t('menu.section_admin')),
         key: 'section-admin',
         children: [
@@ -120,6 +132,8 @@ const Sidebar = defineComponent({
         router.push({ path: '/task/synchronization-definition' })
       } else if (key === 'synchronization-instance') {
         router.push({ path: '/task/synchronization-instance' })
+      } else if (key === 'ai-chat') {
+        router.push({ path: '/ai/chat' })
       } else if (key !== 'tasks') {
         router.push({ path: `/${key}` })
       }
