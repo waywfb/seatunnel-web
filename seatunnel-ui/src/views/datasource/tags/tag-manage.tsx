@@ -6,7 +6,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import {
   discoverTags, importTags, refreshTags, getSyncTaskStatus,
-  getTagList, deleteTag, getGroupTree
+  getTagList, deleteTag, getGroupTree, datasourceDetail
 } from '@/service/data-source'
 
 const PLC_TYPES = ['OPCUA', 'S7', 'Modbus', 'Plc4x']
@@ -21,6 +21,25 @@ export default defineComponent({
     const message = useMessage()
     const activeTab = ref('browse')
     const loading = ref(false)
+
+    // Datasource connection params
+    const dsHost = ref('localhost')
+    const dsPort = ref('')
+    const dsParams = ref<Record<string, string>>({})
+
+    const loadDsDetail = async (id: string) => {
+      try {
+        const res = await datasourceDetail(id)
+        const params = res?.params || {}
+        dsHost.value = params.host || 'localhost'
+        dsPort.value = params.port || ''
+        dsParams.value = params
+      } catch (_) { }
+    }
+
+    watch(() => props.datasourceId, (val) => {
+      if (val) loadDsDetail(val)
+    }, { immediate: true })
 
     // Browse/Discover
     const treeData = ref<any[]>([])
@@ -54,7 +73,8 @@ export default defineComponent({
       if (!props.datasourceId) return
       treeLoading.value = true
       try {
-        const connectionId = `${props.pluginName.toLowerCase()}://localhost:4840`
+        const port = dsPort.value || '4840'
+        const connectionId = `${props.pluginName.toLowerCase()}://${dsHost.value}:${port}`
         let result = await discoverTags({ connectionId })
         treeData.value = buildTreeData(result?.nodes || [])
       } catch (err: any) {
