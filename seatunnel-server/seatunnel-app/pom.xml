@@ -588,6 +588,12 @@
             <artifactId>plc4j-api</artifactId>
             <version>0.13.1</version>
         </dependency>
+        <!-- Milo SDK for OPC UA browse (not transitive from plc4x-bridge) -->
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>sdk-client</artifactId>
+            <version>0.6.13</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.plc4x</groupId>
             <artifactId>plc4j-driver-s7</artifactId>

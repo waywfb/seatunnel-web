@@ -23,6 +23,7 @@ export default {
   logout: 'Logout',
   tasks: 'Tasks',
   datasource: 'Datasource',
+  tag_manage: 'Tag Manage',
   virtual_tables: 'Virtual Tables',
   sync_task_definition: 'Syncing Task Definition',
   sync_task_instance: 'Syncing Task Instance',

@@ -56,6 +56,15 @@ export default {
         title: 'datasource-edit',
         activeMenu: 'datasource'
       }
+    },
+    {
+      path: '/datasource/tags',
+      name: 'datasource-tags',
+      component: components['datasource-tags'],
+      meta: {
+        title: 'datasource-tags',
+        activeMenu: 'datasource'
+      }
     }
   ]
 }

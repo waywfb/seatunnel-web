@@ -171,3 +171,69 @@ export function datasourceDelete(id: string): any {
     method: 'delete'
   })
 }
+
+// ---- Tag Management APIs ----
+
+const PLC_BASE_URL = '/datasource'
+
+export function discoverTags(data: { connectionId: string; parentNodeId?: string; limit?: number; offset?: number }): any {
+  return axios({
+    url: PLC_BASE_URL + '/tags/discover',
+    method: 'post',
+    data
+  })
+}
+
+export function importTags(id: string, data: any): any {
+  return axios({
+    url: PLC_BASE_URL + '/' + id + '/tags/import',
+    method: 'post',
+    data
+  })
+}
+
+export function refreshTags(id: string, data?: any): any {
+  return axios({
+    url: PLC_BASE_URL + '/' + id + '/tags/refresh',
+    method: 'post',
+    data: data || {}
+  })
+}
+
+export function getSyncTaskStatus(taskId: string): any {
+  return axios({
+    url: PLC_BASE_URL + '/sync-tasks/' + taskId,
+    method: 'get'
+  })
+}
+
+export function getTagList(datasourceId: string): any {
+  return axios({
+    url: PLC_BASE_URL + '/tags',
+    method: 'get',
+    params: { datasourceId }
+  })
+}
+
+export function updateTag(tagId: string, data: any): any {
+  return axios({
+    url: PLC_BASE_URL + '/tags/' + tagId,
+    method: 'put',
+    data
+  })
+}
+
+export function deleteTag(tagId: string): any {
+  return axios({
+    url: PLC_BASE_URL + '/tags/' + tagId,
+    method: 'delete'
+  })
+}
+
+export function getGroupTree(datasourceId: string): any {
+  return axios({
+    url: PLC_BASE_URL + '/groups',
+    method: 'get',
+    params: { datasourceId }
+  })
+}

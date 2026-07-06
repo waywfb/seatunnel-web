@@ -38,6 +38,7 @@ import SourceModal from '../components/source-modal'
 import { CurlImportModal } from './curl-import-modal'
 import { datasourceIconSvg, getDatasourceIconColor } from '../datasource-icons'
 
+
 const DatasourceCreate = defineComponent({
   setup() {
     const { t } = useI18n()
@@ -223,6 +224,7 @@ const DatasourceCreate = defineComponent({
             )}
           </NForm>
         </NCard>
+
         <SourceModal
           show={showSourceModal.value}
           onChange={(type) => {

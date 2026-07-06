@@ -80,7 +80,13 @@ const Sidebar = defineComponent({
           {
             label: () => h(NEllipsis, null, { default: () => t('menu.datasource') }),
             key: 'datasource',
-            icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) })
+            icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) }),
+            children: [
+              {
+                label: () => h(NEllipsis, null, { default: () => t('menu.tag_manage') }),
+                key: 'datasource-tags'
+              }
+            ]
           },
           {
             label: () => h(NEllipsis, null, { default: () => t('menu.virtual_tables') }),
@@ -134,6 +140,8 @@ const Sidebar = defineComponent({
         router.push({ path: '/task/synchronization-instance' })
       } else if (key === 'ai-chat') {
         router.push({ path: '/ai/chat' })
+      } else if (key === 'datasource-tags') {
+        router.push({ name: 'datasource-tags' })
       } else if (key !== 'tasks') {
         router.push({ path: `/${key}` })
       }

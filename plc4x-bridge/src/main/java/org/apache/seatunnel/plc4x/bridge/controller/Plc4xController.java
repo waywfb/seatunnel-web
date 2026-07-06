@@ -1,6 +1,7 @@
 package org.apache.seatunnel.plc4x.bridge.controller;
 
 import org.apache.seatunnel.plc4x.bridge.model.*;
+import org.apache.seatunnel.plc4x.bridge.service.BridgeDiscoverService;
 import org.apache.seatunnel.plc4x.bridge.service.Plc4xConnectionManager;
 import org.apache.seatunnel.plc4x.bridge.service.Plc4xSubscribeService;
 import org.apache.seatunnel.plc4x.bridge.service.Plc4xTagService;
@@ -22,21 +23,35 @@ public class Plc4xController {
     private final Plc4xConnectionManager connectionManager;
     private final Plc4xTagService tagService;
     private final Plc4xSubscribeService subscribeService;
+    private final BridgeDiscoverService discoverService;
 
     @Value("${bridge.version:1.0.0}")
     private String version;
 
     public Plc4xController(Plc4xConnectionManager connectionManager,
                            Plc4xTagService tagService,
-                           Plc4xSubscribeService subscribeService) {
+                           Plc4xSubscribeService subscribeService,
+                           BridgeDiscoverService discoverService) {
         this.connectionManager = connectionManager;
         this.tagService = tagService;
         this.subscribeService = subscribeService;
+        this.discoverService = discoverService;
     }
 
     @GetMapping("/version")
     public ApiResponse<String> getVersion() {
         return ApiResponse.success("version", version);
+    }
+
+    @PostMapping("/discover")
+    public ApiResponse<DiscoverResponse> discover(@RequestBody DiscoverRequest request) {
+        try {
+            DiscoverResponse response = discoverService.discover(request);
+            return ApiResponse.success(response);
+        } catch (Exception e) {
+            log.error("Discover failed", e);
+            return ApiResponse.serverError(e.getMessage());
+        }
     }
 
     @PostMapping("/connect")

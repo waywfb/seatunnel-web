@@ -1,7 +1,6 @@
 package org.apache.seatunnel.plc4x.bridge.service;
 
 import org.apache.plc4x.java.api.PlcConnection;
-import org.apache.plc4x.java.api.exceptions.PlcUnsupportedOperationException;
 import org.apache.plc4x.java.api.messages.PlcBrowseRequest;
 import org.apache.plc4x.java.api.messages.PlcBrowseResponse;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
@@ -55,10 +54,13 @@ public class Plc4xTagService {
                 groups.add(group);
             }
             return groups;
-        } catch (PlcUnsupportedOperationException e) {
-            log.warn("Browse not supported for connection: {}", connectionId);
-            return Collections.emptyList();
         } catch (Exception e) {
+            // ClassLoader isolation prevents catching PlcUnsupportedOperationException directly
+            String msg = e.getMessage();
+            if (msg != null && msg.contains("UnsupportedOperation") || msg != null && msg.contains("brows")) {
+                log.warn("Browse not supported for connection: {}", connectionId);
+                return Collections.emptyList();
+            }
             throw new RuntimeException("Failed to browse tags: " + connectionId, e);
         }
     }

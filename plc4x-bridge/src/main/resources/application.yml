@@ -1,0 +1,13 @@
+server:
+  port: 51999
+
+spring:
+  main:
+    banner-mode: off
+  jmx:
+    enabled: false
+
+logging:
+  level:
+    root: INFO
+    org.apache.seatunnel.plc4x: DEBUG

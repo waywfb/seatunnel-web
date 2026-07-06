@@ -17,19 +17,17 @@ public class Plc4xBridgeRunner {
 
     @EventListener(ApplicationReadyEvent.class)
     public void startBridge() {
-        String savedPort = System.setProperty("server.port", "0");
+        String savedPort = System.setProperty("server.port", "51999");
         String savedExclude =
                 System.setProperty(
                         "spring.autoconfigure.exclude",
                         DataSourceAutoConfiguration.class.getName());
-        LOG.info("Starting embedded Plc4xBridge on random port...");
+        LOG.info("Starting embedded Plc4xBridge on port 51999...");
         try {
             SpringApplication app = new SpringApplication(Plc4xBridgeApplication.class);
             app.setRegisterShutdownHook(false);
-            int port =
-                    Integer.parseInt(app.run().getEnvironment().getProperty("local.server.port"));
-            System.setProperty("plc4x.bridge.url", "http://localhost:" + port);
-            LOG.info("Plc4xBridge started on port {}", port);
+            app.run();
+            LOG.info("Plc4xBridge started on port 51999");
         } catch (Exception e) {
             LOG.error("Failed to start Plc4xBridge", e);
         } finally {

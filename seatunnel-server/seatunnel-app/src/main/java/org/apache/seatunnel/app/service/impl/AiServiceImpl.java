@@ -229,7 +229,8 @@ public class AiServiceImpl implements IAiService {
         }
     }
 
-    private void sendSseData(SseEmitter emitter, String eventName, String content) throws Exception {
+    private void sendSseData(SseEmitter emitter, String eventName, String content)
+            throws Exception {
         emitter.send(
                 SseEmitter.event()
                         .name(eventName)

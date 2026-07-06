@@ -23,6 +23,7 @@ export default {
   logout: '登出',
   tasks: '数据接入',
   datasource: '数据源',
+  tag_manage: '测点管理',
   virtual_tables: '虚拟表',
   sync_task_definition: '同步任务定义',
   sync_task_instance: '同步任务实例',

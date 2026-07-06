@@ -36,6 +36,8 @@ import org.apache.seatunnel.app.service.IDatasourceService;
 import org.apache.seatunnel.app.service.IJobDefinitionService;
 import org.apache.seatunnel.app.service.ITableSchemaService;
 import org.apache.seatunnel.app.service.WorkspaceService;
+import org.apache.seatunnel.app.service.tag.GroupService;
+import org.apache.seatunnel.app.service.tag.TagService;
 import org.apache.seatunnel.app.thirdparty.datasource.DataSourceClientFactory;
 import org.apache.seatunnel.app.thirdparty.framework.SeaTunnelOptionRuleWrapper;
 import org.apache.seatunnel.app.utils.ConfigShadeUtil;
@@ -68,11 +70,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import javax.annotation.Resource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,6 +106,14 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
     @Autowired private ConfigShadeUtil configShadeUtil;
 
     @Resource private WorkspaceService workspaceService;
+
+    @Autowired private GroupService groupService;
+
+    @Autowired private TagService tagService;
+
+    private static final Set<String> PLC_PLUGIN_NAMES =
+            Collections.unmodifiableSet(
+                    new HashSet<>(Arrays.asList("Plc4x", "OPCUA", "S7", "Modbus")));
 
     @Override
     public String createDatasource(
@@ -140,6 +153,9 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
                         .build();
         boolean success = datasourceDao.insertDatasource(datasource);
         if (success) {
+            if (PLC_PLUGIN_NAMES.contains(pluginName)) {
+                initRootGroup(uuid);
+            }
             return String.valueOf(uuid);
         }
         throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_CREATE_FAILED);
@@ -200,7 +216,19 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             return true;
         }
         permCheck(datasource.getDatasourceName(), AccessType.DELETE);
+        if (PLC_PLUGIN_NAMES.contains(datasource.getPluginName())) {
+            tagService.batchDeleteByDatasourceId(datasourceId);
+            groupService.batchDeleteByDatasourceId(datasourceId);
+        }
         return datasourceDao.deleteDatasourceById(datasourceId);
+    }
+
+    private void initRootGroup(Long datasourceId) {
+        org.apache.seatunnel.app.domain.request.group.GroupCreateDTO root =
+                new org.apache.seatunnel.app.domain.request.group.GroupCreateDTO();
+        root.setGroupName("root");
+        root.setParentPath(null);
+        groupService.createGroups(datasourceId, java.util.Collections.singletonList(root));
     }
 
     @Override

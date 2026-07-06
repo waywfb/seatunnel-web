@@ -19,6 +19,7 @@
     <properties>
         <java.version>11</java.version>
         <plc4x.version>0.13.1</plc4x.version>
+        <milo.version>0.6.13</milo.version>
     </properties>
 
     <dependencies>
@@ -50,6 +51,12 @@
             <groupId>org.apache.plc4x</groupId>
             <artifactId>plc4j-driver-opcua</artifactId>
             <version>${plc4x.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.milo</groupId>
+            <artifactId>sdk-client</artifactId>
+            <version>${milo.version}</version>
         </dependency>
 
         <dependency>

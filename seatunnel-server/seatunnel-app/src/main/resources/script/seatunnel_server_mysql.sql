@@ -313,3 +313,58 @@ create table t_st_job_metrics_history
 create index idx_job_instance_id_create_time
     on t_st_job_metrics_history (job_instance_id, create_time);
 
+-- ----------------------------
+-- Table structure for t_st_datasource_tag_group
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_datasource_tag_group`;
+CREATE TABLE `t_st_datasource_tag_group` (
+  `id` bigint(20) NOT NULL,
+  `datasource_id` bigint(20) NOT NULL,
+  `level` int(11) NOT NULL DEFAULT 1,
+  `path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `group_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `description` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `sort_order` int(11) DEFAULT 0,
+  `enabled` tinyint(1) DEFAULT 1,
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `deleted_at` timestamp(3) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_tg_datasource_id`(`datasource_id`) USING BTREE,
+  INDEX `idx_tg_path`(`path`) USING BTREE,
+  UNIQUE INDEX `uk_tg_datasource_path`(`datasource_id`, `path`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for t_st_datasource_tag
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_datasource_tag`;
+CREATE TABLE `t_st_datasource_tag` (
+  `id` bigint(20) NOT NULL,
+  `datasource_id` bigint(20) NOT NULL,
+  `group_id` bigint(20) DEFAULT NULL,
+  `native_id` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `tag_address` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `tag_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `source` tinyint(4) NOT NULL DEFAULT 1,
+  `status` tinyint(4) NOT NULL DEFAULT 1,
+  `alias` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `display_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `sort_order` int(11) DEFAULT 0,
+  `enabled` tinyint(1) DEFAULT 1,
+  `sampling_interval` int(11) DEFAULT NULL,
+  `deadband` double DEFAULT NULL,
+  `read_only` tinyint(1) DEFAULT 0,
+  `unit` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+  `precision` int(11) DEFAULT NULL,
+  `properties` json DEFAULT NULL,
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `deleted_at` timestamp(3) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_dt_datasource_id`(`datasource_id`) USING BTREE,
+  INDEX `idx_dt_group_id`(`group_id`) USING BTREE,
+  INDEX `idx_dt_status`(`status`) USING BTREE,
+  UNIQUE INDEX `uk_dt_datasource_native_id`(`datasource_id`, `native_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
+
