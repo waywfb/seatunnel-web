@@ -25,6 +25,7 @@ import {
   DatabaseOutlined,
   PartitionOutlined,
   TableOutlined,
+  TagsOutlined,
   TeamOutlined
 } from '@vicons/antd'
 
@@ -80,13 +81,12 @@ const Sidebar = defineComponent({
           {
             label: () => h(NEllipsis, null, { default: () => t('menu.datasource') }),
             key: 'datasource',
-            icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) }),
-            children: [
-              {
-                label: () => h(NEllipsis, null, { default: () => t('menu.tag_manage') }),
-                key: 'datasource-tags'
-              }
-            ]
+            icon: () => h(NIcon, null, { default: () => h(DatabaseOutlined) })
+          },
+          {
+            label: () => h(NEllipsis, null, { default: () => t('menu.tag_manage') }),
+            key: 'datasource-tags',
+            icon: () => h(NIcon, null, { default: () => h(TagsOutlined) })
           },
           {
             label: () => h(NEllipsis, null, { default: () => t('menu.virtual_tables') }),
