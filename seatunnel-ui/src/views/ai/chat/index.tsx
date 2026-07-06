@@ -38,6 +38,24 @@ interface ChatMessage {
 
 let scrollbarEl: any = null
 
+const HISTORY_KEY = 'seatunnel_ai_chat_history'
+const MAX_HISTORY = 50
+
+function loadHistory(): string[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function saveHistory(history: string[]) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-MAX_HISTORY)))
+  } catch {}
+}
+
 const AiChat = defineComponent({
   name: 'AiChat',
   setup() {
@@ -54,6 +72,8 @@ const AiChat = defineComponent({
     const loading = ref(false)
     const abortController = ref<AbortController | null>(null)
     const currentAssistantMsg = ref<ChatMessage | null>(null)
+    const history = ref<string[]>(loadHistory())
+    const historyIndex = ref(-1)
 
     const scrollToBottom = async () => {
       await nextTick()
@@ -66,6 +86,9 @@ const AiChat = defineComponent({
       const text = inputText.value.trim()
       if (!text || loading.value) return
 
+      history.value.push(text)
+      saveHistory(history.value)
+      historyIndex.value = -1
       inputText.value = ''
       messages.value.push({ role: 'user', content: text })
       await scrollToBottom()
@@ -127,6 +150,29 @@ const AiChat = defineComponent({
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         sendMessage()
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        if (history.value.length === 0) return
+        const newIndex = historyIndex.value === -1
+          ? history.value.length - 1
+          : Math.max(0, historyIndex.value - 1)
+        historyIndex.value = newIndex
+        inputText.value = history.value[newIndex]
+        return
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        if (historyIndex.value === -1) return
+        const newIndex = historyIndex.value + 1
+        if (newIndex >= history.value.length) {
+          historyIndex.value = -1
+          inputText.value = ''
+        } else {
+          historyIndex.value = newIndex
+          inputText.value = history.value[newIndex]
+        }
       }
     }
 
@@ -161,6 +207,8 @@ const AiChat = defineComponent({
       messages,
       inputText,
       loading,
+      history,
+      historyIndex,
       sendMessage,
       stopGeneration,
       handleKeydown,

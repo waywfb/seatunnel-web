@@ -76,6 +76,13 @@ public class ToolDefinitions {
 
         tools.add(
                 new ToolDefinition(
+                        "list_datasources",
+                        "查看所有已创建的数据源列表，包括数据源名称、类型等信息",
+                        Map.of("type", "object", "properties", Map.of()),
+                        List.of()));
+
+        tools.add(
+                new ToolDefinition(
                         "create_pipeline",
                         "创建同步任务（Pipeline），指定源和目标数据源",
                         Map.of(

@@ -51,6 +51,8 @@ public class ActionExecutorService {
                     return testConnection(args);
                 case "browse_resource":
                     return browseResource(args);
+                case "list_datasources":
+                    return listDatasources();
                 case "create_pipeline":
                     return createPipeline(args);
                 case "start_pipeline":
@@ -109,6 +111,27 @@ public class ActionExecutorService {
             return ok ? ToolCallResult.ok("连接测试通过", detail) : ToolCallResult.fail("连接测试失败，请检查连接参数");
         } catch (Exception e) {
             return ToolCallResult.fail("连接测试异常: " + e.getMessage());
+        }
+    }
+
+    private ToolCallResult listDatasources() {
+        try {
+            List<DatasourceDetailRes> list = datasourceService.queryAllDatasourcesInstance();
+            List<Map<String, Object>> datasources = new java.util.ArrayList<>();
+            for (DatasourceDetailRes ds : list) {
+                datasources.add(
+                        Map.of(
+                                "id", ds.getId(),
+                                "datasourceName", ds.getDatasourceName(),
+                                "pluginName", ds.getPluginName(),
+                                "description",
+                                        ds.getDescription() != null ? ds.getDescription() : ""));
+            }
+            return ToolCallResult.ok(
+                    "共 " + list.size() + " 个数据源",
+                    Map.of("total", list.size(), "datasources", datasources));
+        } catch (Exception e) {
+            return ToolCallResult.fail("查询数据源列表失败: " + e.getMessage());
         }
     }
 
