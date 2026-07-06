@@ -1,10 +1,13 @@
 package org.apache.seatunnel.app.service.bridge.impl;
 
+import org.apache.seatunnel.app.dal.dao.IDatasourceDao;
+import org.apache.seatunnel.app.dal.entity.Datasource;
 import org.apache.seatunnel.app.domain.request.tag.DiscoverRequestDTO;
 import org.apache.seatunnel.app.domain.response.tag.BrowseNodeDTO;
 import org.apache.seatunnel.app.domain.response.tag.DiscoverResponseDTO;
 import org.apache.seatunnel.app.domain.response.tag.ProtocolCapabilityDTO;
 import org.apache.seatunnel.app.service.bridge.BridgeClient;
+import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
 import org.apache.seatunnel.server.common.SeatunnelException;
 
@@ -17,6 +20,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,20 +29,37 @@ public class BridgeClientImpl implements BridgeClient {
 
     private static final Logger log = LoggerFactory.getLogger(BridgeClientImpl.class);
 
+    private static final Map<String, String> PLUGIN_TO_BRIDGE_PROTOCOL =
+            Map.of(
+                    "OPCUA", "opcua",
+                    "Modbus", "modbus",
+                    "S7", "s7");
+
     private final RestTemplate restTemplate;
+    private final IDatasourceDao datasourceDao;
 
     @Value("${bridge.base-url:http://localhost:8081}")
     private String bridgeBaseUrl;
 
-    public BridgeClientImpl(RestTemplate restTemplate) {
+    public BridgeClientImpl(RestTemplate restTemplate, IDatasourceDao datasourceDao) {
         this.restTemplate = restTemplate;
+        this.datasourceDao = datasourceDao;
     }
 
     @Override
     public DiscoverResponseDTO discover(DiscoverRequestDTO request) {
+        String bridgeConnectionId = resolveConnectionId(request.getConnectionId());
+
+        Map<String, Object> bridgeRequest = new HashMap<>();
+        bridgeRequest.put("connectionId", bridgeConnectionId);
+        bridgeRequest.put("parentNodeId", request.getParentNodeId());
+        bridgeRequest.put("limit", request.getLimit());
+        bridgeRequest.put("offset", request.getOffset());
+
         String url = bridgeBaseUrl + "/api/discover";
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+            ResponseEntity<Map> response =
+                    restTemplate.postForEntity(url, bridgeRequest, Map.class);
             Map body = response.getBody();
             if (body == null) {
                 throw new SeatunnelException(
@@ -59,6 +80,40 @@ public class BridgeClientImpl implements BridgeClient {
             log.error("Bridge call failed", e);
             throw new SeatunnelException(
                     SeatunnelErrorEnum.UNKNOWN, "Bridge unavailable: " + e.getMessage());
+        }
+    }
+
+    private String resolveConnectionId(String connId) {
+        if (connId == null || connId.contains("://")) {
+            return connId;
+        }
+        try {
+            Long datasourceId = Long.parseLong(connId);
+            Datasource datasource = datasourceDao.selectDatasourceById(datasourceId);
+            if (datasource == null) {
+                throw new SeatunnelException(
+                        SeatunnelErrorEnum.UNKNOWN, "Datasource not found: " + datasourceId);
+            }
+
+            String pluginName = datasource.getPluginName();
+            String bridgeProtocol = PLUGIN_TO_BRIDGE_PROTOCOL.get(pluginName);
+            if (bridgeProtocol == null) {
+                throw new SeatunnelException(
+                        SeatunnelErrorEnum.UNKNOWN, "Unsupported datasource plugin: " + pluginName);
+            }
+
+            Map<String, String> config = JsonUtils.toMap(datasource.getDatasourceConfig());
+            String host = config.get("host");
+            String port = config.get("port");
+            if (host == null || port == null) {
+                throw new SeatunnelException(
+                        SeatunnelErrorEnum.UNKNOWN, "Datasource config missing host or port");
+            }
+
+            return bridgeProtocol + "://" + host + ":" + port;
+        } catch (NumberFormatException e) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.UNKNOWN, "Invalid connectionId: " + connId);
         }
     }
 

@@ -104,19 +104,20 @@ public class OpcUaBrowseProvider implements BrowseProvider {
     }
 
     private NodeId parseNodeId(String nativeId) {
-        if (nativeId.startsWith("ns=")) {
-            String[] parts = nativeId.split(";");
-            int ns = 0;
-            int id = 0;
-            for (String part : parts) {
-                String trimmed = part.trim();
-                if (trimmed.startsWith("ns=")) {
-                    ns = Integer.parseInt(trimmed.substring(3));
-                } else if (trimmed.startsWith("i=")) {
-                    id = Integer.parseInt(trimmed.substring(2));
-                }
+        if (nativeId == null || !nativeId.startsWith("ns=")) {
+            return Identifiers.ObjectsFolder;
+        }
+        String[] parts = nativeId.split(";");
+        int ns = 0;
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (trimmed.startsWith("ns=")) {
+                ns = Integer.parseInt(trimmed.substring(3));
+            } else if (trimmed.startsWith("i=")) {
+                return new NodeId(ns, Integer.parseInt(trimmed.substring(2)));
+            } else if (trimmed.startsWith("s=")) {
+                return new NodeId(ns, trimmed.substring(2));
             }
-            return new NodeId(ns, id);
         }
         return Identifiers.ObjectsFolder;
     }

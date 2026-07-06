@@ -40,8 +40,19 @@ public class TagServiceImpl implements TagService {
             Long datasourceId, List<TagCreateDTO> tags, Map<String, Long> pathToIdMap) {
         if (tags == null || tags.isEmpty()) return Collections.emptyList();
 
+        List<String> existingNativeIds =
+                tagMapper
+                        .selectList(
+                                Wrappers.lambdaQuery(DataSourceTag.class)
+                                        .eq(DataSourceTag::getDatasourceId, datasourceId)
+                                        .isNull(DataSourceTag::getDeletedAt))
+                        .stream()
+                        .map(DataSourceTag::getNativeId)
+                        .collect(Collectors.toList());
+
         List<DataSourceTag> entities =
                 tags.stream()
+                        .filter(dto -> !existingNativeIds.contains(dto.getNativeId()))
                         .map(
                                 dto -> {
                                     DataSourceTag tag = new DataSourceTag();
