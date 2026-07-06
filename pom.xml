@@ -36,6 +36,7 @@
         <module>seatunnel-web-common</module>
         <module>seatunnel-server</module>
         <module>seatunnel-datasource</module>
+        <module>plc4x-bridge</module>
         <module>seatunnel-web-dist</module>
         <module>seatunnel-web-it</module>
         <module>seatunnel-mpack</module>

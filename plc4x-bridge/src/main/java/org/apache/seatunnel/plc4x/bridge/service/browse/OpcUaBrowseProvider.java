@@ -10,25 +10,18 @@ import org.apache.seatunnel.plc4x.bridge.model.ProtocolType;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.UaException;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseDirection;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
-import org.eclipse.milo.opcua.stack.core.types.structured.BrowseDescription;
-import org.eclipse.milo.opcua.stack.core.types.structured.BrowseResponse;
-import org.eclipse.milo.opcua.stack.core.types.structured.BrowseResult;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
-import org.eclipse.milo.opcua.stack.core.types.structured.ViewDescription;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Component
 public class OpcUaBrowseProvider implements BrowseProvider {
@@ -51,9 +44,10 @@ public class OpcUaBrowseProvider implements BrowseProvider {
     public DiscoverResponse browse(DiscoverRequest request) {
         String connectionId = request.getConnectionId();
         String endpointUrl = buildEndpointUrl(connectionId);
+        OpcUaClient client = null;
 
         try {
-            OpcUaClient client = OpcUaClient.create(endpointUrl);
+            client = OpcUaClient.create(endpointUrl);
             client.connect().get();
 
             NodeId browseRoot;
@@ -65,8 +59,6 @@ public class OpcUaBrowseProvider implements BrowseProvider {
 
             List<BrowseNode> nodes = browseChildren(client, browseRoot);
 
-            client.disconnect().get();
-
             DiscoverResponse response = new DiscoverResponse();
             response.setCapability(capability());
             response.setNodes(nodes);
@@ -76,39 +68,25 @@ public class OpcUaBrowseProvider implements BrowseProvider {
         } catch (Exception e) {
             throw new BridgeException(BridgeErrorCode.PLC_CONNECTION_FAILED,
                 "OPC UA browse failed: " + e.getMessage());
+        } finally {
+            if (client != null) {
+                try {
+                    client.disconnect().get();
+                } catch (Exception ignored) {
+                }
+            }
         }
     }
 
-    private List<BrowseNode> browseChildren(OpcUaClient client, NodeId parent) throws Exception {
-        BrowseDescription browse = new BrowseDescription(
-            parent,
-            BrowseDirection.Forward,
-            Identifiers.References,
-            true,
-            Unsigned.uint(0),
-            Unsigned.uint(0)
-        );
+    private List<BrowseNode> browseChildren(OpcUaClient client, NodeId parent) throws UaException {
+        List<? extends ReferenceDescription> refs = client.getAddressSpace().browse(parent);
 
-        CompletableFuture<List<BrowseNode>> future = client.browse(
-            new ViewDescription(Identifiers.ObjectsFolder, null, Unsigned.uint(0)),
-            Unsigned.uint(0),
-            Collections.singletonList(browse)
-        ).thenApply(response -> {
-            List<BrowseNode> nodeList = new ArrayList<>();
-            BrowseResult[] results = response.getResults();
-            if (results != null) {
-                for (BrowseResult br : results) {
-                    if (br.getReferences() == null) continue;
-                    for (ReferenceDescription ref : br.getReferences()) {
-                        BrowseNode node = toBrowseNode(ref);
-                        nodeList.add(node);
-                    }
-                }
-            }
-            return nodeList;
-        });
-
-        return future.get();
+        List<BrowseNode> nodeList = new ArrayList<>();
+        for (ReferenceDescription ref : refs) {
+            if (ref == null || ref.getNodeId() == null) continue;
+            nodeList.add(toBrowseNode(ref));
+        }
+        return nodeList;
     }
 
     private BrowseNode toBrowseNode(ReferenceDescription ref) {

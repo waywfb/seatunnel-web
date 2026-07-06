@@ -30,7 +30,7 @@ export default defineComponent({
     const loadDsDetail = async (id: string) => {
       try {
         const res = await datasourceDetail(id)
-        const params = res?.params || {}
+        const params = res?.datasourceConfig || res?.params || {}
         dsHost.value = params.host || 'localhost'
         dsPort.value = params.port || ''
         dsParams.value = params
