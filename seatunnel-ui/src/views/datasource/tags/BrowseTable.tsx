@@ -7,8 +7,10 @@ export const BrowseTable = defineComponent({
     checkedIds: { type: Array as () => string[], default: () => [] },
     loading: { type: Boolean, default: false },
     selectedLabel: { type: String, default: '' },
+    selectedNodeId: { type: String, default: '' },
+    showEmpty: { type: Boolean, default: false },
   },
-  emits: ['check', 'import', 'back'],
+  emits: ['check', 'checkAll', 'import', 'back'],
   setup(props, { emit }) {
     const searchQuery = ref('')
 
@@ -24,8 +26,16 @@ export const BrowseTable = defineComponent({
 
     const isChecked = (nodeId: string) => props.checkedIds.includes(nodeId)
 
+    const allChecked = computed(() =>
+      props.nodes.length > 0 && props.nodes.every(n => isChecked(n.nodeId))
+    )
+
+    const indeterminate = computed(() =>
+      !allChecked.value && props.nodes.some(n => isChecked(n.nodeId))
+    )
+
     return () => (
-      <div class="lg:w-3/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col shadow-none overflow-hidden">
+      <div class="w-full flex flex-col overflow-hidden h-full">
         {/* Header */}
         <div class="p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex flex-col gap-tide-gap-sm">
           <div class="flex items-center gap-tide-gap-md">
@@ -36,11 +46,18 @@ export const BrowseTable = defineComponent({
             >
               <span class="material-symbols-outlined text-[18px]">arrow_back</span>
             </button>
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-[18px] text-tide-primary">dns</span>
-              <span class="font-tide-label-md text-tide-label-md text-tide-on-surface">
-                {props.selectedLabel || '浏览'}
-              </span>
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="material-symbols-outlined text-[18px] text-tide-primary flex-shrink-0">dns</span>
+              <div class="flex flex-col min-w-0">
+                <span class="font-tide-label-md text-tide-label-md text-tide-on-surface truncate">
+                  {props.selectedLabel || '浏览'}
+                </span>
+                {props.selectedNodeId && (
+                  <span class="font-tide-body-sm text-tide-body-sm text-tide-outline truncate">
+                    {props.selectedNodeId}
+                  </span>
+                )}
+              </div>
             </div>
             {props.nodes.length > 0 && (
               <button
@@ -68,7 +85,12 @@ export const BrowseTable = defineComponent({
 
         {/* Table */}
         <div class="flex-1 overflow-auto bg-tide-surface-container-lowest">
-          {props.loading ? (
+          {props.showEmpty ? (
+            <div class="flex-1 h-full flex items-center justify-center text-tide-outline gap-2 py-16">
+              <span class="material-symbols-outlined text-[40px]">folder_open</span>
+              <span class="font-tide-body-sm">请选择设备层级节点浏览</span>
+            </div>
+          ) : props.loading ? (
             <div class="flex items-center justify-center py-16 text-tide-outline">
               <span class="material-symbols-outlined text-[24px] animate-spin mr-2">sync</span>
               <span class="font-tide-body-sm">加载中...</span>
@@ -80,13 +102,33 @@ export const BrowseTable = defineComponent({
                   <th class="p-tide-gap-sm pl-tide-gap-md font-bold w-8"></th>
                   <th class="p-tide-gap-sm font-bold">名称</th>
                   <th class="p-tide-gap-sm font-bold">节点ID</th>
-                  <th class="p-tide-gap-sm pr-tide-gap-md font-bold text-right">操作</th>
+                  <th class="p-tide-gap-sm font-bold">描述</th>
+                  <th class="p-tide-gap-sm pr-tide-gap-md font-bold text-right">
+                    <div class="flex items-center justify-end gap-2">
+                      <span>操作</span>
+                      <span
+                        class={`w-4 h-4 rounded-sm border flex items-center justify-center cursor-pointer transition-colors ${allChecked.value
+                          ? 'bg-tide-primary border-tide-primary text-tide-on-primary'
+                          : indeterminate.value
+                            ? 'bg-tide-primary border-tide-primary text-tide-on-primary'
+                            : 'border-tide-outline-variant hover:border-tide-primary bg-white'
+                          }`}
+                        onClick={() => emit('checkAll', !allChecked.value, filteredNodes.value.map(n => n.nodeId))}
+                      >
+                        {allChecked.value ? (
+                          <span class="material-symbols-outlined text-[12px]">check</span>
+                        ) : indeterminate.value ? (
+                          <span class="material-symbols-outlined text-[12px]">horizontal_rule</span>
+                        ) : null}
+                      </span>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody class="font-tide-body-sm text-tide-body-sm text-tide-on-surface divide-y divide-tide-outline-variant/30">
                 {filteredNodes.value.length === 0 ? (
                   <tr>
-                    <td colspan="4" class="p-8 text-center text-tide-outline font-tide-body-sm">
+                    <td colspan="5" class="p-8 text-center text-tide-outline font-tide-body-sm">
                       <span class="material-symbols-outlined text-[32px] block mx-auto mb-2">
                         folder_off
                       </span>
@@ -107,14 +149,16 @@ export const BrowseTable = defineComponent({
                         <td class="p-tide-gap-sm font-tide-mono-data text-tide-mono-data text-tide-on-surface-variant">
                           {child.nodeId || '-'}
                         </td>
+                        <td class="p-tide-gap-sm text-tide-on-surface-variant max-w-[200px] truncate">
+                          {child.description || '-'}
+                        </td>
                         <td class="p-tide-gap-sm pr-tide-gap-md text-right">
-                          <div class="flex justify-end gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                          <div class="flex justify-end gap-1">
                             <span
-                              class={`w-4 h-4 rounded-sm border flex items-center justify-center cursor-pointer transition-colors ${
-                                checked
-                                  ? 'bg-tide-primary border-tide-primary text-tide-on-primary'
-                                  : 'border-tide-outline-variant hover:border-tide-primary bg-white'
-                              }`}
+                              class={`w-4 h-4 rounded-sm border flex items-center justify-center cursor-pointer transition-colors ${checked
+                                ? 'bg-tide-primary border-tide-primary text-tide-on-primary'
+                                : 'border-tide-outline-variant hover:border-tide-primary bg-white'
+                                }`}
                               onClick={() => emit('check', child.nodeId)}
                             >
                               {checked && (

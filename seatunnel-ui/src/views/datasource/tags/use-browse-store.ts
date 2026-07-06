@@ -15,6 +15,7 @@ function buildNode(raw: RawBrowseNode, parentId: string | null): BrowseNode {
     nodeId,
     label: raw.displayName || nodeId,
     address: raw.address || nodeId,
+    description: raw.description,
     leaf: raw.leaf,
     parentId,
     children: [],

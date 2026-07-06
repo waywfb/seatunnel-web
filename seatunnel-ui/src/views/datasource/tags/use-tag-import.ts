@@ -14,6 +14,14 @@ export function useTagImport(datasourceId: () => string | null) {
     }
   }
 
+  function check(node: BrowseNode) {
+    checkedNodes.set(node.nodeId, node)
+  }
+
+  function uncheck(node: BrowseNode) {
+    checkedNodes.delete(node.nodeId)
+  }
+
   function isChecked(nodeId: string): boolean {
     return checkedNodes.has(nodeId)
   }
@@ -47,6 +55,8 @@ export function useTagImport(datasourceId: () => string | null) {
     checkedNodes,
     importing,
     toggleCheck,
+    check,
+    uncheck,
     isChecked,
     clearChecks,
     handleImport,

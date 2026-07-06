@@ -6,6 +6,7 @@ export interface BrowseNode {
   nodeId: string
   label: string
   address: string
+  description?: string
   leaf: boolean
   parentId: string | null
   children: string[]
@@ -28,6 +29,7 @@ export interface RawBrowseNode {
   nativeId: string
   address?: string
   displayName: string
+  description?: string
   leaf: boolean
   children?: RawBrowseNode[]
 }

@@ -1,0 +1,176 @@
+import { defineComponent, ref, computed, watch } from 'vue'
+import { useMessage } from 'naive-ui'
+import { datasourceDetail } from '@/service/data-source'
+import { useBrowseStore } from './use-browse-store'
+import { useTagImport } from './use-tag-import'
+import { FolderList } from './FolderList'
+import { BrowseTable } from './BrowseTable'
+
+export const BrowseImportModal = defineComponent({
+  props: {
+    show: { type: Boolean, default: false },
+    datasourceId: { type: String, required: true },
+    pluginName: { type: String, default: '' },
+  },
+  emits: ['close', 'imported'],
+  setup(props, { emit }) {
+    const browse = useBrowseStore()
+    const tagImport = useTagImport(() => props.datasourceId)
+    const browseLoading = ref(false)
+    const browseChildrenLoading = ref(false)
+    const selectedFolderId = ref<string | null>(null)
+    const message = useMessage()
+
+    const dsHost = ref('localhost')
+    const dsPort = ref('49320')
+
+    const loadDsDetail = async () => {
+      try {
+        const res = await datasourceDetail(props.datasourceId)
+        const params = res?.datasourceConfig || res?.params || {}
+        dsHost.value = params.host || 'localhost'
+        dsPort.value = params.port || '49320'
+      } catch {}
+    }
+
+    const handleDiscover = async () => {
+      browseLoading.value = true
+      selectedFolderId.value = null
+      try {
+        const port = dsPort.value || '49320'
+        const connId = `${props.pluginName.toLowerCase()}://${dsHost.value}:${port}`
+        await browse.loadRoots(connId)
+      } catch (err: any) {
+        message.error(err.message || 'Discover failed')
+      } finally {
+        browseLoading.value = false
+      }
+    }
+
+    const handleSelectFolder = async (nodeId: string) => {
+      selectedFolderId.value = nodeId
+      const node = browse.getNode(nodeId)
+      if (node && !node.loadedOnce && !node.leaf) {
+        browseChildrenLoading.value = true
+        try {
+          await browse.loadChildren(nodeId)
+        } finally {
+          browseChildrenLoading.value = false
+        }
+      }
+    }
+
+    const handleImportSuccess = () => {
+      message.success('导入成功')
+      selectedFolderId.value = null
+      tagImport.clearChecks()
+      browse.clear()
+      emit('imported')
+      emit('close')
+    }
+
+    const handleBack = () => {
+      selectedFolderId.value = null
+      tagImport.clearChecks()
+    }
+
+    const leafChildren = computed(() => {
+      if (!selectedFolderId.value) return []
+      return browse.getLeafChildren(selectedFolderId.value)
+    })
+
+    const browseNode = computed(() => {
+      if (!selectedFolderId.value) return null
+      return browse.getNode(selectedFolderId.value)
+    })
+
+    const isBrowsing = computed(() => selectedFolderId.value !== null)
+
+    const autoDiscover = async () => {
+      await loadDsDetail()
+      await handleDiscover()
+    }
+
+    watch(() => props.show, async (val) => {
+      if (val) await autoDiscover()
+    }, { immediate: true })
+
+    return () => {
+      if (!props.show) return null
+
+      return (
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div class="bg-white rounded-tide-2xl shadow-2xl w-[90vw] h-[85vh] flex flex-col overflow-hidden">
+            {/* Modal header */}
+            <div class="flex items-center justify-between px-tide-gap-md py-tide-gap-sm border-b border-tide-outline-variant bg-tide-surface flex-shrink-0">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px] text-tide-primary">travel_explore</span>
+                <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">浏览节点导入测点</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  class="p-1.5 rounded-tide text-tide-outline hover:bg-tide-surface-container transition-colors"
+                  onClick={() => { browse.clear(); tagImport.clearChecks(); emit('close') }}
+                >
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="flex-1 min-h-0 p-tide-gap-md">
+            {/* Loading state */}
+            {browseLoading.value ? (
+              <div class="flex-1 h-full flex items-center justify-center text-tide-outline gap-2">
+                <span class="material-symbols-outlined text-[24px] animate-spin">sync</span>
+                <span class="font-tide-body-sm">加载设备层级...</span>
+              </div>
+            ) : (
+              <div class="flex flex-row gap-tide-gap-lg flex-1 h-full overflow-hidden">
+                {/* Left: folders */}
+                <div class="lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden flex-shrink-0">
+                  <div class="p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center">
+                    <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">设备层级</h3>
+                  </div>
+                  <FolderList
+                    folders={browse.folderList.value}
+                    selectedId={selectedFolderId.value}
+                    loading={browseLoading.value}
+                    onSelect={handleSelectFolder}
+                  />
+                </div>
+
+                {/* Right: always show BrowseTable */}
+                <div class="lg:w-3/4 w-full min-w-0 bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
+                  <BrowseTable
+                    nodes={isBrowsing.value ? leafChildren.value : []}
+                    checkedIds={Array.from(tagImport.checkedNodes.keys())}
+                    loading={browseChildrenLoading.value}
+                    selectedLabel={browseNode.value?.label || ''}
+                    selectedNodeId={browseNode.value?.nodeId || ''}
+                    showEmpty={!isBrowsing.value}
+                    onCheck={(nodeId: string) => {
+                      const node = browse.getNode(nodeId)
+                      if (node) tagImport.toggleCheck(node)
+                    }}
+                    onCheckAll={(checked: boolean, nodeIds: string[]) => {
+                      for (const id of nodeIds) {
+                        const node = browse.getNode(id)
+                        if (node) {
+                          if (checked) tagImport.check(node)
+                          else tagImport.uncheck(node)
+                        }
+                      }
+                    }}
+                    onImport={() => tagImport.handleImport(handleImportSuccess)}
+                    onBack={handleBack}
+                  />
+                </div>
+              </div>
+            )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+  },
+})

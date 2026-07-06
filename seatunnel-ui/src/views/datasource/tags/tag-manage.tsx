@@ -1,15 +1,44 @@
 import { defineComponent, ref, onMounted, watch, computed } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { datasourceDetail, refreshTags } from '@/service/data-source'
-import { useBrowseStore } from './use-browse-store'
-import { useTagImport } from './use-tag-import'
-import { useTagTable } from './use-tag-table'
-import { FolderList } from './FolderList'
-import { BrowseTable } from './BrowseTable'
-import { TagTable } from './TagTable'
+import { getGroupTree, getTagList, deleteTag } from '@/service/data-source'
+import { TagGroupTree } from './TagGroupTree'
+import type { GroupNode } from './TagGroupTree'
+import { TagManageTable } from './TagManageTable'
+import type { TagRow } from './TagManageTable'
+import { BrowseImportModal } from './BrowseImportModal'
 
 const PLC_TYPES = ['OPCUA', 'S7', 'Modbus', 'Plc4x']
+
+function flattenGroups(raw: any[], depth: number): GroupNode[] {
+  return (raw || []).map((g: any) => ({
+    id: String(g.id || ''),
+    groupName: g.groupName || g.path || '',
+    path: g.path || '',
+    count: 0,
+    depth,
+    children: flattenGroups(g.children, depth + 1),
+  }))
+}
+
+function countAll(groups: GroupNode[], tags: TagRow[], root?: boolean): number {
+  let total = 0
+  for (const g of groups) {
+    const direct = tags.filter(t => t.groupPath === g.path)
+    const childCount = countAll(g.children, tags)
+    g.count = direct.length + childCount
+    total += g.count
+  }
+  return total
+}
+
+function collectPaths(groups: GroupNode[], result: string[] = []) {
+  for (const g of groups) {
+    result.push(g.path)
+    collectPaths(g.children, result)
+  }
+  return result
+}
 
 export default defineComponent({
   props: {
@@ -20,203 +49,157 @@ export default defineComponent({
     const { t } = useI18n()
     const message = useMessage()
 
-    const dsHost = ref('localhost')
-    const dsPort = ref('49320')
+    const groupTree = ref<GroupNode[]>([])
+    const allTags = ref<TagRow[]>([])
+    const selectedPath = ref<string | null>(null)
+    const loading = ref(false)
+    const page = ref(1)
+    const pageSize = 20
 
-    const loadDsDetail = async (id: string) => {
-      try {
-        const res = await datasourceDetail(id)
-        const params = res?.datasourceConfig || res?.params || {}
-        dsHost.value = params.host || 'localhost'
-        dsPort.value = params.port || '49320'
-      } catch {}
-    }
+    const isPlcType = () => PLC_TYPES.includes(props.pluginName)
 
-    watch(() => props.datasourceId, val => { if (val) loadDsDetail(val) }, { immediate: true })
-
-    const dsIdRef = () => props.datasourceId
-    const browse = useBrowseStore()
-    const tagImport = useTagImport(dsIdRef)
-    const tagTable = useTagTable(dsIdRef)
-
-    const selectedFolderId = ref<string | null>(null)
-    const browseLoading = ref(false)
-    const browseChildrenLoading = ref(false)
-
-    const handleDiscover = async () => {
+    const loadData = async () => {
       if (!props.datasourceId) return
-      browseLoading.value = true
-      selectedFolderId.value = null
+      loading.value = true
       try {
-        const port = dsPort.value || '49320'
-        const connId = `${props.pluginName.toLowerCase()}://${dsHost.value}:${port}`
-        await browse.loadRoots(connId)
+        const [groupsRes, tagsRes] = await Promise.all([
+          getGroupTree(props.datasourceId),
+          getTagList(props.datasourceId),
+        ])
+        groupTree.value = flattenGroups(groupsRes || [], 0)
+        allTags.value = (tagsRes || []).map((t: any) => ({
+          id: String(t.id || ''),
+          nativeId: t.nativeId || '',
+          tagName: t.tagName || '',
+          tagAddress: t.tagAddress || '',
+          readOnly: t.readOnly,
+          status: t.status || 'ACTIVE',
+          unit: t.unit,
+          precision: t.precision,
+          dataType: t.dataType || (t.properties?.dataType) || '',
+          groupPath: t.groupPath || '',
+        }))
+        countAll(groupTree.value, allTags.value)
+        page.value = 1
       } catch (err: any) {
-        message.error(err.message || 'Discover failed')
+        message.error(err.message || '加载失败')
       } finally {
-        browseLoading.value = false
+        loading.value = false
       }
     }
 
-    const handleSelectFolder = async (nodeId: string) => {
-      selectedFolderId.value = nodeId
-      const node = browse.getNode(nodeId)
-      if (node && !node.loadedOnce && !node.leaf) {
-        browseChildrenLoading.value = true
-        try {
-          await browse.loadChildren(nodeId)
-        } finally {
-          browseChildrenLoading.value = false
+    watch(() => props.datasourceId, val => { if (val) loadData() }, { immediate: true })
+
+const filteredTags = computed(() => {
+  if (!selectedPath.value) return allTags.value
+  function findNode(nodes: GroupNode[], target: string): GroupNode | null {
+    for (const n of nodes) {
+      if (n.path === target) return n
+      const found = findNode(n.children, target)
+      if (found) return found
+    }
+    return null
+  }
+  const node = findNode(groupTree.value, selectedPath.value)
+  if (!node) return allTags.value
+  const paths = new Set(collectPaths([node]))
+  return allTags.value.filter(t => t.groupPath && paths.has(t.groupPath))
+})
+
+    const totalPages = computed(() =>
+      Math.max(1, Math.ceil(filteredTags.value.length / pageSize))
+    )
+
+    const pagedTags = computed(() => {
+      const start = (page.value - 1) * pageSize
+      return filteredTags.value.slice(start, start + pageSize)
+    })
+
+    const showBrowseModal = ref(false)
+
+    const handleAddTag = () => {
+      if (isPlcType()) {
+        showBrowseModal.value = true
+      }
+    }
+
+    const handleCloseBrowseModal = () => {
+      showBrowseModal.value = false
+    }
+
+    const handleImported = () => {
+      loadData()
+    }
+
+    const selectedGroupName = computed(() => {
+      if (!selectedPath.value) return '全部测点'
+      const findName = (nodes: GroupNode[]): string => {
+        for (const n of nodes) {
+          if (n.path === selectedPath.value) return n.groupName
+          const found = findName(n.children)
+          if (found) return found
         }
+        return ''
       }
+      return findName(groupTree.value) || selectedPath.value
+    })
+
+    const handleSelectGroup = (path: string) => {
+      selectedPath.value = path
+      page.value = 1
     }
 
-    const handleCheck = (nodeId: string) => {
-      const node = browse.getNode(nodeId)
-      if (node) tagImport.toggleCheck(node)
-    }
-
-    const handleImportSuccess = () => {
-      message.success('导入成功')
-      selectedFolderId.value = null
-      tagTable.loadTagList()
-    }
-
-    const handleDeleteTag = async (tagId: string) => {
+    const handleDelete = async (tagId: string) => {
       try {
-        await tagTable.handleDeleteTag(tagId)
+        await deleteTag(tagId)
         message.success('已删除')
+        await loadData()
       } catch (err: any) {
         message.error(err.message || '删除失败')
       }
     }
 
-    const syncRunning = ref(false)
-    const handleRefresh = async () => {
-      if (!props.datasourceId) return
-      syncRunning.value = true
-      try {
-        await refreshTags(props.datasourceId)
-        message.success((t('datasource.refresh') || '同步') + ' 已触发')
-      } catch (err: any) {
-        message.error(err.message || 'Refresh failed')
-      } finally {
-        syncRunning.value = false
-      }
-    }
-
-    onMounted(() => {
-      if (props.datasourceId && PLC_TYPES.includes(props.pluginName)) {
-        tagTable.loadTagList()
-      }
-    })
-
-    const isPlcType = () => PLC_TYPES.includes(props.pluginName)
-    const isBrowsing = computed(() => selectedFolderId.value !== null)
-
-    const leafChildren = computed(() => {
-      if (!selectedFolderId.value) return []
-      return browse.getLeafChildren(selectedFolderId.value)
-    })
-
-    const browseNode = computed(() => {
-      if (!selectedFolderId.value) return null
-      return browse.getNode(selectedFolderId.value)
-    })
-
     return () => {
       if (!isPlcType()) return null
 
       return (
-        <div class="flex flex-col gap-tide-gap-lg h-[calc(100vh-200px)] p-tide-container-padding overflow-hidden">
-          {/* Breadcrumbs & Header */}
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-tide-gap-md flex-shrink-0">
-            <div>
-              <nav class="flex text-tide-on-surface-variant font-tide-body-sm text-tide-body-sm mb-tide-gap-xs">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                  <li class="inline-flex items-center">
-                    <a class="inline-flex items-center hover:text-tide-primary transition-colors cursor-pointer">数据源</a>
-                  </li>
-                  <li>
-                    <div class="flex items-center">
-                      <span class="material-symbols-outlined text-[16px] mx-1">chevron_right</span>
-                      <span class="text-tide-on-surface">{props.pluginName}</span>
-                    </div>
-                  </li>
-                </ol>
-              </nav>
-              <h2 class="font-tide-headline-lg text-tide-headline-lg text-tide-on-surface">测点管理</h2>
+        <div class="flex flex-row gap-tide-gap-lg flex-1 min-h-0 overflow-hidden">
+          {/* Left: Category tree */}
+          <div class="lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
+            <div class="p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center">
+              <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">设备层级</h3>
             </div>
-            <div class="flex items-center gap-tide-gap-md">
-              <button
-                class="bg-tide-surface-container-lowest text-tide-on-surface border border-tide-outline-variant px-tide-gap-md py-1.5 rounded-tide hover:bg-tide-surface-container-low hover:border-tide-primary transition-colors font-tide-label-md text-tide-label-md flex items-center gap-tide-gap-sm disabled:opacity-50"
-                onClick={handleDiscover}
-                disabled={browseLoading.value}
-              >
-                <span class="material-symbols-outlined text-[18px]">travel_explore</span>
-                浏览节点
-              </button>
-              <button
-                class="bg-tide-primary text-tide-on-primary px-tide-gap-md py-1.5 rounded-tide hover:bg-tide-primary-container transition-colors font-tide-label-md text-tide-label-md flex items-center gap-tide-gap-sm disabled:opacity-50 shadow-none"
-                disabled={tagImport.checkedNodes.size === 0 || tagImport.importing.value}
-                onClick={() => tagImport.handleImport(handleImportSuccess)}
-              >
-                <span class="material-symbols-outlined text-[18px]">download</span>
-                导入选中 ({tagImport.checkedNodes.size})
-              </button>
-              <button
-                class="bg-tide-surface-container-lowest text-tide-on-surface border border-tide-outline-variant px-tide-gap-md py-1.5 rounded-tide hover:bg-tide-surface-container-low hover:border-tide-primary transition-colors font-tide-label-md text-tide-label-md flex items-center gap-tide-gap-sm disabled:opacity-50"
-                onClick={handleRefresh}
-                disabled={syncRunning.value}
-              >
-                <span class="material-symbols-outlined text-[18px]">sync</span>
-                {t('datasource.refresh')}
-              </button>
-            </div>
+            <TagGroupTree
+              groups={groupTree.value}
+              selectedPath={selectedPath.value}
+              loading={loading.value}
+              onSelect={handleSelectGroup}
+            />
           </div>
 
-          {/* Two Column Layout */}
-          <div class="flex flex-col lg:flex-row gap-tide-gap-lg flex-1 min-h-0 overflow-hidden">
-            {/* Left: Flat Folder List */}
-            <div class="lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col shadow-none hover:shadow-md transition-shadow hover:border-tide-primary-fixed-dim/50 overflow-hidden">
-              <div class="p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center">
-                <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">设备层级</h3>
-              </div>
-              <FolderList
-                folders={browse.folderList.value}
-                selectedId={selectedFolderId.value}
-                loading={browseLoading.value}
-                onSelect={handleSelectFolder}
-              />
-            </div>
-
-            {/* Right: Browse children or Tag list */}
-            {isBrowsing.value ? (
-              <BrowseTable
-                nodes={leafChildren.value}
-                checkedIds={Array.from(tagImport.checkedNodes.keys())}
-                loading={browseChildrenLoading.value}
-                selectedLabel={browseNode.value?.label || ''}
-                onCheck={handleCheck}
-                onImport={() => tagImport.handleImport(handleImportSuccess)}
-                onBack={() => { selectedFolderId.value = null; tagImport.clearChecks() }}
-              />
-            ) : (
-              <div class="lg:w-3/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
-                <div class="flex-1 overflow-y-auto">
-                  <TagTable
-                    tags={tagTable.pagedTagList.value}
-                    loading={tagTable.tagList.value.length === 0}
-                    page={tagTable.page.value}
-                    totalPages={tagTable.totalPages.value}
-                    searchQuery={tagTable.searchQuery.value}
-                    onDelete={handleDeleteTag}
-                    onUpdate:searchQuery={(v: string) => { tagTable.searchQuery.value = v; tagTable.page.value = 1 }}
-                    onUpdate:page={(v: number) => { tagTable.page.value = v }}
-                  />
-                </div>
-              </div>
-            )}
+          {/* Right: Tag table */}
+          <div class="lg:w-3/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
+            <TagManageTable
+              tags={pagedTags.value}
+              loading={loading.value}
+              page={page.value}
+              totalPages={totalPages.value}
+              selectedGroupName={selectedGroupName.value}
+              totalTagCount={filteredTags.value.length}
+              onEdit={(id: string) => {
+                // TODO: open edit modal
+              }}
+              onDelete={handleDelete}
+              onAdd={handleAddTag}
+              onUpdate:page={(v: number) => { page.value = v }}
+            />
+            <BrowseImportModal
+              show={showBrowseModal.value}
+              datasourceId={props.datasourceId}
+              pluginName={props.pluginName}
+              onClose={handleCloseBrowseModal}
+              onImported={handleImported}
+            />
           </div>
         </div>
       )
