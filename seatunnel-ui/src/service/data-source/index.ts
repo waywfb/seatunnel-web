@@ -246,3 +246,10 @@ export function createGroup(datasourceId: string, data: { parentPath: string; gr
     data: [data]
   })
 }
+
+export function deleteGroup(groupId: string): any {
+  return axios({
+    url: PLC_BASE_URL + '/groups/' + groupId,
+    method: 'delete'
+  })
+}

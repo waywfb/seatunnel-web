@@ -1,7 +1,7 @@
 import { defineComponent, ref, onMounted, watch, computed } from 'vue'
-import { useMessage, NModal, NInput } from 'naive-ui'
+import { useMessage, useDialog, NModal, NInput } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { getGroupTree, getTagList, deleteTag, createGroup } from '@/service/data-source'
+import { getGroupTree, getTagList, deleteTag, createGroup, deleteGroup } from '@/service/data-source'
 import { TagGroupTree } from './TagGroupTree'
 import type { GroupNode } from './TagGroupTree'
 import { TagManageTable } from './TagManageTable'
@@ -48,6 +48,7 @@ export default defineComponent({
   setup(props) {
     const { t } = useI18n()
     const message = useMessage()
+    const dialog = useDialog()
 
     const groupTree = ref<GroupNode[]>([])
     const allTags = ref<TagRow[]>([])
@@ -59,7 +60,7 @@ export default defineComponent({
 
     const isPlcType = () => PLC_TYPES.includes(props.pluginName)
 
-    const loadData = async () => {
+    const loadData = async (keepSelection = false) => {
       if (!props.datasourceId) return
       if (!hasLoaded.value) loading.value = true
       try {
@@ -78,13 +79,16 @@ export default defineComponent({
           unit: t.unit,
           precision: t.precision,
           dataType: t.dataType || (t.properties?.dataType) || '',
+          groupId: t.groupId != null ? String(t.groupId) : '',
           groupPath: t.groupPath || '',
         }))
         countAll(newGroups, newTags)
         groupTree.value = newGroups
         allTags.value = newTags
-        selectedPath.value = null
-        page.value = 1
+        if (!keepSelection) {
+          selectedPath.value = null
+          page.value = 1
+        }
         hasLoaded.value = true
       } catch (err: any) {
         message.error(err.message || '加载失败')
@@ -94,6 +98,14 @@ export default defineComponent({
     }
 
     watch(() => props.datasourceId, val => { if (val) loadData() }, { immediate: true })
+
+function buildGroupPathMap(nodes: GroupNode[], map: Record<string, string> = {}): Record<string, string> {
+  for (const n of nodes) {
+    map[n.id] = n.path
+    buildGroupPathMap(n.children, map)
+  }
+  return map
+}
 
 const filteredTags = computed(() => {
   if (!selectedPath.value) return allTags.value
@@ -108,7 +120,12 @@ const filteredTags = computed(() => {
   const node = findNode(groupTree.value, selectedPath.value)
   if (!node) return allTags.value
   const paths = new Set(collectPaths([node]))
-  return allTags.value.filter(t => t.groupPath && paths.has(t.groupPath))
+  const idToPath = buildGroupPathMap([node])
+  return allTags.value.filter(t => {
+    if (t.groupPath && paths.has(t.groupPath)) return true
+    if (t.groupId && idToPath[t.groupId]) return paths.has(idToPath[t.groupId])
+    return false
+  })
 })
 
     const totalPages = computed(() =>
@@ -124,6 +141,7 @@ const filteredTags = computed(() => {
     const showCreateGroupModal = ref(false)
     const newGroupName = ref('')
     const creating = ref(false)
+    const importTargetPath = ref<string | null>(null)
 
     const handleAddTag = () => {
       if (!isPlcType()) return
@@ -131,6 +149,7 @@ const filteredTags = computed(() => {
         message.warning('请先创建设备层级节点后再导入测点')
         return
       }
+      importTargetPath.value = selectedPath.value
       showBrowseModal.value = true
     }
 
@@ -145,21 +164,39 @@ const filteredTags = computed(() => {
         message.warning('请输入节点名称')
         return
       }
+      // Check duplicate name among siblings
+      const parentPath = selectedPath.value
+        ? (() => {
+            function findFullPath(nodes: GroupNode[], target: string): string | null {
+              for (const n of nodes) {
+                if (n.path === target) return n.path
+                const found = findFullPath(n.children, target)
+                if (found) return found
+              }
+              return null
+            }
+            return findFullPath(groupTree.value, selectedPath.value!)
+          })()
+        : '/root'
+      const siblings = parentPath === '/root'
+        ? groupTree.value
+        : (() => {
+            function findParent(nodes: GroupNode[], target: string): GroupNode[] | null {
+              for (const n of nodes) {
+                if (n.path === target) return n.children
+                const found = findParent(n.children, target)
+                if (found) return found
+              }
+              return null
+            }
+            return findParent(groupTree.value, parentPath!) || []
+          })()
+      if (siblings.some(n => n.groupName === name)) {
+        message.warning('同一层级下已存在同名节点')
+        return
+      }
       creating.value = true
       try {
-        const parentPath = selectedPath.value
-          ? (() => {
-              function findFullPath(nodes: GroupNode[], target: string): string | null {
-                for (const n of nodes) {
-                  if (n.path === target) return n.path
-                  const found = findFullPath(n.children, target)
-                  if (found) return found
-                }
-                return null
-              }
-              return findFullPath(groupTree.value, selectedPath.value!)
-            })()
-          : '/root'
         await createGroup(props.datasourceId, {
           parentPath: parentPath || '/root',
           groupName: name,
@@ -178,8 +215,12 @@ const filteredTags = computed(() => {
       showBrowseModal.value = false
     }
 
-    const handleImported = () => {
-      loadData()
+    const handleImported = async () => {
+      const target = importTargetPath.value
+      importTargetPath.value = null
+      await loadData(true)
+      page.value = 1
+      if (target) selectedPath.value = target
     }
 
     const selectedGroupName = computed(() => {
@@ -210,6 +251,27 @@ const filteredTags = computed(() => {
       }
     }
 
+    const handleDeleteGroup = (node: GroupNode) => {
+      dialog.warning({
+        title: '确认删除',
+        content: `确定删除节点"${node.groupName}"吗？${node.count > 0 ? `（该节点下含 ${node.count} 个测点）` : ''}`,
+        positiveText: '确定',
+        negativeText: '取消',
+        onPositiveClick: async () => {
+          try {
+            await deleteGroup(node.id)
+            message.success('节点已删除')
+            if (selectedPath.value === node.path || selectedPath.value?.startsWith(node.path + '/')) {
+              selectedPath.value = null
+            }
+            await loadData()
+          } catch (err: any) {
+            message.error(err.message || '删除失败')
+          }
+        },
+      })
+    }
+
     return () => {
       if (!isPlcType()) return null
 
@@ -232,6 +294,7 @@ const filteredTags = computed(() => {
               selectedPath={selectedPath.value}
               loading={loading.value}
               onSelect={handleSelectGroup}
+              onDelete={handleDeleteGroup}
             />
           </div>
 
@@ -256,6 +319,7 @@ const filteredTags = computed(() => {
               show={showBrowseModal.value}
               datasourceId={props.datasourceId}
               pluginName={props.pluginName}
+              groupPath={importTargetPath.value || '/root'}
               onClose={handleCloseBrowseModal}
               onImported={handleImported}
             />

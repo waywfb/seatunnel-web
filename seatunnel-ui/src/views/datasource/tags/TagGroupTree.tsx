@@ -16,7 +16,7 @@ export const TagGroupTree = defineComponent({
     selectedPath: { type: String, default: null },
     loading: { type: Boolean, default: false },
   },
-  emits: ['select'],
+  emits: ['select', 'delete'],
   setup(props, { emit }) {
     const renderNode = (node: GroupNode) => {
       const isSelected = props.selectedPath === node.path
@@ -24,7 +24,7 @@ export const TagGroupTree = defineComponent({
         <div key={node.path}>
           <div
             class={[
-              'flex items-center justify-between px-2 py-1.5 rounded-tide cursor-pointer transition-colors',
+              'flex items-center justify-between px-2 py-1.5 rounded-tide cursor-pointer transition-colors group/tree',
               isSelected
                 ? 'bg-tide-primary/10 ring-1 ring-tide-primary/30 font-medium'
                 : 'hover:bg-tide-surface-container',
@@ -40,9 +40,23 @@ export const TagGroupTree = defineComponent({
                 {node.groupName}
               </span>
             </div>
-            <span class="flex-shrink-0 text-tide-label-sm text-tide-label-sm text-tide-outline bg-tide-surface-container-lowest px-1.5 py-0.5 rounded-full ml-2">
-              {node.count}
-            </span>
+            <div class="flex items-center gap-1">
+              <span class="flex-shrink-0 text-tide-label-sm text-tide-label-sm text-tide-outline bg-tide-surface-container-lowest px-1.5 py-0.5 rounded-full">
+                {node.count}
+              </span>
+              {node.path !== '/root' && (
+                <button
+                  class="opacity-0 group-hover/tree:opacity-100 text-tide-error/70 hover:text-tide-error transition-all p-0.5 rounded"
+                  title="删除"
+                  onClick={(e: MouseEvent) => {
+                    e.stopPropagation()
+                    emit('delete', node)
+                  }}
+                >
+                  <span class="material-symbols-outlined text-[14px]">delete</span>
+                </button>
+              )}
+            </div>
           </div>
           {node.children.length > 0 && (
             <div>{node.children.map(renderNode)}</div>

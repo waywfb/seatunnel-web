@@ -75,8 +75,9 @@ public class IntentDetectionService {
             String json = MAPPER.writeValueAsString(requestBody);
             log.debug("Ollama request: {}", json);
 
-            String response = restTemplate.postForObject(
-                    aiConfig.getBaseUrl() + "/api/chat", requestBody, String.class);
+            String response =
+                    restTemplate.postForObject(
+                            aiConfig.getBaseUrl() + "/api/chat", requestBody, String.class);
 
             log.debug("Ollama response: {}", response);
 
@@ -115,9 +116,10 @@ public class IntentDetectionService {
                 JsonNode function = firstCall.get("function");
                 String name = function.get("name").asText();
                 JsonNode argsNode = function.get("arguments");
-                String args = argsNode.isTextual()
-                        ? argsNode.asText()
-                        : MAPPER.writeValueAsString(argsNode);
+                String args =
+                        argsNode.isTextual()
+                                ? argsNode.asText()
+                                : MAPPER.writeValueAsString(argsNode);
 
                 if ("ask_clarification".equals(name)) {
                     JsonNode clarificationArgs = MAPPER.readTree(args);

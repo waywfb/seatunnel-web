@@ -11,6 +11,7 @@ export const BrowseImportModal = defineComponent({
     show: { type: Boolean, default: false },
     datasourceId: { type: String, required: true },
     pluginName: { type: String, default: '' },
+    groupPath: { type: String, default: '/root' },
   },
   emits: ['close', 'imported'],
   setup(props, { emit }) {
@@ -161,7 +162,7 @@ export const BrowseImportModal = defineComponent({
                         }
                       }
                     }}
-                    onImport={() => tagImport.handleImport(handleImportSuccess)}
+                    onImport={() => tagImport.handleImport(handleImportSuccess, props.groupPath)}
                     onBack={handleBack}
                   />
                 </div>

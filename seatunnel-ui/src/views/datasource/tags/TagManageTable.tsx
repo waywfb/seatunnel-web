@@ -10,6 +10,7 @@ interface TagRow {
   unit?: string
   precision?: number
   dataType?: string
+  groupId?: string
   groupPath?: string
 }
 
