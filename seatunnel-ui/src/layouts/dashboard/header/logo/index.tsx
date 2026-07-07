@@ -27,7 +27,7 @@ const Logo = defineComponent({
           <rect width='32' height='32' rx='8' fill='var(--color-primary)' />
           <text x='16' y='21' text-anchor='middle' fill='white' font-size='15' font-weight='700' font-family='Inter, sans-serif'>ST</text>
         </svg>
-        <span class='text-xl font-bold'>数据接入平台</span>
+        <span class='text-xl font-bold'>数据集成平台</span>
       </NSpace>
     )
   }

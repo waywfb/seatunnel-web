@@ -22,6 +22,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import i18n from '@/locales'
 import router from './router'
 import utils from '@/utils'
+import 'material-symbols'
 import './index.css'
 import './assets/styles/default.scss'
 

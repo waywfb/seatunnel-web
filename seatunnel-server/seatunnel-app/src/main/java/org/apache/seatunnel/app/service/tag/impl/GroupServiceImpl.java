@@ -174,19 +174,20 @@ public class GroupServiceImpl implements GroupService {
     private List<GroupResponse> buildTree(List<DataSourceTagGroup> all, String parentPath) {
         List<GroupResponse> result = new ArrayList<>();
         for (DataSourceTagGroup g : all) {
+            if (g.getPath().equals(parentPath)) continue;
             String p = getParentPath(g.getPath());
-            if (parentPath.equals(p)) {
-                GroupResponse r = toResponse(g);
-                r.setChildren(buildTree(all, g.getPath()));
-                result.add(r);
-            }
+            if (p == null || !parentPath.equals(p)) continue;
+            GroupResponse r = toResponse(g);
+            r.setChildren(buildTree(all, g.getPath()));
+            result.add(r);
         }
         return result;
     }
 
     private String getParentPath(String path) {
+        if (path == null || ROOT_PATH.equals(path)) return null;
         int idx = path.lastIndexOf('/');
-        if (idx <= 0) return ROOT_PATH;
+        if (idx <= 0) return null;
         return path.substring(0, idx);
     }
 

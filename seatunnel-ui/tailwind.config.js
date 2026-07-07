@@ -141,7 +141,7 @@ module.exports = {
         'tide-sm': '0.125rem',
         'tide': '0.25rem',
         'tide-lg': '0.5rem',
-        'tide-xl': '0.75rem',
+        'tide-xl': '0.5rem',
       },
       boxShadow: {
         none: 'none',

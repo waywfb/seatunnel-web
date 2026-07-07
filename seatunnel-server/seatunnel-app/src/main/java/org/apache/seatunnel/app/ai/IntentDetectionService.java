@@ -75,9 +75,8 @@ public class IntentDetectionService {
             String json = MAPPER.writeValueAsString(requestBody);
             log.debug("Ollama request: {}", json);
 
-            String response =
-                    restTemplate.postForObject(
-                            aiConfig.getBaseUrl() + "/api/chat", requestBody, String.class);
+            String response = restTemplate.postForObject(
+                    aiConfig.getBaseUrl() + "/api/chat", requestBody, String.class);
 
             log.debug("Ollama response: {}", response);
 
@@ -90,7 +89,7 @@ public class IntentDetectionService {
     }
 
     private String buildSystemPrompt() {
-        return "你是 Apache SeaTunnel Web 平台的智能助手，帮助用户管理数据集成平台。"
+        return "你是平台的智能助手，帮助用户管理数据集成平台。"
                 + "你可以使用的工具包括：创建数据源连接、测试连接、浏览资源、列出数据源、创建和启动同步任务等。"
                 + "规则：\n"
                 + "1. 如果用户明确要求执行某项操作（如创建、测试、列出），使用对应的工具。\n"
@@ -116,10 +115,9 @@ public class IntentDetectionService {
                 JsonNode function = firstCall.get("function");
                 String name = function.get("name").asText();
                 JsonNode argsNode = function.get("arguments");
-                String args =
-                        argsNode.isTextual()
-                                ? argsNode.asText()
-                                : MAPPER.writeValueAsString(argsNode);
+                String args = argsNode.isTextual()
+                        ? argsNode.asText()
+                        : MAPPER.writeValueAsString(argsNode);
 
                 if ("ask_clarification".equals(name)) {
                     JsonNode clarificationArgs = MAPPER.readTree(args);

@@ -21,6 +21,7 @@ export const TagManageTable = defineComponent({
     totalPages: { type: Number, default: 1 },
     selectedGroupName: { type: String, default: '' },
     totalTagCount: { type: Number, default: 0 },
+    canAdd: { type: Boolean, default: true },
   },
   emits: ['edit', 'delete', 'add', 'update:page'],
   setup(props, { emit }) {
@@ -61,7 +62,8 @@ export const TagManageTable = defineComponent({
               导入CSV
             </button>
             <button
-              class="bg-tide-primary text-white px-3 py-1.5 rounded-tide hover:bg-tide-primary-container transition-colors font-tide-label-md text-tide-label-md flex items-center gap-1 text-xs shadow-none"
+              class={`px-3 py-1.5 rounded-tide transition-colors font-tide-label-md text-tide-label-md flex items-center gap-1 text-xs shadow-none ${props.canAdd ? 'bg-tide-primary text-white hover:bg-tide-primary-container' : 'bg-tide-outline/20 text-tide-outline cursor-not-allowed'}`}
+              disabled={!props.canAdd}
               onClick={() => emit('add')}
             >
               <span class="material-symbols-outlined text-[16px]">add</span>

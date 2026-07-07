@@ -16,7 +16,7 @@
  */
 
 export default {
-  dashboard: 'Dashboard',
+  dashboard: '仪表盘',
   user_manage: '用户管理',
   help: '帮助',
   setting: '设置',
@@ -24,13 +24,14 @@ export default {
   tasks: '数据接入',
   datasource: '数据源',
   tag_manage: '测点管理',
-  virtual_tables: '虚拟表',
+  virtual_tables: '数据模型',
   sync_task_definition: '同步任务定义',
   sync_task_instance: '同步任务实例',
   synchronization_instance: '同步任务实例',
   section_overview: '概览',
   section_pipeline: '数据集成',
-  section_resources: '资源',
-  section_admin: '管理',
+  section_resources: '数据资源',
+  section_ai: '人工智能',
+  section_admin: '系统管理',
   ai_assistant: 'AI 助手',
 }

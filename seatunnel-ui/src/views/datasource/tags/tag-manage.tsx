@@ -1,7 +1,7 @@
 import { defineComponent, ref, onMounted, watch, computed } from 'vue'
-import { useMessage } from 'naive-ui'
+import { useMessage, NModal, NInput } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { getGroupTree, getTagList, deleteTag } from '@/service/data-source'
+import { getGroupTree, getTagList, deleteTag, createGroup } from '@/service/data-source'
 import { TagGroupTree } from './TagGroupTree'
 import type { GroupNode } from './TagGroupTree'
 import { TagManageTable } from './TagManageTable'
@@ -53,6 +53,7 @@ export default defineComponent({
     const allTags = ref<TagRow[]>([])
     const selectedPath = ref<string | null>(null)
     const loading = ref(false)
+    const hasLoaded = ref(false)
     const page = ref(1)
     const pageSize = 20
 
@@ -60,14 +61,14 @@ export default defineComponent({
 
     const loadData = async () => {
       if (!props.datasourceId) return
-      loading.value = true
+      if (!hasLoaded.value) loading.value = true
       try {
         const [groupsRes, tagsRes] = await Promise.all([
           getGroupTree(props.datasourceId),
           getTagList(props.datasourceId),
         ])
-        groupTree.value = flattenGroups(groupsRes || [], 0)
-        allTags.value = (tagsRes || []).map((t: any) => ({
+        const newGroups = flattenGroups(groupsRes || [], 0)
+        const newTags = (tagsRes || []).map((t: any) => ({
           id: String(t.id || ''),
           nativeId: t.nativeId || '',
           tagName: t.tagName || '',
@@ -79,8 +80,12 @@ export default defineComponent({
           dataType: t.dataType || (t.properties?.dataType) || '',
           groupPath: t.groupPath || '',
         }))
-        countAll(groupTree.value, allTags.value)
+        countAll(newGroups, newTags)
+        groupTree.value = newGroups
+        allTags.value = newTags
+        selectedPath.value = null
         page.value = 1
+        hasLoaded.value = true
       } catch (err: any) {
         message.error(err.message || '加载失败')
       } finally {
@@ -116,10 +121,56 @@ const filteredTags = computed(() => {
     })
 
     const showBrowseModal = ref(false)
+    const showCreateGroupModal = ref(false)
+    const newGroupName = ref('')
+    const creating = ref(false)
 
     const handleAddTag = () => {
-      if (isPlcType()) {
-        showBrowseModal.value = true
+      if (!isPlcType()) return
+      if (groupTree.value.length === 0) {
+        message.warning('请先创建设备层级节点后再导入测点')
+        return
+      }
+      showBrowseModal.value = true
+    }
+
+    const handleOpenCreateGroup = () => {
+      newGroupName.value = ''
+      showCreateGroupModal.value = true
+    }
+
+    const handleCreateGroup = async () => {
+      const name = newGroupName.value.trim()
+      if (!name) {
+        message.warning('请输入节点名称')
+        return
+      }
+      creating.value = true
+      try {
+        const parentPath = selectedPath.value
+          ? (() => {
+              function findFullPath(nodes: GroupNode[], target: string): string | null {
+                for (const n of nodes) {
+                  if (n.path === target) return n.path
+                  const found = findFullPath(n.children, target)
+                  if (found) return found
+                }
+                return null
+              }
+              return findFullPath(groupTree.value, selectedPath.value!)
+            })()
+          : '/root'
+        await createGroup(props.datasourceId, {
+          parentPath: parentPath || '/root',
+          groupName: name,
+        })
+        message.success('节点创建成功')
+        showCreateGroupModal.value = false
+        await loadData()
+      } catch (err: any) {
+        message.error(err.message || '创建失败')
+      } finally {
+        creating.value = false
       }
     }
 
@@ -168,6 +219,13 @@ const filteredTags = computed(() => {
           <div class="lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
             <div class="p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center">
               <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">设备层级</h3>
+              <button
+                class="bg-tide-primary text-white px-2 py-1 rounded-tide hover:bg-tide-primary-container transition-colors font-tide-label-md text-tide-label-md flex items-center gap-1 text-xs shadow-none"
+                onClick={handleOpenCreateGroup}
+              >
+                <span class="material-symbols-outlined text-[14px]">add</span>
+                新增
+              </button>
             </div>
             <TagGroupTree
               groups={groupTree.value}
@@ -186,6 +244,7 @@ const filteredTags = computed(() => {
               totalPages={totalPages.value}
               selectedGroupName={selectedGroupName.value}
               totalTagCount={filteredTags.value.length}
+              canAdd={groupTree.value.length > 0}
               onEdit={(id: string) => {
                 // TODO: open edit modal
               }}
@@ -200,6 +259,42 @@ const filteredTags = computed(() => {
               onClose={handleCloseBrowseModal}
               onImported={handleImported}
             />
+            <NModal
+              show={showCreateGroupModal.value}
+              onUpdateShow={(v: boolean) => { showCreateGroupModal.value = v }}
+              preset="card"
+              title="新增设备层级节点"
+              style={{ maxWidth: '420px' }}
+              bordered={false}
+              closable={true}
+            >
+              <div class="flex flex-col gap-3">
+                <div class="text-sm text-tide-on-surface-variant">
+                  父路径：{selectedPath.value || '/root'}
+                </div>
+                <NInput
+                  value={newGroupName.value}
+                  onUpdateValue={(v: string) => { newGroupName.value = v }}
+                  placeholder="请输入节点名称"
+                  maxlength={100}
+                />
+                <div class="flex justify-end gap-2 mt-2">
+                  <button
+                    class="px-4 py-2 rounded-tide border border-tide-outline-variant text-sm text-tide-on-surface hover:bg-tide-surface-container transition-colors"
+                    onClick={() => { showCreateGroupModal.value = false }}
+                  >
+                    取消
+                  </button>
+                  <button
+                    class={`px-4 py-2 rounded-tide text-sm text-white transition-colors ${creating.value ? 'bg-tide-primary/60 cursor-not-allowed' : 'bg-tide-primary hover:bg-tide-primary-container'}`}
+                    disabled={creating.value}
+                    onClick={handleCreateGroup}
+                  >
+                    {creating.value ? '创建中...' : '确认'}
+                  </button>
+                </div>
+              </div>
+            </NModal>
           </div>
         </div>
       )

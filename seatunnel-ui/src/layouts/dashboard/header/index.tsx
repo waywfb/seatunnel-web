@@ -17,15 +17,13 @@
 
 import { defineComponent } from 'vue'
 import { NSpace } from 'naive-ui'
-import Logo from './logo'
 import User from './user'
 
 const Header = defineComponent({
   setup() {},
   render() {
     return (
-      <NSpace justify='space-between' class='h-16 border-gray-200'>
-        <Logo />
+      <NSpace justify='end' class='h-16 border-gray-200' style='width: 100%;'>
         <User />
       </NSpace>
     )

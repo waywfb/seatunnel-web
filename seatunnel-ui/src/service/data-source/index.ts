@@ -237,3 +237,12 @@ export function getGroupTree(datasourceId: string): any {
     params: { datasourceId }
   })
 }
+
+export function createGroup(datasourceId: string, data: { parentPath: string; groupName: string; description?: string; sortOrder?: number; enabled?: boolean }): any {
+  return axios({
+    url: PLC_BASE_URL + '/groups',
+    method: 'post',
+    params: { datasourceId },
+    data: [data]
+  })
+}

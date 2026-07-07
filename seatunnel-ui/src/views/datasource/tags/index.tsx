@@ -17,8 +17,6 @@ export default defineComponent({
     const datasources = ref<any[]>([])
     const selectedId = ref(route.query.datasourceId as string || '')
     const loadingList = ref(false)
-    const activeTab = ref('tags')
-
     const loadDatasources = async () => {
       loadingList.value = true
       try {
@@ -48,40 +46,8 @@ export default defineComponent({
 
     return () => (
       <div class="flex flex-col gap-4 p-4 h-[calc(100vh-200px)] overflow-hidden">
-        {/* Tabs */}
-        <div class="flex gap-6 border-b border-tide-outline-variant flex-shrink-0">
-          <button
-            class={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab.value === 'connection'
-                ? 'border-tide-status-running text-tide-status-running'
-                : 'border-transparent text-tide-outline hover:text-tide-on-surface'
-            }`}
-            onClick={() => { activeTab.value = 'connection' }}
-          >
-            连接管理
-          </button>
-          <button
-            class={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab.value === 'tags'
-                ? 'border-tide-status-running text-tide-status-running'
-                : 'border-transparent text-tide-outline hover:text-tide-on-surface'
-            }`}
-            onClick={() => { activeTab.value = 'tags' }}
-          >
-            测点管理
-          </button>
-        </div>
-
-        {/* 连接管理 placeholder */}
-        {activeTab.value === 'connection' && (
-          <div class="flex-1 flex items-center justify-center text-tide-outline font-tide-body-sm">
-            连接管理
-          </div>
-        )}
-
         {/* 测点管理 */}
-        {activeTab.value === 'tags' && (
-          <div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
+        <div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
             {/* Info banner */}
             <div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 flex items-start gap-2 flex-shrink-0">
               <span class="material-symbols-outlined text-[18px] mt-0.5 flex-shrink-0">info</span>
@@ -91,14 +57,14 @@ export default defineComponent({
             </div>
 
             {/* Gateway tabs */}
-            <div class="flex flex-wrap gap-2 flex-shrink-0">
+            <div class="flex gap-1 border-b border-tide-outline-variant flex-shrink-0">
               {datasources.value.map(ds => (
                 <button
                   key={ds.id}
-                  class={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  class={`font-tide-label-md text-tide-label-md px-tide-gap-md py-2 transition-colors ${
                     selectedId.value === ds.id
-                      ? 'bg-green-100 text-green-700 border border-green-300'
-                      : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      ? 'text-tide-primary border-b-2 border-tide-primary'
+                      : 'text-tide-on-surface-variant hover:text-tide-on-surface'
                   }`}
                   onClick={() => handleChange(ds.id)}
                 >
@@ -119,7 +85,6 @@ export default defineComponent({
               </div>
             ) : null}
           </div>
-        )}
       </div>
     )
   },

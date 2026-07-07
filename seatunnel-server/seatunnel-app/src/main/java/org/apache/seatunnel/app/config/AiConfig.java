@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class AiConfig {
     private String baseUrl = "http://localhost:11434";
     private String model = "qwen2.5";
-    private String systemPrompt = "你是 Apache SeaTunnel Web 平台的智能助手，帮助用户使用数据集成平台。";
+    private String systemPrompt = "你是平台的智能助手，帮助用户使用数据集成平台。";
     private long timeoutMs = 60000;
 
     public String getBaseUrl() {

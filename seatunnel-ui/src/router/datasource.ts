@@ -63,7 +63,7 @@ export default {
       component: components['datasource-tags'],
       meta: {
         title: 'datasource-tags',
-        activeMenu: 'datasource'
+        activeMenu: 'tag_manage'
       }
     }
   ]
