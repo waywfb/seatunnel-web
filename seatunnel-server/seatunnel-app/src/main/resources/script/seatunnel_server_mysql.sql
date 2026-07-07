@@ -368,3 +368,23 @@ CREATE TABLE `t_st_datasource_tag` (
   UNIQUE INDEX `uk_dt_datasource_native_id`(`datasource_id`, `native_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic;
 
+-- ----------------------------
+-- Table structure for t_st_config_audit_log (采集配置变更审计日志表)
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_config_audit_log`;
+CREATE TABLE `t_st_config_audit_log` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `biz_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '业务类型: TAG(点位), GROUP(分组)',
+  `biz_id` bigint(20) NOT NULL COMMENT '对应原表的主键 ID',
+  `datasource_id` bigint(20) NOT NULL COMMENT '所属数据源 ID',
+  `action_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '操作类型: INSERT(新增), UPDATE(修改), DELETE(物理删除)',
+  `operator` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '操作人账号/系统自动导入',
+  `before_snapshot` json DEFAULT NULL COMMENT '修改前的完整数据快照(JSON)',
+  `after_snapshot` json DEFAULT NULL COMMENT '修改后的/新插入的完整数据快照(JSON)',
+  `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT '备注/变更原因',
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_log_biz`(`biz_type`, `biz_id`) USING BTREE,
+  INDEX `idx_log_datasource`(`datasource_id`) USING BTREE
+) ENGINE=InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='采集配置变更审计日志表';
+

@@ -30,7 +30,7 @@ export function useTagImport(datasourceId: () => string | null) {
     checkedNodes.clear()
   }
 
-  async function handleImport(onSuccess: () => void) {
+  async function handleImport(onSuccess: () => void, groupPath?: string) {
     if (checkedNodes.size === 0) return
     const id = datasourceId()
     if (!id) return
@@ -42,10 +42,13 @@ export function useTagImport(datasourceId: () => string | null) {
         tagAddress: n.address || n.nodeId,
         tagName: n.label,
         source: 'browse' as const,
+        groupPath: groupPath || '/root',
       }))
       await importTags(id, { tags })
       checkedNodes.clear()
       onSuccess()
+    } catch (e: any) {
+      window.$message.error(e?.message || '导入失败')
     } finally {
       importing.value = false
     }

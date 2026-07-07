@@ -265,6 +265,72 @@ CREATE TABLE workspace (
 
 INSERT INTO workspace (workspace_name, description) VALUES ('default', 'default workspace');
 
+-- ----------------------------
+-- Table structure for t_st_datasource_tag_group
+-- ----------------------------
+DROP TABLE IF EXISTS t_st_datasource_tag_group;
+CREATE TABLE t_st_datasource_tag_group (
+  id BIGINT NOT NULL,
+  datasource_id BIGINT NOT NULL,
+  level INT NOT NULL DEFAULT 1,
+  path VARCHAR(500) NOT NULL,
+  group_name VARCHAR(100) NOT NULL,
+  description VARCHAR(500) DEFAULT NULL,
+  sort_order INT DEFAULT 0,
+  enabled BOOLEAN DEFAULT TRUE,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  deleted_at TIMESTAMP(3) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+-- ----------------------------
+-- Table structure for t_st_datasource_tag
+-- ----------------------------
+DROP TABLE IF EXISTS t_st_datasource_tag;
+CREATE TABLE t_st_datasource_tag (
+  id BIGINT NOT NULL,
+  datasource_id BIGINT NOT NULL,
+  group_id BIGINT DEFAULT NULL,
+  native_id VARCHAR(200) NOT NULL,
+  tag_address VARCHAR(200) NOT NULL,
+  tag_name VARCHAR(100) NOT NULL,
+  source TINYINT NOT NULL DEFAULT 1,
+  status TINYINT NOT NULL DEFAULT 1,
+  alias VARCHAR(100) DEFAULT NULL,
+  display_name VARCHAR(200) DEFAULT NULL,
+  sort_order INT DEFAULT 0,
+  enabled BOOLEAN DEFAULT TRUE,
+  sampling_interval INT DEFAULT NULL,
+  deadband DOUBLE DEFAULT NULL,
+  read_only BOOLEAN DEFAULT FALSE,
+  unit VARCHAR(50) DEFAULT NULL,
+  precision INT DEFAULT NULL,
+  properties TEXT DEFAULT NULL,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  deleted_at TIMESTAMP(3) DEFAULT NULL,
+  PRIMARY KEY (id)
+);
+
+-- ----------------------------
+-- Table structure for t_st_config_audit_log
+-- ----------------------------
+DROP TABLE IF EXISTS t_st_config_audit_log;
+CREATE TABLE t_st_config_audit_log (
+  id BIGINT NOT NULL AUTO_INCREMENT,
+  biz_type VARCHAR(50) NOT NULL,
+  biz_id BIGINT NOT NULL,
+  datasource_id BIGINT NOT NULL,
+  action_type VARCHAR(20) NOT NULL,
+  operator VARCHAR(64) NOT NULL,
+  before_snapshot TEXT DEFAULT NULL,
+  after_snapshot TEXT DEFAULT NULL,
+  remark VARCHAR(500) DEFAULT NULL,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id)
+);
+
 -- Records of user_login_log
 -- No equivalent records provided for the user_login_log table in the provided SQL script.
 -- You can insert records into this table using similar INSERT INTO statements.

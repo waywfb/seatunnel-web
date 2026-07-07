@@ -5,7 +5,10 @@ import org.apache.seatunnel.app.dal.mapper.DataSourceTagGroupMapper;
 import org.apache.seatunnel.app.domain.request.group.GroupCreateDTO;
 import org.apache.seatunnel.app.domain.request.group.GroupUpdateDTO;
 import org.apache.seatunnel.app.domain.response.group.GroupResponse;
+import org.apache.seatunnel.app.service.tag.ConfigAuditLogService;
 import org.apache.seatunnel.app.service.tag.GroupService;
+import org.apache.seatunnel.app.utils.ServletUtils;
+import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.server.common.CodeGenerateUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
 import org.apache.seatunnel.server.common.SeatunnelException;
@@ -18,7 +21,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,9 +32,12 @@ public class GroupServiceImpl implements GroupService {
     private static final int MAX_DEPTH = 10;
 
     private final DataSourceTagGroupMapper groupMapper;
+    private final ConfigAuditLogService auditLogService;
 
-    public GroupServiceImpl(DataSourceTagGroupMapper groupMapper) {
+    public GroupServiceImpl(
+            DataSourceTagGroupMapper groupMapper, ConfigAuditLogService auditLogService) {
         this.groupMapper = groupMapper;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -49,8 +54,18 @@ public class GroupServiceImpl implements GroupService {
             entities.add(group);
         }
 
+        String operator = getCurrentOperator();
         for (DataSourceTagGroup g : entities) {
             groupMapper.insert(g);
+            auditLogService.record(
+                    "GROUP",
+                    g.getId(),
+                    datasourceId,
+                    "INSERT",
+                    operator,
+                    null,
+                    JsonUtils.toJsonString(g),
+                    null);
         }
         return entities;
     }
@@ -111,38 +126,54 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public void updateGroup(Long groupId, GroupUpdateDTO dto) {
         DataSourceTagGroup existing = groupMapper.selectById(groupId);
-        if (existing == null || existing.getDeletedAt() != null) {
+        if (existing == null) {
             throw new SeatunnelException(
                     SeatunnelErrorEnum.RESOURCE_NOT_FOUND, "Group not found: " + groupId);
         }
+        String beforeSnapshot = JsonUtils.toJsonString(existing);
         if (dto.getGroupName() != null) existing.setGroupName(dto.getGroupName());
         if (dto.getDescription() != null) existing.setDescription(dto.getDescription());
         if (dto.getSortOrder() != null) existing.setSortOrder(dto.getSortOrder());
         if (dto.getEnabled() != null) existing.setEnabled(dto.getEnabled());
         groupMapper.updateById(existing);
+        auditLogService.record(
+                "GROUP",
+                groupId,
+                existing.getDatasourceId(),
+                "UPDATE",
+                getCurrentOperator(),
+                beforeSnapshot,
+                JsonUtils.toJsonString(existing),
+                null);
     }
 
     @Override
     public void deleteGroup(Long groupId) {
-        LambdaQueryWrapper<DataSourceTagGroup> childCheck = Wrappers.lambdaQuery();
-        childCheck.eq(DataSourceTagGroup::getDeletedAt, (Object) null);
-        // Check if path starts with this group's path (has children)
         DataSourceTagGroup group = groupMapper.selectById(groupId);
-        if (group != null) {
-            LambdaQueryWrapper<DataSourceTagGroup> children = Wrappers.lambdaQuery();
-            children.eq(DataSourceTagGroup::getDatasourceId, group.getDatasourceId());
-            children.likeRight(DataSourceTagGroup::getPath, group.getPath() + "/");
-            children.isNull(DataSourceTagGroup::getDeletedAt);
-            if (groupMapper.selectCount(children) > 0) {
-                throw new SeatunnelException(
-                        SeatunnelErrorEnum.ILLEGAL_STATE,
-                        "Group has children, cannot delete: " + groupId);
-            }
+        if (group == null) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.RESOURCE_NOT_FOUND, "Group not found: " + groupId);
         }
-        DataSourceTagGroup update = new DataSourceTagGroup();
-        update.setId(groupId);
-        update.setDeletedAt(new Date());
-        groupMapper.updateById(update);
+        LambdaQueryWrapper<DataSourceTagGroup> children = Wrappers.lambdaQuery();
+        children.eq(DataSourceTagGroup::getDatasourceId, group.getDatasourceId());
+        children.likeRight(DataSourceTagGroup::getPath, group.getPath() + "/");
+        children.isNull(DataSourceTagGroup::getDeletedAt);
+        if (groupMapper.selectCount(children) > 0) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.ILLEGAL_STATE,
+                    "Group has children, cannot delete: " + groupId);
+        }
+        String beforeSnapshot = JsonUtils.toJsonString(group);
+        groupMapper.deleteById(groupId);
+        auditLogService.record(
+                "GROUP",
+                groupId,
+                group.getDatasourceId(),
+                "DELETE",
+                getCurrentOperator(),
+                beforeSnapshot,
+                null,
+                null);
     }
 
     @Override
@@ -151,11 +182,20 @@ public class GroupServiceImpl implements GroupService {
         LambdaQueryWrapper<DataSourceTagGroup> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(DataSourceTagGroup::getDatasourceId, datasourceId);
         wrapper.isNull(DataSourceTagGroup::getDeletedAt);
-        Date now = new Date();
         List<DataSourceTagGroup> groups = groupMapper.selectList(wrapper);
+        String operator = getCurrentOperator();
         for (DataSourceTagGroup g : groups) {
-            g.setDeletedAt(now);
-            groupMapper.updateById(g);
+            String beforeSnapshot = JsonUtils.toJsonString(g);
+            groupMapper.deleteById(g.getId());
+            auditLogService.record(
+                    "GROUP",
+                    g.getId(),
+                    datasourceId,
+                    "DELETE",
+                    operator,
+                    beforeSnapshot,
+                    null,
+                    "batch delete by datasource");
         }
     }
 
@@ -208,6 +248,14 @@ public class GroupServiceImpl implements GroupService {
     public String getPathById(Long groupId) {
         DataSourceTagGroup group = groupMapper.selectById(groupId);
         return group != null ? group.getPath() : null;
+    }
+
+    private static String getCurrentOperator() {
+        try {
+            return ServletUtils.getCurrentUser().getUsername();
+        } catch (Exception e) {
+            return "system";
+        }
     }
 
     private GroupResponse toResponse(DataSourceTagGroup g) {

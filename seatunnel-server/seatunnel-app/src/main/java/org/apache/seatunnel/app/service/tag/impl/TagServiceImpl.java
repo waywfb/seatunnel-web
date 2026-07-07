@@ -7,7 +7,10 @@ import org.apache.seatunnel.app.dal.mapper.DataSourceTagMapper;
 import org.apache.seatunnel.app.domain.request.tag.TagCreateDTO;
 import org.apache.seatunnel.app.domain.request.tag.TagUpdateDTO;
 import org.apache.seatunnel.app.domain.response.tag.TagResponse;
+import org.apache.seatunnel.app.service.tag.ConfigAuditLogService;
+import org.apache.seatunnel.app.service.tag.GroupService;
 import org.apache.seatunnel.app.service.tag.TagService;
+import org.apache.seatunnel.app.utils.ServletUtils;
 import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.server.common.CodeGenerateUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
@@ -19,8 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,9 +33,16 @@ import java.util.stream.Collectors;
 public class TagServiceImpl implements TagService {
 
     private final DataSourceTagMapper tagMapper;
+    private final GroupService groupService;
+    private final ConfigAuditLogService auditLogService;
 
-    public TagServiceImpl(DataSourceTagMapper tagMapper) {
+    public TagServiceImpl(
+            DataSourceTagMapper tagMapper,
+            GroupService groupService,
+            ConfigAuditLogService auditLogService) {
         this.tagMapper = tagMapper;
+        this.groupService = groupService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -40,80 +51,113 @@ public class TagServiceImpl implements TagService {
             Long datasourceId, List<TagCreateDTO> tags, Map<String, Long> pathToIdMap) {
         if (tags == null || tags.isEmpty()) return Collections.emptyList();
 
-        List<String> existingNativeIds =
-                tagMapper
-                        .selectList(
-                                Wrappers.lambdaQuery(DataSourceTag.class)
-                                        .eq(DataSourceTag::getDatasourceId, datasourceId)
-                                        .isNull(DataSourceTag::getDeletedAt))
-                        .stream()
-                        .map(DataSourceTag::getNativeId)
-                        .collect(Collectors.toList());
-
-        List<DataSourceTag> entities =
-                tags.stream()
-                        .filter(dto -> !existingNativeIds.contains(dto.getNativeId()))
-                        .map(
-                                dto -> {
-                                    DataSourceTag tag = new DataSourceTag();
-                                    try {
-                                        tag.setId(CodeGenerateUtils.getInstance().genCode());
-                                    } catch (CodeGenerateUtils.CodeGenerateException e) {
-                                        throw new SeatunnelException(
-                                                SeatunnelErrorEnum.ILLEGAL_STATE,
-                                                "Failed to generate ID");
-                                    }
-                                    tag.setDatasourceId(datasourceId);
-                                    tag.setNativeId(dto.getNativeId());
-                                    tag.setTagAddress(dto.getTagAddress());
-                                    tag.setTagName(dto.getTagName());
-                                    tag.setSource(
-                                            "browse".equals(dto.getSource())
-                                                    ? TagSource.BROWSE.getCode()
-                                                    : TagSource.IMPORT.getCode());
-                                    tag.setStatus(TagStatus.ACTIVE.getCode());
-
-                                    if (dto.getGroupPath() != null && pathToIdMap != null) {
-                                        Long groupId = pathToIdMap.get(dto.getGroupPath());
-                                        if (groupId == null) {
-                                            throw new SeatunnelException(
-                                                    SeatunnelErrorEnum.ILLEGAL_STATE,
-                                                    "Group path not found: " + dto.getGroupPath());
-                                        }
-                                        tag.setGroupId(groupId);
-                                    }
-
-                                    tag.setAlias(dto.getAlias());
-                                    tag.setDisplayName(dto.getDisplayName());
-                                    tag.setSortOrder(dto.getSortOrder());
-                                    tag.setEnabled(
-                                            dto.getEnabled() != null ? dto.getEnabled() : true);
-                                    tag.setSamplingInterval(dto.getSamplingInterval());
-                                    tag.setDeadband(dto.getDeadband());
-                                    tag.setReadOnly(dto.getReadOnly());
-                                    tag.setUnit(dto.getUnit());
-                                    tag.setPrecision(dto.getPrecision());
-                                    if (dto.getProperties() != null) {
-                                        tag.setProperties(
-                                                JsonUtils.toJsonString(dto.getProperties()));
-                                    }
-                                    return tag;
-                                })
-                        .collect(Collectors.toList());
-
-        for (DataSourceTag tag : entities) {
-            tagMapper.insert(tag);
+        // Build map of nativeId -> existing entity (only active, not soft-deleted)
+        Map<String, DataSourceTag> existingByNativeId = new HashMap<>();
+        for (DataSourceTag t :
+                tagMapper.selectList(
+                        Wrappers.lambdaQuery(DataSourceTag.class)
+                                .eq(DataSourceTag::getDatasourceId, datasourceId)
+                                .isNull(DataSourceTag::getDeletedAt))) {
+            existingByNativeId.put(t.getNativeId(), t);
         }
-        return entities;
+
+        String operator = getCurrentOperator();
+
+        List<DataSourceTag> toInsert = new ArrayList<>();
+        List<DataSourceTag> toUpdate = new ArrayList<>();
+
+        for (TagCreateDTO dto : tags) {
+            DataSourceTag tag = existingByNativeId.get(dto.getNativeId());
+            boolean isNew = (tag == null);
+
+            if (isNew) {
+                tag = new DataSourceTag();
+                try {
+                    tag.setId(CodeGenerateUtils.getInstance().genCode());
+                } catch (CodeGenerateUtils.CodeGenerateException e) {
+                    throw new SeatunnelException(
+                            SeatunnelErrorEnum.ILLEGAL_STATE, "Failed to generate ID");
+                }
+            }
+
+            tag.setDatasourceId(datasourceId);
+            tag.setNativeId(dto.getNativeId());
+            tag.setTagAddress(dto.getTagAddress());
+            tag.setTagName(dto.getTagName());
+            tag.setSource(
+                    "browse".equals(dto.getSource())
+                            ? TagSource.BROWSE.getCode()
+                            : TagSource.IMPORT.getCode());
+            tag.setStatus(TagStatus.ACTIVE.getCode());
+            tag.setDeletedAt(null);
+
+            if (dto.getGroupPath() != null && pathToIdMap != null) {
+                Long groupId = pathToIdMap.get(dto.getGroupPath());
+                if (groupId == null) {
+                    throw new SeatunnelException(
+                            SeatunnelErrorEnum.ILLEGAL_STATE,
+                            "Group path not found: " + dto.getGroupPath());
+                }
+                tag.setGroupId(groupId);
+            }
+
+            tag.setAlias(dto.getAlias());
+            tag.setDisplayName(dto.getDisplayName());
+            tag.setSortOrder(dto.getSortOrder());
+            tag.setEnabled(dto.getEnabled() != null ? dto.getEnabled() : true);
+            tag.setSamplingInterval(dto.getSamplingInterval());
+            tag.setDeadband(dto.getDeadband());
+            tag.setReadOnly(dto.getReadOnly());
+            tag.setUnit(dto.getUnit());
+            tag.setPrecision(dto.getPrecision());
+            if (dto.getProperties() != null) {
+                tag.setProperties(JsonUtils.toJsonString(dto.getProperties()));
+            }
+
+            if (isNew) {
+                toInsert.add(tag);
+            } else {
+                toUpdate.add(tag);
+            }
+        }
+
+        for (DataSourceTag tag : toInsert) {
+            tagMapper.insert(tag);
+            auditLogService.record(
+                    "TAG",
+                    tag.getId(),
+                    datasourceId,
+                    "INSERT",
+                    operator,
+                    null,
+                    JsonUtils.toJsonString(tag),
+                    null);
+        }
+        for (DataSourceTag tag : toUpdate) {
+            DataSourceTag before = existingByNativeId.get(tag.getNativeId());
+            tagMapper.updateById(tag);
+            auditLogService.record(
+                    "TAG",
+                    tag.getId(),
+                    datasourceId,
+                    "UPDATE",
+                    operator,
+                    JsonUtils.toJsonString(before),
+                    JsonUtils.toJsonString(tag),
+                    null);
+        }
+        return toInsert;
     }
 
     @Override
     public void updateTag(Long tagId, TagUpdateDTO dto) {
         DataSourceTag existing = tagMapper.selectById(tagId);
-        if (existing == null || existing.getDeletedAt() != null) {
+        if (existing == null) {
             throw new SeatunnelException(
                     SeatunnelErrorEnum.RESOURCE_NOT_FOUND, "Tag not found: " + tagId);
         }
+
+        String beforeSnapshot = JsonUtils.toJsonString(existing);
 
         if (dto.getTagAddress() != null) existing.setTagAddress(dto.getTagAddress());
         if (dto.getTagName() != null) existing.setTagName(dto.getTagName());
@@ -133,15 +177,35 @@ public class TagServiceImpl implements TagService {
         }
 
         tagMapper.updateById(existing);
+        auditLogService.record(
+                "TAG",
+                tagId,
+                existing.getDatasourceId(),
+                "UPDATE",
+                getCurrentOperator(),
+                beforeSnapshot,
+                JsonUtils.toJsonString(existing),
+                null);
     }
 
     @Override
     public void deleteTag(Long tagId) {
-        DataSourceTag tag = new DataSourceTag();
-        tag.setId(tagId);
-        tag.setStatus(TagStatus.DELETED.getCode());
-        tag.setDeletedAt(new Date());
-        tagMapper.updateById(tag);
+        DataSourceTag tag = tagMapper.selectById(tagId);
+        if (tag == null) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.RESOURCE_NOT_FOUND, "Tag not found: " + tagId);
+        }
+        String beforeSnapshot = JsonUtils.toJsonString(tag);
+        tagMapper.deleteById(tagId);
+        auditLogService.record(
+                "TAG",
+                tagId,
+                tag.getDatasourceId(),
+                "DELETE",
+                getCurrentOperator(),
+                beforeSnapshot,
+                null,
+                null);
     }
 
     @Override
@@ -152,11 +216,19 @@ public class TagServiceImpl implements TagService {
         wrapper.isNull(DataSourceTag::getDeletedAt);
 
         List<DataSourceTag> tags = tagMapper.selectList(wrapper);
-        Date now = new Date();
+        String operator = getCurrentOperator();
         for (DataSourceTag tag : tags) {
-            tag.setStatus(TagStatus.DELETED.getCode());
-            tag.setDeletedAt(now);
-            tagMapper.updateById(tag);
+            String beforeSnapshot = JsonUtils.toJsonString(tag);
+            tagMapper.deleteById(tag.getId());
+            auditLogService.record(
+                    "TAG",
+                    tag.getId(),
+                    datasourceId,
+                    "DELETE",
+                    operator,
+                    beforeSnapshot,
+                    null,
+                    "batch delete by datasource");
         }
     }
 
@@ -171,9 +243,9 @@ public class TagServiceImpl implements TagService {
         wrapper.eq(DataSourceTag::getDatasourceId, datasourceId);
         wrapper.isNull(DataSourceTag::getDeletedAt);
         wrapper.orderByAsc(DataSourceTag::getSortOrder);
-        return tagMapper.selectList(wrapper).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        List<DataSourceTag> tags = tagMapper.selectList(wrapper);
+        Map<Long, String> groupPathCache = buildGroupPathCache(datasourceId);
+        return tags.stream().map(t -> toResponse(t, groupPathCache)).collect(Collectors.toList());
     }
 
     @Override
@@ -183,9 +255,18 @@ public class TagServiceImpl implements TagService {
         wrapper.eq(DataSourceTag::getGroupId, groupId);
         wrapper.isNull(DataSourceTag::getDeletedAt);
         wrapper.orderByAsc(DataSourceTag::getSortOrder);
-        return tagMapper.selectList(wrapper).stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
+        List<DataSourceTag> tags = tagMapper.selectList(wrapper);
+        Map<Long, String> groupPathCache = buildGroupPathCache(datasourceId);
+        return tags.stream().map(t -> toResponse(t, groupPathCache)).collect(Collectors.toList());
+    }
+
+    private Map<Long, String> buildGroupPathCache(Long datasourceId) {
+        Map<String, Long> pathToId = groupService.buildPathToIdMap(datasourceId);
+        Map<Long, String> idToPath = new HashMap<>();
+        for (Map.Entry<String, Long> e : pathToId.entrySet()) {
+            idToPath.put(e.getValue(), e.getKey());
+        }
+        return idToPath;
     }
 
     @Override
@@ -205,11 +286,28 @@ public class TagServiceImpl implements TagService {
         tagMapper.updateById(tag);
     }
 
+    private static String getCurrentOperator() {
+        try {
+            return ServletUtils.getCurrentUser().getUsername();
+        } catch (Exception e) {
+            return "system";
+        }
+    }
+
     private TagResponse toResponse(DataSourceTag tag) {
+        return toResponse(tag, Collections.emptyMap());
+    }
+
+    private TagResponse toResponse(DataSourceTag tag, Map<Long, String> groupPathCache) {
         TagResponse r = new TagResponse();
         r.setId(tag.getId());
         r.setDatasourceId(tag.getDatasourceId());
         r.setGroupId(tag.getGroupId());
+        if (tag.getGroupId() != null) {
+            r.setGroupPath(
+                    groupPathCache.getOrDefault(
+                            tag.getGroupId(), groupService.getPathById(tag.getGroupId())));
+        }
         r.setNativeId(tag.getNativeId());
         r.setTagAddress(tag.getTagAddress());
         r.setTagName(tag.getTagName());
