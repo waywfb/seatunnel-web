@@ -69,6 +69,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 
 import javax.annotation.Resource;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -407,6 +409,94 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         String pluginName = datasource.getPluginName();
         return DataSourceClientFactory.getDataSourceClient()
                 .previewMessage(pluginName, datasourceConfig, "default", topic, offset);
+    }
+
+    @Override
+    public String previewHttpResponse(String datasourceId) {
+        long datasourceIdLong = Long.parseLong(datasourceId);
+        Datasource datasource = datasourceDao.selectDatasourceById(datasourceIdLong);
+        if (datasource == null) {
+            throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceId);
+        }
+        String config = datasource.getDatasourceConfig();
+        Map<String, String> datasourceConfig = JsonUtils.toMap(config);
+        configShadeUtil.decryptData(datasourceConfig);
+        String urlStr = datasourceConfig.get("url");
+        if (StringUtils.isEmpty(urlStr)) {
+            throw new SeatunnelException(SeatunnelErrorEnum.ILLEGAL_STATE, "HTTP URL is not configured");
+        }
+        String method = datasourceConfig.getOrDefault("method", "GET").toUpperCase();
+        String headersStr = datasourceConfig.get("headers");
+        String paramsStr = datasourceConfig.get("params");
+        String body = datasourceConfig.get("body");
+        try {
+            // append query params to URL
+            String requestUrl = urlStr;
+            if (StringUtils.isNotEmpty(paramsStr)) {
+                Map<String, String> params = JsonUtils.toMap(paramsStr);
+                if (params != null && !params.isEmpty()) {
+                    StringBuilder queryString = new StringBuilder();
+                    for (Map.Entry<String, String> entry : params.entrySet()) {
+                        if (queryString.length() > 0) {
+                            queryString.append("&");
+                        } else {
+                            queryString.append(
+                                    requestUrl.contains("?") ? "&" : "?");
+                        }
+                        queryString.append(entry.getKey())
+                                .append("=")
+                                .append(java.net.URLEncoder.encode(
+                                        entry.getValue() != null ? entry.getValue() : "",
+                                        java.nio.charset.StandardCharsets.UTF_8.name()));
+                    }
+                    requestUrl = urlStr + queryString;
+                }
+            }
+            URL url = new URL(requestUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(method);
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+            connection.setInstanceFollowRedirects(true);
+            // set request headers
+            if (StringUtils.isNotEmpty(headersStr)) {
+                Map<String, String> headers = JsonUtils.toMap(headersStr);
+                if (headers != null) {
+                    for (Map.Entry<String, String> entry : headers.entrySet()) {
+                        connection.setRequestProperty(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
+            // set request body for methods that support it
+            if (StringUtils.isNotEmpty(body)
+                    && ("POST".equals(method) || "PUT".equals(method) || "PATCH".equals(method))) {
+                connection.setDoOutput(true);
+                try (java.io.OutputStream os = connection.getOutputStream()) {
+                    os.write(body.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
+            }
+            int responseCode = connection.getResponseCode();
+            java.io.InputStream inputStream = (responseCode >= 200 && responseCode < 300)
+                    ? connection.getInputStream()
+                    : connection.getErrorStream();
+            if (inputStream == null) {
+                connection.disconnect();
+                return "";
+            }
+            StringBuilder responseBody = new StringBuilder();
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    responseBody.append(line);
+                }
+            }
+            connection.disconnect();
+            return responseBody.toString();
+        } catch (java.io.IOException e) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.ILLEGAL_STATE, "Failed to fetch HTTP response: " + e.getMessage());
+        }
     }
 
     private List<TableField> convertTableSchema(String virtualTableFieldJson) {

@@ -71,5 +71,9 @@ export default {
   preview_message_loading: 'Loading...',
   preview_message_empty: '(empty message)',
   preview_fetch_next: 'Fetch Next',
-  preview_use: 'Use This Message'
+  preview_use: 'Use This Message',
+  derive_schema_paste_title: 'Paste Response Data',
+  derive_schema_paste_placeholder: 'Paste HTTP response sample JSON to auto-derive field structure',
+  derive_schema_paste_derive: 'Derive',
+  derive_schema_paste_tips: 'Please paste JSON data first'
 }

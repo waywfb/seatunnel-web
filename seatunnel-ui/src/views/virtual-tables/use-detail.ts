@@ -23,7 +23,8 @@ import {
   getFieldType,
   getDatasourceSchema,
   getKafkaMessage,
-  deriveFromMessage
+  deriveFromMessage,
+  getHttpResponse
 } from '@/service/virtual-table'
 import { omit } from 'lodash'
 import { useRouter } from 'vue-router'
@@ -52,7 +53,8 @@ export const useDetail = (id: string) => {
       loading: false,
       value: '',
       offset: 0,
-      deriving: false
+      deriving: false,
+      mode: 'kafka' as 'kafka' | 'paste'
     }
   })
   const { t } = useI18n()
@@ -187,11 +189,50 @@ export const useDetail = (id: string) => {
   })
 
   const onDeriveSchema = async () => {
-    const { datasourceId, tableName } = state.stepOne
+    const { datasourceId, tableName, pluginName } = state.stepOne
     if (!datasourceId || !tableName) {
       window.$message.warning(t('virtual_tables.derive_schema_required_tips'))
       return
     }
+
+    if (pluginName === 'Http') {
+      // 先尝试自动拉取 HTTP 响应数据推导，失败则回退到粘贴模式
+      state.previewModal.loading = true
+      try {
+        const responseBody = await getHttpResponse(datasourceId)
+        if (responseBody) {
+          const res = await deriveFromMessage(responseBody)
+          const fields: IDetailTableRecord[] = (res || []).map(
+            (item: { name: string; type: string }) => ({
+              fieldName: item.name,
+              fieldType: item.type,
+              nullable: 0,
+              primaryKey: 0,
+              isEdit: false,
+              key: Date.now() + Math.random() * 1000
+            })
+          )
+          if (fields.length > 0) {
+            state.stepTwo.list = fields
+            window.$message.success(
+              t('virtual_tables.derive_schema_success')
+            )
+            return
+          }
+        }
+      } catch {
+        // 自动拉取失败，回退到粘贴模式
+      } finally {
+        state.previewModal.loading = false
+      }
+      state.previewModal.mode = 'paste'
+      state.previewModal.show = true
+      state.previewModal.value = ''
+      return
+    }
+
+    // Kafka 等流式数据源：消息预览流程
+    state.previewModal.mode = 'kafka'
     state.previewModal.loading = true
     state.previewModal.show = true
     state.previewModal.offset = 0
@@ -204,6 +245,39 @@ export const useDetail = (id: string) => {
       window.$message.error(t('virtual_tables.derive_schema_error'))
     } finally {
       state.previewModal.loading = false
+    }
+  }
+
+  const onPasteDerive = async () => {
+    const value = state.previewModal.value
+    if (!value) {
+      window.$message.warning(t('virtual_tables.derive_schema_paste_tips'))
+      return
+    }
+    state.previewModal.deriving = true
+    try {
+      const res = await deriveFromMessage(value)
+      const fields: IDetailTableRecord[] = (res || []).map(
+        (item: { name: string; type: string }) => ({
+          fieldName: item.name,
+          fieldType: item.type,
+          nullable: 0,
+          primaryKey: 0,
+          isEdit: false,
+          key: Date.now() + Math.random() * 1000
+        })
+      )
+      if (fields.length === 0) {
+        window.$message.warning(t('virtual_tables.derive_schema_empty_tips'))
+        return
+      }
+      state.stepTwo.list = fields
+      state.previewModal.show = false
+      window.$message.success(t('virtual_tables.derive_schema_success'))
+    } catch {
+      window.$message.error(t('virtual_tables.derive_schema_error'))
+    } finally {
+      state.previewModal.deriving = false
     }
   }
 
@@ -287,6 +361,7 @@ export const useDetail = (id: string) => {
     onAddRecord,
     onChangeStep,
     onDeriveSchema,
+    onPasteDerive,
     onPreviewUse,
     onPreviewFetchNext,
     onPreviewClose,

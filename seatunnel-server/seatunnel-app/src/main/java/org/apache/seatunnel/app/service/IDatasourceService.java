@@ -245,6 +245,14 @@ public interface IDatasourceService {
 
     Map<String, Object> previewMessage(String datasourceId, String topic, Long offset);
 
+    /**
+     * preview HTTP datasource response
+     *
+     * @param datasourceId datasourceId
+     * @return response body as string
+     */
+    String previewHttpResponse(String datasourceId);
+
     default List<String> queryTableNames(
             String datasourceName, String databaseName, String filterName, Integer size) {
         return new ArrayList<>();

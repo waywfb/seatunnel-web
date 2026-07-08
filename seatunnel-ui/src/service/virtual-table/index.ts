@@ -107,6 +107,13 @@ export function getKafkaMessage(
   })
 }
 
+export function getHttpResponse(datasourceId: string): any {
+  return axios({
+    url: '/datasource/' + datasourceId + '/response',
+    method: 'get'
+  })
+}
+
 export function deriveFromMessage(value: string): any {
   return axios({
     url: '/datasource/schema/derive',

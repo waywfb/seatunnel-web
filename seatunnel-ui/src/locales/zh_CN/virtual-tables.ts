@@ -70,5 +70,9 @@ export default {
   preview_message_loading: '加载中...',
   preview_message_empty: '(空消息)',
   preview_fetch_next: '获取下一条',
-  preview_use: '使用此消息推导'
+  preview_use: '使用此消息推导',
+  derive_schema_paste_title: '粘贴响应数据',
+  derive_schema_paste_placeholder: '请粘贴 HTTP 响应数据样例 JSON，用于自动推导字段结构',
+  derive_schema_paste_derive: '推导',
+  derive_schema_paste_tips: '请先粘贴 JSON 数据'
 }
