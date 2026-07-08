@@ -37,6 +37,7 @@ import org.apache.seatunnel.app.dal.dao.IJobInstanceDao;
 import org.apache.seatunnel.app.dal.dao.IJobLineDao;
 import org.apache.seatunnel.app.dal.dao.IJobTaskDao;
 import org.apache.seatunnel.app.dal.dao.IJobVersionDao;
+import org.apache.seatunnel.app.dal.entity.DataSourceTag;
 import org.apache.seatunnel.app.dal.entity.JobDefinition;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.dal.entity.JobLine;
@@ -60,6 +61,7 @@ import org.apache.seatunnel.app.service.IDatasourceService;
 import org.apache.seatunnel.app.service.IJobInstanceService;
 import org.apache.seatunnel.app.service.IJobMetricsService;
 import org.apache.seatunnel.app.service.IVirtualTableService;
+import org.apache.seatunnel.app.service.tag.TagService;
 import org.apache.seatunnel.app.thirdparty.datasource.DataSourceConfigSwitcherUtils;
 import org.apache.seatunnel.app.thirdparty.transfrom.TransformConfigSwitcherUtils;
 import org.apache.seatunnel.app.utils.ConfigShadeUtil;
@@ -136,6 +138,8 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
     @Autowired private ConfigShadeUtil configShadeUtil;
 
     @Autowired private EncryptionConfig encryptionConfig;
+
+    @Resource private TagService tagService;
 
     @Override
     public JobExecutorRes createExecuteResource(
@@ -486,16 +490,40 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
             }
         }
 
-        return DataSourceConfigSwitcherUtils.mergeDatasourceConfig(
-                pluginName,
-                connectorType,
-                datasourceConf,
-                virtualTableDetailRes,
-                dataSourceOption,
-                selectTableFields,
-                businessMode,
-                pluginType,
-                connectorConfig);
+        Config merged =
+                DataSourceConfigSwitcherUtils.mergeDatasourceConfig(
+                        pluginName,
+                        connectorType,
+                        datasourceConf,
+                        virtualTableDetailRes,
+                        dataSourceOption,
+                        selectTableFields,
+                        businessMode,
+                        pluginType,
+                        connectorConfig);
+
+        // For PLC datasources (OPCUA/S7/Modbus), tag_addresses and tags
+        // must come from 测点管理 (t_st_datasource_tag), NOT from selectTableFields.
+        // selectTableFields defines the Jdbc sink output columns only.
+        if ("OPCUA".equals(pluginName) || "S7".equals(pluginName) || "Modbus".equals(pluginName)) {
+            List<DataSourceTag> activeTags = tagService.getActiveTags(datasourceInstanceId);
+            if (activeTags != null && !activeTags.isEmpty()) {
+                List<String> tagAddresses =
+                        activeTags.stream()
+                                .map(DataSourceTag::getTagAddress)
+                                .collect(Collectors.toList());
+                List<String> tagNames =
+                        activeTags.stream()
+                                .map(DataSourceTag::getTagName)
+                                .collect(Collectors.toList());
+                merged =
+                        merged.withValue(
+                                "tag_addresses", ConfigValueFactory.fromIterable(tagAddresses));
+                merged = merged.withValue("tags", ConfigValueFactory.fromIterable(tagNames));
+            }
+        }
+
+        return merged;
     }
 
     private String createJobConfig(@NonNull JobVersion jobVersion, JobExecParam executeParam) {
