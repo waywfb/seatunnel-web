@@ -77,16 +77,10 @@ connector-datasource-mapper:
       dataSources:
         - Hive
 
-    Modbus:
-      dataSources:
-        - Modbus
-
-    OPCUA:
+    Plc4x:
       dataSources:
         - OPCUA
-
-    S7:
-      dataSources:
+        - Modbus
         - S7
 
   sourceDatasourceFeatures:

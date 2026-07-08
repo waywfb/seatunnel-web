@@ -11,23 +11,43 @@ import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
 import org.apache.seatunnel.server.common.SeatunnelException;
 
+import org.apache.plc4x.java.api.PlcConnection;
+import org.apache.plc4x.java.api.PlcDriverManager;
+import org.apache.plc4x.java.api.messages.PlcBrowseItem;
+import org.apache.plc4x.java.api.messages.PlcBrowseRequest;
+import org.apache.plc4x.java.api.messages.PlcBrowseResponse;
+
+import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * Direct PLC4J/Milo implementation of BridgeClient.
+ *
+ * <p>Previously this class called the Bridge REST service at {@code /api/discover}. Now it connects
+ * directly to PLCs using PLC4J (for S7) and Eclipse Milo (for OPC UA). The {@code bridge.base-url}
+ * configuration property is no longer used.
+ */
 @Service
 public class BridgeClientImpl implements BridgeClient {
 
-    private static final Logger log = LoggerFactory.getLogger(BridgeClientImpl.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BridgeClientImpl.class);
+    private static final PlcDriverManager DRIVER_MANAGER = PlcDriverManager.getDefault();
+    private static final long TIMEOUT_MS = 15_000;
 
     private static final Map<String, String> PLUGIN_TO_BRIDGE_PROTOCOL =
             Map.of(
@@ -35,53 +55,207 @@ public class BridgeClientImpl implements BridgeClient {
                     "Modbus", "modbus",
                     "S7", "s7");
 
-    private final RestTemplate restTemplate;
     private final IDatasourceDao datasourceDao;
 
-    @Value("${bridge.base-url:http://localhost:51999}")
-    private String bridgeBaseUrl;
-
-    public BridgeClientImpl(RestTemplate restTemplate, IDatasourceDao datasourceDao) {
-        this.restTemplate = restTemplate;
+    public BridgeClientImpl(IDatasourceDao datasourceDao) {
         this.datasourceDao = datasourceDao;
     }
 
     @Override
     public DiscoverResponseDTO discover(DiscoverRequestDTO request) {
-        String bridgeConnectionId = resolveConnectionId(request.getConnectionId());
+        String connectionId = resolveConnectionId(request.getConnectionId());
+        ConnInfo conn = parseConnectionId(connectionId);
 
-        Map<String, Object> bridgeRequest = new HashMap<>();
-        bridgeRequest.put("connectionId", bridgeConnectionId);
-        bridgeRequest.put("parentNodeId", request.getParentNodeId());
-        bridgeRequest.put("limit", request.getLimit());
-        bridgeRequest.put("offset", request.getOffset());
-
-        String url = bridgeBaseUrl + "/api/discover";
-        try {
-            ResponseEntity<Map> response =
-                    restTemplate.postForEntity(url, bridgeRequest, Map.class);
-            Map body = response.getBody();
-            if (body == null) {
+        switch (conn.protocol) {
+            case "opcua":
+                return doOpcUaDiscover(conn, request);
+            case "s7":
+                return doS7Discover(conn, request);
+            case "modbus":
+                return modbusNotSupported();
+            default:
                 throw new SeatunnelException(
-                        SeatunnelErrorEnum.UNKNOWN, "Bridge returned empty response");
-            }
-            int code = (int) body.getOrDefault("code", 500);
-            if (code != 200) {
-                String msg = (String) body.getOrDefault("message", "Bridge error");
-                throw new SeatunnelException(
-                        SeatunnelErrorEnum.UNKNOWN, "Bridge discover failed: " + msg);
-            }
-            Map data = (Map) body.get("data");
-            if (data == null) {
-                throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "Bridge returned no data");
-            }
-            return convertResponse(data);
-        } catch (RestClientException e) {
-            log.error("Bridge call failed", e);
-            throw new SeatunnelException(
-                    SeatunnelErrorEnum.UNKNOWN, "Bridge unavailable: " + e.getMessage());
+                        SeatunnelErrorEnum.UNKNOWN, "Unsupported protocol: " + conn.protocol);
         }
     }
+
+    // ========================================================================
+    // OPC UA — Eclipse Milo
+    // ========================================================================
+
+    private DiscoverResponseDTO doOpcUaDiscover(ConnInfo conn, DiscoverRequestDTO request) {
+        String endpointUrl = "opc.tcp://" + conn.host + ":" + conn.port;
+        OpcUaClient client = null;
+        try {
+            client = OpcUaClient.create(endpointUrl);
+            client.connect().get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+            NodeId browseRoot = Identifiers.ObjectsFolder;
+            if (request.getParentNodeId() != null && !request.getParentNodeId().isEmpty()) {
+                NodeId parsed = parseOpcUaNodeId(request.getParentNodeId());
+                if (parsed != null) {
+                    browseRoot = parsed;
+                }
+            }
+
+            List<? extends ReferenceDescription> refs = client.getAddressSpace().browse(browseRoot);
+
+            List<BrowseNodeDTO> nodes = new ArrayList<>();
+            for (ReferenceDescription ref : refs) {
+                if (ref == null || ref.getNodeId() == null) {
+                    continue;
+                }
+                nodes.add(toBrowseNodeDTO(ref));
+            }
+
+            ProtocolCapabilityDTO cap = new ProtocolCapabilityDTO();
+            cap.setProtocol("opcua");
+            cap.setSupportsBrowse(true);
+            cap.setSupportsTree(true);
+            cap.setSupportsLazy(false);
+            cap.setSupportsMetadata(true);
+            cap.setSupportsSubscription(false);
+
+            DiscoverResponseDTO response = new DiscoverResponseDTO();
+            response.setCapability(cap);
+            response.setNodes(nodes);
+            response.setHasMore(false);
+            response.setTotal(nodes.size());
+            return response;
+        } catch (Exception e) {
+            LOG.warn("OPC UA discover failed for {}:{}: {}", conn.host, conn.port, e.getMessage());
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.UNKNOWN, "OPC UA discover failed: " + e.getMessage());
+        } finally {
+            if (client != null) {
+                try {
+                    client.disconnect().get();
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            }
+        }
+    }
+
+    private BrowseNodeDTO toBrowseNodeDTO(ReferenceDescription ref) {
+        BrowseNodeDTO node = new BrowseNodeDTO();
+        String nativeId = ref.getNodeId().toParseableString();
+        node.setNativeId(nativeId);
+        node.setAddress(nativeId);
+        node.setDisplayName(ref.getDisplayName().getText());
+
+        boolean isLeaf =
+                ref.getNodeClass() == NodeClass.Variable
+                        || ref.getNodeClass() == NodeClass.VariableType;
+        node.setLeaf(isLeaf);
+
+        Map<String, Object> attrs = new LinkedHashMap<>();
+        attrs.put("nodeClass", ref.getNodeClass().name());
+        node.setAttributes(attrs);
+
+        return node;
+    }
+
+    private NodeId parseOpcUaNodeId(String nativeId) {
+        if (nativeId == null || !nativeId.startsWith("ns=")) {
+            return null;
+        }
+        try {
+            String[] parts = nativeId.split(";");
+            int ns = 0;
+            for (String part : parts) {
+                String trimmed = part.trim();
+                if (trimmed.startsWith("ns=")) {
+                    ns = Integer.parseInt(trimmed.substring(3));
+                } else if (trimmed.startsWith("i=")) {
+                    return new NodeId(ns, Integer.parseInt(trimmed.substring(2)));
+                } else if (trimmed.startsWith("s=")) {
+                    return new NodeId(ns, trimmed.substring(2));
+                }
+            }
+        } catch (Exception e) {
+            LOG.warn("Failed to parse OPC UA nodeId: {}", nativeId, e);
+        }
+        return null;
+    }
+
+    // ========================================================================
+    // S7 — PLC4J browse
+    // ========================================================================
+
+    private DiscoverResponseDTO doS7Discover(ConnInfo conn, DiscoverRequestDTO request) {
+        String connectionString = buildConnectionString("s7", conn.host, conn.port, null);
+        try (PlcConnection connection =
+                DRIVER_MANAGER.getConnectionManager().getConnection(connectionString)) {
+
+            PlcBrowseRequest browseRequest = connection.browseRequestBuilder().build();
+            CompletableFuture<? extends PlcBrowseResponse> future =
+                    browseRequest.execute().toCompletableFuture();
+            PlcBrowseResponse response = future.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+            List<BrowseNodeDTO> nodes = new ArrayList<>();
+            for (String queryName : response.getQueryNames()) {
+                for (PlcBrowseItem item : response.getValues(queryName)) {
+                    BrowseNodeDTO node = new BrowseNodeDTO();
+                    String address = item.getTag().getAddressString();
+                    node.setNativeId(address);
+                    node.setAddress(address);
+                    node.setDisplayName(item.getName());
+                    node.setLeaf(true);
+
+                    Map<String, Object> attrs = new LinkedHashMap<>();
+                    attrs.put("dataType", item.getTag().getClass().getSimpleName());
+                    node.setAttributes(attrs);
+
+                    nodes.add(node);
+                }
+            }
+
+            ProtocolCapabilityDTO cap = new ProtocolCapabilityDTO();
+            cap.setProtocol("s7");
+            cap.setSupportsBrowse(true);
+            cap.setSupportsTree(false);
+            cap.setSupportsLazy(false);
+            cap.setSupportsMetadata(false);
+            cap.setSupportsSubscription(false);
+
+            DiscoverResponseDTO discResponse = new DiscoverResponseDTO();
+            discResponse.setCapability(cap);
+            discResponse.setNodes(nodes);
+            discResponse.setHasMore(false);
+            discResponse.setTotal(nodes.size());
+            return discResponse;
+        } catch (Exception e) {
+            LOG.warn("S7 discover failed for {}:{}: {}", conn.host, conn.port, e.getMessage());
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.UNKNOWN, "S7 discover failed: " + e.getMessage());
+        }
+    }
+
+    // ========================================================================
+    // Modbus — not supported
+    // ========================================================================
+
+    private DiscoverResponseDTO modbusNotSupported() {
+        ProtocolCapabilityDTO cap = new ProtocolCapabilityDTO();
+        cap.setProtocol("modbus");
+        cap.setSupportsBrowse(false);
+        cap.setSupportsTree(false);
+        cap.setSupportsLazy(false);
+        cap.setSupportsMetadata(false);
+        cap.setSupportsSubscription(false);
+
+        DiscoverResponseDTO response = new DiscoverResponseDTO();
+        response.setCapability(cap);
+        response.setNodes(new ArrayList<>());
+        response.setHasMore(false);
+        response.setTotal(0);
+        return response;
+    }
+
+    // ========================================================================
+    // Connection helpers
+    // ========================================================================
 
     private String resolveConnectionId(String connId) {
         if (connId == null || connId.contains("://")) {
@@ -117,42 +291,57 @@ public class BridgeClientImpl implements BridgeClient {
         }
     }
 
-    private DiscoverResponseDTO convertResponse(Map data) {
-        DiscoverResponseDTO r = new DiscoverResponseDTO();
-        if (data.containsKey("capability") && data.get("capability") instanceof Map) {
-            Map cap = (Map) data.get("capability");
-            ProtocolCapabilityDTO pc = new ProtocolCapabilityDTO();
-            pc.setProtocol((String) cap.getOrDefault("protocol", ""));
-            pc.setSupportsBrowse((boolean) cap.getOrDefault("supportsBrowse", false));
-            pc.setSupportsTree((boolean) cap.getOrDefault("supportsTree", false));
-            pc.setSupportsLazy((boolean) cap.getOrDefault("supportsLazy", false));
-            pc.setSupportsMetadata((boolean) cap.getOrDefault("supportsMetadata", false));
-            pc.setSupportsSubscription((boolean) cap.getOrDefault("supportsSubscription", false));
-            r.setCapability(pc);
+    private static ConnInfo parseConnectionId(String connectionId) {
+        if (connectionId == null || !connectionId.contains("://")) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.UNKNOWN,
+                    "Invalid connectionId format (expected protocol://host:port): " + connectionId);
         }
-        r.setNodes(convertNodes((List<Map>) data.get("nodes")));
-        r.setHasMore((Boolean) data.get("hasMore"));
-        if (data.containsKey("total")) {
-            r.setTotal((Integer) data.get("total"));
+        String[] parts = connectionId.split("://");
+        String protocol = parts[0].toLowerCase();
+        String hostPort = parts[1];
+        int colonIdx = hostPort.lastIndexOf(':');
+        if (colonIdx < 0) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.UNKNOWN, "Missing port in connectionId: " + connectionId);
         }
-        return r;
+        String host = hostPort.substring(0, colonIdx);
+        int port = Integer.parseInt(hostPort.substring(colonIdx + 1));
+        return new ConnInfo(protocol, host, port);
     }
 
-    private List<BrowseNodeDTO> convertNodes(List<Map> nodes) {
-        if (nodes == null) return null;
-        List<BrowseNodeDTO> result = new ArrayList<>();
-        for (Map node : nodes) {
-            BrowseNodeDTO n = new BrowseNodeDTO();
-            n.setNativeId((String) node.get("nativeId"));
-            n.setAddress((String) node.get("address"));
-            n.setDisplayName((String) node.get("displayName"));
-            n.setLeaf((Boolean) node.get("leaf"));
-            n.setAttributes((Map) node.get("attributes"));
-            if (node.containsKey("children") && node.get("children") instanceof List) {
-                n.setChildren(convertNodes((List<Map>) node.get("children")));
+    static String buildConnectionString(
+            String protocol, String host, int port, Map<String, String> params) {
+        String base = protocol.toLowerCase().replaceAll("[\\s-]", "") + "://" + host + ":" + port;
+        if (params != null && !params.isEmpty()) {
+            StringBuilder query = new StringBuilder("?");
+            for (Map.Entry<String, String> e : params.entrySet()) {
+                if (e.getValue() == null || e.getValue().isEmpty()) {
+                    continue;
+                }
+                if (query.length() > 1) {
+                    query.append("&");
+                }
+                query.append(e.getKey())
+                        .append("=")
+                        .append(URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8));
             }
-            result.add(n);
+            if (query.length() > 1) {
+                base += query;
+            }
         }
-        return result;
+        return base;
+    }
+
+    private static final class ConnInfo {
+        final String protocol;
+        final String host;
+        final int port;
+
+        ConnInfo(String protocol, String host, int port) {
+            this.protocol = protocol;
+            this.host = host;
+            this.port = port;
+        }
     }
 }

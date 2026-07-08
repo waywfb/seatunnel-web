@@ -1,186 +1,277 @@
 package org.apache.seatunnel.datasource.plugin.plc4x.client;
 
+import org.apache.plc4x.java.api.PlcConnection;
+import org.apache.plc4x.java.api.PlcDriverManager;
+import org.apache.plc4x.java.api.messages.PlcBrowseItem;
+import org.apache.plc4x.java.api.messages.PlcBrowseRequest;
+import org.apache.plc4x.java.api.messages.PlcBrowseResponse;
+
+import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
+/**
+ * Direct PLC4J client that replaces the Bridge HTTP service.
+ *
+ * <p>Previously this class made HTTP calls to a separate {@code plc4x-bridge} service. Now it uses
+ * PLC4J (and Eclipse Milo for OPC UA) to connect directly to PLCs. The constructor still accepts a
+ * {@code bridgeUrl} parameter for backward compatibility, but it is ignored.
+ */
 public class Plc4xBridgeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(Plc4xBridgeClient.class);
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final PlcDriverManager DRIVER_MANAGER = PlcDriverManager.getDefault();
+    private static final long TIMEOUT_MS = 10_000;
 
-    private final String baseUrl;
-    private final int connectTimeout;
-    private final int readTimeout;
-
-    public Plc4xBridgeClient(String bridgeUrl) {
-        this.baseUrl =
-                bridgeUrl.endsWith("/")
-                        ? bridgeUrl.substring(0, bridgeUrl.length() - 1)
-                        : bridgeUrl;
-        this.connectTimeout = 5000;
-        this.readTimeout = 30000;
-        LOG.info("Plc4xBridgeClient created, baseUrl={}", this.baseUrl);
+    public Plc4xBridgeClient() {
+        LOG.info("Plc4xBridgeClient initialized in direct mode (no Bridge service)");
     }
+
+    /** @deprecated Keep for backward compatibility; {@code bridgeUrl} is ignored. */
+    @Deprecated
+    public Plc4xBridgeClient(String bridgeUrl) {
+        this();
+    }
+
+    // ========================================================================
+    // Public API — same signatures as before
+    // ========================================================================
 
     public boolean testConnection(
             String protocol, String host, int port, Map<String, String> params) {
         try {
-            Map<String, Object> bodyMap = new java.util.LinkedHashMap<>();
-            bodyMap.put("protocol", protocol);
-            bodyMap.put("host", host);
-            bodyMap.put("port", port);
-            if (params != null && !params.isEmpty()) {
-                bodyMap.put("params", params);
-            }
-            String json = MAPPER.writeValueAsString(bodyMap);
-            LOG.info("Testing connection: POST {}/api/connect body={}", baseUrl, json);
-            String response = doPost("/api/connect", json);
-            LOG.info("Connection test response: {}", response);
-            JsonNode node = MAPPER.readTree(response);
-            return node.get("code").asInt() == 200;
+            String connectionString = buildConnectionString(protocol, host, port, params);
+            PlcConnection connection =
+                    DRIVER_MANAGER.getConnectionManager().getConnection(connectionString);
+            boolean connected = connection.isConnected();
+            connection.close();
+            LOG.info(
+                    "Connection test {} for {}://{}:{}",
+                    connected ? "OK" : "FAILED",
+                    protocol,
+                    host,
+                    port);
+            return connected;
         } catch (Exception e) {
-            LOG.error("Connection test failed", e);
+            LOG.warn(
+                    "Connection test failed for {}://{}:{}: {}",
+                    protocol,
+                    host,
+                    port,
+                    e.getMessage());
             return false;
         }
     }
 
     public List<String> listDatabases(String connectionId) {
-        return doGetList("/api/databases?connectionId=" + urlEncode(connectionId));
+        return Collections.singletonList("default");
     }
 
     public List<String> listTables(String connectionId) {
-        return doGetList("/api/tables?connectionId=" + urlEncode(connectionId));
+        try {
+            ParsedConnId parsed = parseConnectionId(connectionId);
+            List<Map<String, Object>> groups =
+                    browseTags(parsed.protocol, parsed.host, parsed.port);
+            List<String> tableNames = new ArrayList<>();
+            for (Map<String, Object> group : groups) {
+                String name = (String) group.get("groupName");
+                if (name != null) {
+                    tableNames.add(name);
+                }
+            }
+            return tableNames;
+        } catch (Exception e) {
+            LOG.error("listTables failed for connectionId={}", connectionId, e);
+            return Collections.emptyList();
+        }
     }
 
     public List<Map<String, Object>> getFields(String connectionId, String groupName) {
         try {
-            StringBuilder url =
-                    new StringBuilder(
-                            baseUrl + "/api/fields?connectionId=" + urlEncode(connectionId));
-            if (groupName != null) {
-                url.append("&groupName=").append(urlEncode(groupName));
-            }
-            String response = doGet(url.toString());
-            JsonNode node = MAPPER.readTree(response);
-            if (node.get("code").asInt() != 200) return Collections.emptyList();
-            JsonNode data = node.get("data");
-            if (data == null || !data.isArray()) return Collections.emptyList();
-            List<Map<String, Object>> result = new java.util.ArrayList<>();
-            for (JsonNode item : data) {
-                result.add(MAPPER.convertValue(item, Map.class));
-            }
-            return result;
+            ParsedConnId parsed = parseConnectionId(connectionId);
+            return browseTags(parsed.protocol, parsed.host, parsed.port);
         } catch (Exception e) {
-            LOG.error(
-                    "getFields failed for connectionId={}, groupName={}",
-                    connectionId,
-                    groupName,
-                    e);
+            LOG.error("getFields failed for connectionId={}", connectionId, e);
             return Collections.emptyList();
         }
     }
 
-    private static String urlEncode(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    // ========================================================================
+    // Internal — protocol-specific browsing
+    // ========================================================================
+
+    private List<Map<String, Object>> browseTags(String protocol, String host, int port) {
+        String normalized = protocol.toLowerCase().replaceAll("[\\s-]", "");
+        switch (normalized) {
+            case "opcua":
+                return browseOpcUa(host, port);
+            case "s7":
+                return browseS7(host, port);
+            case "modbus":
+            case "modbustcp":
+                LOG.info("Modbus does not support browsing");
+                return Collections.emptyList();
+            default:
+                LOG.warn("Unsupported protocol for browsing: {}", protocol);
+                return Collections.emptyList();
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    private List<String> doGetList(String path) {
+    /**
+     * Browse OPC UA address space using Eclipse Milo directly. PLC4J's OPC UA driver does not
+     * expose the same tree-browse API, so we use Milo (same approach as the old Bridge's
+     * OpcUaBrowseProvider).
+     */
+    private List<Map<String, Object>> browseOpcUa(String host, int port) {
+        String endpointUrl = "opc.tcp://" + host + ":" + port;
+        OpcUaClient client = null;
         try {
-            String response = doGet(baseUrl + path);
-            JsonNode node = MAPPER.readTree(response);
-            if (node.get("code").asInt() != 200) return Collections.emptyList();
-            JsonNode data = node.get("data");
-            if (data == null || !data.isArray()) return Collections.emptyList();
-            return MAPPER.convertValue(data, List.class);
+            client = OpcUaClient.create(endpointUrl);
+            client.connect().get();
+
+            List<? extends ReferenceDescription> refs =
+                    client.getAddressSpace().browse(Identifiers.ObjectsFolder);
+
+            // Group top-level nodes by their display name
+            List<Map<String, Object>> groups = new ArrayList<>();
+            for (ReferenceDescription ref : refs) {
+                if (ref == null || ref.getNodeId() == null) {
+                    continue;
+                }
+
+                Map<String, Object> group = new LinkedHashMap<>();
+                String displayName = ref.getDisplayName().getText();
+                group.put("groupName", displayName != null ? displayName : "Unknown");
+
+                List<Map<String, String>> tags = new ArrayList<>();
+                Map<String, String> tag = new LinkedHashMap<>();
+                tag.put("tagName", displayName != null ? displayName : "Unknown");
+                tag.put("tagAddress", ref.getNodeId().toParseableString());
+                tag.put("dataType", ref.getNodeClass().name());
+                tags.add(tag);
+                group.put("tags", tags);
+
+                groups.add(group);
+            }
+            return groups;
         } catch (Exception e) {
-            LOG.error("doGetList failed for path={}", path, e);
+            LOG.warn("OPC UA browse failed for {}:{}: {}", host, port, e.getMessage());
+            return Collections.emptyList();
+        } finally {
+            if (client != null) {
+                try {
+                    client.disconnect().get();
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            }
+        }
+    }
+
+    /** Browse S7 tags using PLC4J's browse request API. */
+    private List<Map<String, Object>> browseS7(String host, int port) {
+        String connectionString = buildConnectionString("s7", host, port, Collections.emptyMap());
+        try (PlcConnection connection =
+                DRIVER_MANAGER.getConnectionManager().getConnection(connectionString)) {
+
+            PlcBrowseRequest browseRequest = connection.browseRequestBuilder().build();
+            CompletableFuture<? extends PlcBrowseResponse> future =
+                    browseRequest.execute().toCompletableFuture();
+            PlcBrowseResponse response = future.get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+            List<Map<String, Object>> groups = new ArrayList<>();
+            for (String queryName : response.getQueryNames()) {
+                Map<String, Object> group = new LinkedHashMap<>();
+                group.put("groupName", queryName);
+
+                List<Map<String, String>> tags = new ArrayList<>();
+                for (PlcBrowseItem item : response.getValues(queryName)) {
+                    Map<String, String> tag = new LinkedHashMap<>();
+                    tag.put("tagAddress", item.getTag().getAddressString());
+                    tag.put("tagName", item.getName());
+                    tag.put("dataType", item.getTag().getClass().getSimpleName());
+                    tags.add(tag);
+                }
+                group.put("tags", tags);
+                groups.add(group);
+            }
+            return groups;
+        } catch (Exception e) {
+            LOG.warn("S7 browse failed for {}:{}: {}", host, port, e.getMessage());
             return Collections.emptyList();
         }
     }
 
-    private String doGet(String url) throws Exception {
-        HttpURLConnection conn = null;
-        try {
-            conn = openConnection(url);
-            conn.setRequestMethod("GET");
-            int code = conn.getResponseCode();
-            if (code != 200) {
-                String body = readErrorBody(conn);
-                throw new RuntimeException("HTTP " + code + " response: " + body);
+    // ========================================================================
+    // Helpers
+    // ========================================================================
+
+    static String buildConnectionString(
+            String protocol, int defaultPort, String host, int port, Map<String, String> params) {
+        String base = protocol.toLowerCase().replaceAll("[\\s-]", "") + "://" + host + ":" + port;
+        if (params != null && !params.isEmpty()) {
+            StringBuilder query = new StringBuilder("?");
+            for (Map.Entry<String, String> e : params.entrySet()) {
+                if (e.getValue() == null || e.getValue().isEmpty()) {
+                    continue;
+                }
+                if (query.length() > 1) {
+                    query.append("&");
+                }
+                query.append(e.getKey())
+                        .append("=")
+                        .append(URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8));
             }
-            return readBody(conn);
-        } finally {
-            if (conn != null) conn.disconnect();
-        }
-    }
-
-    private String doPost(String path, String json) throws Exception {
-        HttpURLConnection conn = null;
-        try {
-            conn = openConnection(baseUrl + path);
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            byte[] data = json.getBytes(StandardCharsets.UTF_8);
-            conn.setFixedLengthStreamingMode(data.length);
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(data);
-                os.flush();
+            if (query.length() > 1) {
+                base += query;
             }
-            int code = conn.getResponseCode();
-            if (code != 200) {
-                String body = readErrorBody(conn);
-                throw new RuntimeException("HTTP " + code + " response: " + body);
-            }
-            return readBody(conn);
-        } finally {
-            if (conn != null) conn.disconnect();
         }
+        return base;
     }
 
-    private HttpURLConnection openConnection(String url) throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setConnectTimeout(connectTimeout);
-        conn.setReadTimeout(readTimeout);
-        return conn;
+    private String buildConnectionString(
+            String protocol, String host, int port, Map<String, String> params) {
+        return buildConnectionString(protocol, 0, host, port, params);
     }
 
-    private String readBody(HttpURLConnection conn) throws Exception {
-        try (InputStream is = conn.getInputStream()) {
-            return new String(readAll(is), StandardCharsets.UTF_8);
+    private static ParsedConnId parseConnectionId(String connectionId) {
+        // Format: "protocol://host:port"
+        String[] parts = connectionId.split("://");
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid connectionId: " + connectionId);
         }
+        String protocol = parts[0];
+        String hostPort = parts[1];
+        int colonIdx = hostPort.lastIndexOf(':');
+        if (colonIdx < 0) {
+            throw new IllegalArgumentException("Missing port in connectionId: " + connectionId);
+        }
+        String host = hostPort.substring(0, colonIdx);
+        int port = Integer.parseInt(hostPort.substring(colonIdx + 1));
+        return new ParsedConnId(protocol, host, port);
     }
 
-    private String readErrorBody(HttpURLConnection conn) {
-        try (InputStream is = conn.getErrorStream()) {
-            if (is != null) return new String(readAll(is), StandardCharsets.UTF_8);
-        } catch (Exception ignored) {
-        }
-        return "";
-    }
+    private static final class ParsedConnId {
+        final String protocol;
+        final String host;
+        final int port;
 
-    private byte[] readAll(InputStream is) throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        byte[] buf = new byte[4096];
-        int n;
-        while ((n = is.read(buf)) != -1) {
-            baos.write(buf, 0, n);
+        ParsedConnId(String protocol, String host, int port) {
+            this.protocol = protocol;
+            this.host = host;
+            this.port = port;
         }
-        return baos.toByteArray();
     }
 }

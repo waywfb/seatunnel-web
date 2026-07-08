@@ -50,13 +50,6 @@ public class Plc4xDataSourceConfig {
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
 
-    public static final String BRIDGE_URL_CONFIG_KEY = "plc4x.bridge.url";
-    public static final String DEFAULT_BRIDGE_URL = "http://localhost:51999";
-
-    public static String getBridgeUrl() {
-        return System.getProperty(BRIDGE_URL_CONFIG_KEY, DEFAULT_BRIDGE_URL);
-    }
-
     public static final int DEFAULT_CONNECT_TIMEOUT = 5000;
     public static final int DEFAULT_READ_TIMEOUT = 30000;
     public static final int DEFAULT_UNIT_ID = 1;

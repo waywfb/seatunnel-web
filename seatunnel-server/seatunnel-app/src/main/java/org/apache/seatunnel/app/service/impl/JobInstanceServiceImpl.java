@@ -215,6 +215,11 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
             PluginType pluginType = PluginType.valueOf(task.getType().toUpperCase(Locale.ROOT));
             try {
                 String pluginId = task.getPluginId();
+                // Resolve datasource plugin name (e.g. OPCUA) to engine connector name (e.g. Plc4x)
+                String engineConnectorType =
+                        dataSourceMapperConfig
+                                .findConnectorForDatasourceName(task.getConnectorType())
+                                .orElse(task.getConnectorType());
                 OptionRule optionRule =
                         connectorCache.getOptionRule(pluginType.getType(), task.getConnectorType());
                 Config config =
@@ -232,8 +237,8 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
                                             ConnectorCommonOptions.PLUGIN_OUTPUT.key(),
                                             inputLines.get(pluginId),
                                             config);
-                            if (!sourceMap.containsKey(task.getConnectorType())) {
-                                sourceMap.put(task.getConnectorType(), new ArrayList<>());
+                            if (!sourceMap.containsKey(engineConnectorType)) {
+                                sourceMap.put(engineConnectorType, new ArrayList<>());
                             }
 
                             if (businessMode.equals(BusinessMode.DATA_REPLICA)) {
@@ -258,13 +263,11 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
                                     mergeTaskConfig(
                                             task,
                                             pluginType,
-                                            task.getConnectorType(),
+                                            engineConnectorType,
                                             businessMode,
                                             config,
                                             optionRule);
-                            sourceMap
-                                    .get(task.getConnectorType())
-                                    .add(filterEmptyValue(mergeConfig));
+                            sourceMap.get(engineConnectorType).add(filterEmptyValue(mergeConfig));
                         }
                         break;
                     case TRANSFORM:
@@ -306,19 +309,19 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
                                     config.withValue(
                                             ConnectorCommonOptions.PLUGIN_INPUT.key(),
                                             ConfigValueFactory.fromIterable(inputTableNames));
-                            if (!sinkMap.containsKey(task.getConnectorType())) {
-                                sinkMap.put(task.getConnectorType(), new ArrayList<>());
+                            if (!sinkMap.containsKey(engineConnectorType)) {
+                                sinkMap.put(engineConnectorType, new ArrayList<>());
                             }
                             Config mergeConfig =
                                     mergeTaskConfig(
                                             task,
                                             pluginType,
-                                            task.getConnectorType(),
+                                            engineConnectorType,
                                             businessMode,
                                             config,
                                             optionRule);
 
-                            sinkMap.get(task.getConnectorType()).add(filterEmptyValue(mergeConfig));
+                            sinkMap.get(engineConnectorType).add(filterEmptyValue(mergeConfig));
                         }
                         break;
                     default:

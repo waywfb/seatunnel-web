@@ -583,19 +583,13 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.seatunnel</groupId>
-            <artifactId>plc4x-bridge</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- PLC4X transitive dependencies for bridge -->
+        <!-- Direct PLC4J + Milo dependencies (replaces plc4x-bridge) -->
         <dependency>
             <groupId>org.apache.plc4x</groupId>
             <artifactId>plc4j-api</artifactId>
             <version>0.13.1</version>
         </dependency>
-        <!-- Milo SDK for OPC UA browse (not transitive from plc4x-bridge) -->
+        <!-- Milo SDK for OPC UA browse -->
         <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-client</artifactId>

@@ -141,7 +141,7 @@ public class Plc4xDataSourceChannel implements DataSourceChannel {
     }
 
     private Plc4xBridgeClient buildClient(Map<String, String> params) {
-        return new Plc4xBridgeClient(Plc4xDataSourceConfig.getBridgeUrl());
+        return new Plc4xBridgeClient();
     }
 
     private String resolveConnectionId(String pluginName, Map<String, String> params) {

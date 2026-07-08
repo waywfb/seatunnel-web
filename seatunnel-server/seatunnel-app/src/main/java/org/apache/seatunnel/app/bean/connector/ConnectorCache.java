@@ -138,7 +138,7 @@ public class ConnectorCache {
     }
 
     private void registerPlcConnectors() {
-        List<String> plcNames = Arrays.asList("OPCUA", "Modbus", "S7");
+        List<String> plcNames = Arrays.asList("Plc4x", "OPCUA", "Modbus", "S7");
         List<ConnectorInfo> sourceConnectors =
                 new ArrayList<>(
                         downloadConnectorCache.getOrDefault(PluginType.SOURCE, new ArrayList<>()));
@@ -151,6 +151,7 @@ public class ConnectorCache {
                 sourceConnectors.add(new ConnectorInfo(id, null));
             }
             featureMap.putIfAbsent(id, new ConnectorFeature(false));
+            allConnectorOptionRule.putIfAbsent(id, OptionRule.builder().build());
         }
         downloadConnectorCache.put(PluginType.SOURCE, sourceConnectors);
     }
