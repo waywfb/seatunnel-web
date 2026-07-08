@@ -40,7 +40,8 @@ public class ExecuteReq {
     private Integer operatorId;
 
     @ApiModelProperty(value = "script params", required = true, dataType = "Map")
-    @NotEmpty private Map<String, Object> params;
+    @NotEmpty
+    private Map<String, Object> params;
 
     @ApiModelProperty(
             value = "execute type",

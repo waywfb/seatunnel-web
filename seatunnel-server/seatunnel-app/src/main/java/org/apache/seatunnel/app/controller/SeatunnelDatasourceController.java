@@ -344,7 +344,9 @@ public class SeatunnelDatasourceController extends BaseController {
         return Result.success(message);
     }
 
-    @ApiOperation(value = "preview HTTP datasource response", notes = "make HTTP request and return response body")
+    @ApiOperation(
+            value = "preview HTTP datasource response",
+            notes = "make HTTP request and return response body")
     @GetMapping("/{id}/response")
     Result<String> getHttpResponse(@PathVariable("id") String id) {
         return Result.success(datasourceService.previewHttpResponse(id));

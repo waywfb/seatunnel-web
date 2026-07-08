@@ -30,7 +30,6 @@ import org.apache.seatunnel.app.domain.response.datasource.DatasourceDetailRes;
 import org.apache.seatunnel.app.domain.response.datasource.DatasourceRes;
 import org.apache.seatunnel.app.domain.response.datasource.VirtualTableFieldRes;
 import org.apache.seatunnel.app.domain.response.group.GroupResponse;
-import org.apache.seatunnel.app.domain.response.tag.TagResponse;
 import org.apache.seatunnel.app.dynamicforms.FormStructure;
 import org.apache.seatunnel.app.permission.constants.SeatunnelFuncPermissionKeyConstant;
 import org.apache.seatunnel.app.security.UserContextHolder;
@@ -479,7 +478,8 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         configShadeUtil.decryptData(datasourceConfig);
         String urlStr = datasourceConfig.get("url");
         if (StringUtils.isEmpty(urlStr)) {
-            throw new SeatunnelException(SeatunnelErrorEnum.ILLEGAL_STATE, "HTTP URL is not configured");
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.ILLEGAL_STATE, "HTTP URL is not configured");
         }
         String method = datasourceConfig.getOrDefault("method", "GET").toUpperCase();
         String headersStr = datasourceConfig.get("headers");
@@ -496,14 +496,15 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
                         if (queryString.length() > 0) {
                             queryString.append("&");
                         } else {
-                            queryString.append(
-                                    requestUrl.contains("?") ? "&" : "?");
+                            queryString.append(requestUrl.contains("?") ? "&" : "?");
                         }
-                        queryString.append(entry.getKey())
+                        queryString
+                                .append(entry.getKey())
                                 .append("=")
-                                .append(java.net.URLEncoder.encode(
-                                        entry.getValue() != null ? entry.getValue() : "",
-                                        java.nio.charset.StandardCharsets.UTF_8.name()));
+                                .append(
+                                        java.net.URLEncoder.encode(
+                                                entry.getValue() != null ? entry.getValue() : "",
+                                                java.nio.charset.StandardCharsets.UTF_8.name()));
                     }
                     requestUrl = urlStr + queryString;
                 }
@@ -532,16 +533,19 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
                 }
             }
             int responseCode = connection.getResponseCode();
-            java.io.InputStream inputStream = (responseCode >= 200 && responseCode < 300)
-                    ? connection.getInputStream()
-                    : connection.getErrorStream();
+            java.io.InputStream inputStream =
+                    (responseCode >= 200 && responseCode < 300)
+                            ? connection.getInputStream()
+                            : connection.getErrorStream();
             if (inputStream == null) {
                 connection.disconnect();
                 return "";
             }
             StringBuilder responseBody = new StringBuilder();
-            try (java.io.BufferedReader reader = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8))) {
+            try (java.io.BufferedReader reader =
+                    new java.io.BufferedReader(
+                            new java.io.InputStreamReader(
+                                    inputStream, java.nio.charset.StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     responseBody.append(line);
@@ -551,7 +555,8 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             return responseBody.toString();
         } catch (java.io.IOException e) {
             throw new SeatunnelException(
-                    SeatunnelErrorEnum.ILLEGAL_STATE, "Failed to fetch HTTP response: " + e.getMessage());
+                    SeatunnelErrorEnum.ILLEGAL_STATE,
+                    "Failed to fetch HTTP response: " + e.getMessage());
         }
     }
 
