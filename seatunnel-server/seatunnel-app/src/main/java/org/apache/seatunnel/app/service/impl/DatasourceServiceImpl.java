@@ -29,6 +29,8 @@ import org.apache.seatunnel.app.domain.response.PageInfo;
 import org.apache.seatunnel.app.domain.response.datasource.DatasourceDetailRes;
 import org.apache.seatunnel.app.domain.response.datasource.DatasourceRes;
 import org.apache.seatunnel.app.domain.response.datasource.VirtualTableFieldRes;
+import org.apache.seatunnel.app.domain.response.group.GroupResponse;
+import org.apache.seatunnel.app.domain.response.tag.TagResponse;
 import org.apache.seatunnel.app.dynamicforms.FormStructure;
 import org.apache.seatunnel.app.permission.constants.SeatunnelFuncPermissionKeyConstant;
 import org.apache.seatunnel.app.security.UserContextHolder;
@@ -297,6 +299,9 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceName);
         }
         String pluginName = datasource.getPluginName();
+        if (PLC_PLUGIN_NAMES.contains(pluginName)) {
+            return Collections.singletonList(datasourceName);
+        }
         if (Boolean.FALSE.equals(checkIsSupportVirtualTable(pluginName))) {
             String config = datasource.getDatasourceConfig();
             Map<String, String> datasourceConfig = JsonUtils.toMap(config);
@@ -331,6 +336,9 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         options.put("size", size.toString());
         options.put("filterName", filterName);
         String pluginName = datasource.getPluginName();
+        if (PLC_PLUGIN_NAMES.contains(pluginName)) {
+            return getPlcTableNames(datasource.getId());
+        }
         if (BooleanUtils.isNotTrue(checkIsSupportVirtualTable(pluginName))) {
             configShadeUtil.decryptData(datasourceConfig);
             return DataSourceClientFactory.getDataSourceClient()
@@ -350,6 +358,9 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         Map<String, String> datasourceConfig = JsonUtils.toMap(config);
         Map<String, String> options = new HashMap<>();
         String pluginName = datasource.getPluginName();
+        if (PLC_PLUGIN_NAMES.contains(pluginName)) {
+            return getPlcTableNames(datasource.getId());
+        }
         if (BooleanUtils.isNotTrue(checkIsSupportVirtualTable(pluginName))) {
             configShadeUtil.decryptData(datasourceConfig);
             return DataSourceClientFactory.getDataSourceClient()
@@ -369,6 +380,9 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
         String config = datasource.getDatasourceConfig();
         Map<String, String> datasourceConfig = JsonUtils.toMap(config);
         String pluginName = datasource.getPluginName();
+        if (PLC_PLUGIN_NAMES.contains(pluginName)) {
+            return getPlcTableSchema(tableName, datasource);
+        }
         ITableSchemaService tableSchemaService =
                 (ITableSchemaService) applicationContext.getBean("tableSchemaServiceImpl");
         configShadeUtil.decryptData(datasourceConfig);
@@ -394,6 +408,48 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
 
         tableSchemaService.getAddSeaTunnelSchema(tableFields, pluginName);
         return tableFields;
+    }
+
+    private List<String> getPlcTableNames(Long datasourceId) {
+        List<GroupResponse> groups = groupService.getGroups(datasourceId);
+        return groups.stream().map(GroupResponse::getGroupName).collect(Collectors.toList());
+    }
+
+    private List<TableField> getPlcTableSchema(String tableName, Datasource datasource) {
+        List<GroupResponse> groups = groupService.getGroups(datasource.getId());
+        GroupResponse group = findGroupByName(groups, tableName);
+        if (group == null) {
+            return Collections.emptyList();
+        }
+        // 测点集同步后的数据结构包含 5 个固定字段
+        List<TableField> fields = new ArrayList<>();
+        addField(fields, "Name", "string", "测点名称");
+        addField(fields, "NumericID", "long", "数字 ID");
+        addField(fields, "Value", "string", "测点值");
+        addField(fields, "Quality", "string", "质量状态");
+        addField(fields, "Time", "datetime", "时间戳");
+        return fields;
+    }
+
+    private void addField(List<TableField> fields, String name, String type, String comment) {
+        TableField field = new TableField();
+        field.setName(name);
+        field.setType(type);
+        field.setComment(comment);
+        fields.add(field);
+    }
+
+    private GroupResponse findGroupByName(List<GroupResponse> groups, String name) {
+        for (GroupResponse group : groups) {
+            if (name.equals(group.getGroupName())) {
+                return group;
+            }
+            if (group.getChildren() != null && !group.getChildren().isEmpty()) {
+                GroupResponse found = findGroupByName(group.getChildren(), name);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     @Override

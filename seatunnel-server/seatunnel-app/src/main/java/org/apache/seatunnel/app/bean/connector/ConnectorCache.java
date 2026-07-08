@@ -123,9 +123,6 @@ public class ConnectorCache {
                 PluginDiscoveryUtil.getAllConnectorsFromPluginMapping(PluginType.SINK));
         transformCache = PluginDiscoveryUtil.getTransforms(allConnectors);
 
-        // Register virtual PLC connectors (no physical JAR needed)
-        registerPlcConnectors();
-
         sourceFormStructureCache =
                 PluginDiscoveryUtil.getDownloadedConnectorFormStructures(
                         allConnectors, PluginType.SOURCE);
@@ -134,6 +131,10 @@ public class ConnectorCache {
                         allConnectors, PluginType.SINK);
         transformFormStructureCache = PluginDiscoveryUtil.getTransformFormStructures(allConnectors);
         syncSourceFeature();
+
+        // Register virtual PLC connectors (no physical JAR needed)
+        // Must be after syncSourceFeature() which replaces the entire featureMap
+        registerPlcConnectors();
     }
 
     private void registerPlcConnectors() {

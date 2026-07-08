@@ -41,8 +41,7 @@ public class DatasourceClassLoader extends URLClassLoader {
     @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
         log.info("load class for name : " + name);
-        for (String alwaysParentFirstPattern :
-                DatasourceLoadConfig.DEFAULT_PARENT_FIRST_PATTERNS) {
+        for (String alwaysParentFirstPattern : DatasourceLoadConfig.DEFAULT_PARENT_FIRST_PATTERNS) {
             if (name.startsWith(alwaysParentFirstPattern)) {
                 try {
                     return parentClassLoader.loadClass(name);
