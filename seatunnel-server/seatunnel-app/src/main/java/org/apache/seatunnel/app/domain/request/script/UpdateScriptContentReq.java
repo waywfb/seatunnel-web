@@ -31,8 +31,7 @@ public class UpdateScriptContentReq {
     private Integer scriptId;
 
     @ApiModelProperty(value = "script id", required = true, dataType = "Integer")
-    @NotBlank
-    private String content;
+    @NotBlank private String content;
 
     @ApiModelProperty(
             value = "script mender id",

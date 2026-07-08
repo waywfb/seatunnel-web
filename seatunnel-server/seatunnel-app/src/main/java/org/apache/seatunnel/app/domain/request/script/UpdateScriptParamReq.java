@@ -32,6 +32,5 @@ public class UpdateScriptParamReq {
     private Integer scriptId;
 
     @ApiModelProperty(value = "script params", required = true, dataType = "Map")
-    @NotEmpty
-    private Map<String, String> params;
+    @NotEmpty private Map<String, String> params;
 }
