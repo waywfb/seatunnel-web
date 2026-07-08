@@ -39,14 +39,14 @@ import com.google.auto.service.AutoService;
 import java.util.List;
 
 @AutoService(DataSourceConfigSwitcher.class)
-public class Plc4xDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitcher {
+public class S7DataSourceConfigSwitcher extends AbstractDataSourceConfigSwitcher {
 
-    private static final String PROTOCOL_VALUE = "opcua";
+    private static final String PROTOCOL_VALUE = "s7";
     private static final String PROTOCOL_KEY = "protocol";
 
     @Override
     public String getDataSourceName() {
-        return "OPCUA";
+        return "S7";
     }
 
     @Override
@@ -66,7 +66,6 @@ public class Plc4xDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitc
         excludedKeys.add("tag_addresses");
         excludedKeys.add("tags");
         excludedKeys.add("connection_string");
-        // poll_interval_ms has a default in the engine connector, no user input needed
         excludedKeys.add("poll_interval_ms");
         if (connectorOptionRule == null) {
             return SeaTunnelOptionRuleWrapper.wrapper(
@@ -97,7 +96,7 @@ public class Plc4xDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitc
             connectorConfig = ConfigFactory.empty();
         }
 
-        // Set PLC4J protocol based on datasource type (OPCUA)
+        // Set PLC4J protocol based on datasource type (S7)
         connectorConfig =
                 connectorConfig.withValue(
                         PROTOCOL_KEY, ConfigValueFactory.fromAnyRef(PROTOCOL_VALUE));
@@ -112,6 +111,9 @@ public class Plc4xDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitc
                     connectorConfig.withValue("port", dataSourceInstanceConfig.getValue("port"));
         }
 
+        // Extract tag addresses from the virtual table's selected table fields.
+        // These are the tags selected in tag management (测点管理) that the user
+        // chose to include in the virtual table.
         if (selectTableFields != null
                 && selectTableFields.getTableFields() != null
                 && !selectTableFields.getTableFields().isEmpty()) {
