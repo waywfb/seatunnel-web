@@ -39,6 +39,7 @@ public class DatasourceLoadConfig {
                 "org.slf4j",
                 "org.apache.log4j",
                 "org.apache.seatunnel.api",
+                "org.apache.seatunnel.datasource.plugin.plc4x",
                 "org.apache.logging",
                 "org.apache.commons",
                 "com.fasterxml.jackson"

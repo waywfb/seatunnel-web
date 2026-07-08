@@ -38,7 +38,7 @@ public class BridgeClientImpl implements BridgeClient {
     private final RestTemplate restTemplate;
     private final IDatasourceDao datasourceDao;
 
-    @Value("${bridge.base-url:http://localhost:8081}")
+    @Value("${bridge.base-url:http://localhost:51999}")
     private String bridgeBaseUrl;
 
     public BridgeClientImpl(RestTemplate restTemplate, IDatasourceDao datasourceDao) {
