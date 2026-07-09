@@ -22,6 +22,9 @@ import org.apache.seatunnel.shade.com.typesafe.config.ConfigFactory;
 import org.apache.seatunnel.shade.com.typesafe.config.ConfigValueFactory;
 
 import org.apache.seatunnel.api.configuration.Option;
+import org.apache.seatunnel.api.configuration.Options;
+import org.apache.seatunnel.api.configuration.util.Condition;
+import org.apache.seatunnel.api.configuration.util.Expression;
 import org.apache.seatunnel.api.configuration.util.OptionRule;
 import org.apache.seatunnel.api.configuration.util.RequiredOption;
 import org.apache.seatunnel.app.domain.request.connector.BusinessMode;
@@ -36,6 +39,7 @@ import org.apache.seatunnel.common.constants.PluginType;
 
 import com.google.auto.service.AutoService;
 
+import java.util.Arrays;
 import java.util.List;
 
 @AutoService(DataSourceConfigSwitcher.class)
@@ -68,6 +72,35 @@ public class Plc4xDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitc
         excludedKeys.add("connection_string");
         // poll_interval_ms has a default in the engine connector, no user input needed
         excludedKeys.add("poll_interval_ms");
+
+        Option<String> modeOption =
+                Options.key("mode")
+                        .singleChoice(String.class, Arrays.asList("polling", "subscription"))
+                        .defaultValue("polling")
+                        .withDescription(
+                                "PLC data collection mode: polling (periodic read) or subscription (real-time change notification)");
+        addOptionalOptions.add(modeOption);
+
+        Option<String> subscriptionTypeOption =
+                Options.key("subscription_type")
+                        .singleChoice(
+                                String.class, Arrays.asList("cyclic", "change_of_state", "event"))
+                        .defaultValue("cyclic")
+                        .withDescription(
+                                "PLC4X subscription type: cyclic (periodic), change_of_state (value change), event (event-based)");
+
+        Option<Long> subscriptionIntervalMsOption =
+                Options.key("subscription_interval_ms")
+                        .longType()
+                        .defaultValue(1000L)
+                        .withDescription(
+                                "Check/watch interval in milliseconds for subscription mode");
+
+        addRequiredOptions.add(
+                RequiredOption.ConditionalRequiredOptions.of(
+                        Expression.of(Condition.of(modeOption, "subscription")),
+                        Arrays.asList(subscriptionTypeOption, subscriptionIntervalMsOption)));
+
         if (connectorOptionRule == null) {
             return SeaTunnelOptionRuleWrapper.wrapper(
                     OptionRule.builder().build(), connectorName + "[" + pluginType.getType() + "]");

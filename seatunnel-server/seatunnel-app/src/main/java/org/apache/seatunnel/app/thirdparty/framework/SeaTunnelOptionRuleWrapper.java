@@ -321,6 +321,15 @@ public class SeaTunnelOptionRuleWrapper {
                     locale);
         }
 
+        if (SingleChoiceOption.class.isAssignableFrom(option.getClass())) {
+            List<?> optionValues = ((SingleChoiceOption<?>) option).getOptionValues();
+            List<ImmutablePair> staticSelectOptions =
+                    optionValues.stream()
+                            .map(o -> new ImmutablePair(o.toString(), o.toString()))
+                            .collect(Collectors.toList());
+            return selectInput(connectorName, option, staticSelectOptions, locale);
+        }
+
         if (Double.class.equals(option.typeReference().getType())
                 || Duration.class.equals(option.typeReference().getType())
                 || Float.class.equals(option.typeReference().getType())
@@ -347,15 +356,6 @@ public class SeaTunnelOptionRuleWrapper {
                         .startsWith("org.apache.seatunnel.api.configuration.Options")) {
 
             return textareaInput(connectorName, option, locale);
-        }
-
-        if (SingleChoiceOption.class.isAssignableFrom(option.getClass())) {
-            List<?> optionValues = ((SingleChoiceOption<?>) option).getOptionValues();
-            List<ImmutablePair> staticSelectOptions =
-                    optionValues.stream()
-                            .map(o -> new ImmutablePair(o.toString(), o.toString()))
-                            .collect(Collectors.toList());
-            return selectInput(connectorName, option, staticSelectOptions, locale);
         }
 
         if (((Class) option.typeReference().getType()).isEnum()) {

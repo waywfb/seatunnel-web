@@ -72,3 +72,5 @@ awesome-design-md/
 docs/*
 DESIGN-bak.md
 .omo/*
+.playwright-mcp/*
+seatunnel-ui/.omo/*
