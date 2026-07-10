@@ -51,5 +51,16 @@ export default {
   transforms,
   dag: {
     nodeConfigHint: '双击节点进行配置。配置完成后，连接每个节点的端点到其他节点。'
-  }
+  },
+  cyclic: '周期轮询',
+  change_of_state: '状态变更',
+  event: '事件触发',
+  polling: '轮询',
+  subscription: '订阅',
+  mode: '采集模式',
+  host: '主机地址',
+  port: '端口',
+  subscription_type: '订阅类型',
+  subscription_interval_ms: '订阅间隔(毫秒)',
+  poll_interval_ms: '轮询间隔(毫秒)'
 }

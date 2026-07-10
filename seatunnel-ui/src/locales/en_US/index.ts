@@ -51,5 +51,16 @@ export default {
   transforms,
   dag: {
     nodeConfigHint: 'Double click to configure. After configure, Connect each node ends to another.'
-  }
+  },
+  cyclic: 'Cyclic',
+  change_of_state: 'Change of State',
+  event: 'Event',
+  polling: 'Polling',
+  subscription: 'Subscription',
+  mode: 'Mode',
+  host: 'Host',
+  port: 'Port',
+  subscription_type: 'Subscription Type',
+  subscription_interval_ms: 'Subscription Interval (ms)',
+  poll_interval_ms: 'Poll Interval (ms)'
 }

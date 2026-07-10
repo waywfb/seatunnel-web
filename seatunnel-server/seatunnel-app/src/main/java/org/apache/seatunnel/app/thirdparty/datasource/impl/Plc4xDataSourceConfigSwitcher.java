@@ -45,126 +45,124 @@ import java.util.List;
 @AutoService(DataSourceConfigSwitcher.class)
 public class Plc4xDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitcher {
 
-    private static final String PROTOCOL_VALUE = "opcua";
-    private static final String PROTOCOL_KEY = "protocol";
+        private static final String PROTOCOL_VALUE = "opcua";
+        private static final String PROTOCOL_KEY = "protocol";
 
-    @Override
-    public String getDataSourceName() {
-        return "OPCUA";
-    }
-
-    @Override
-    public FormStructure filterOptionRule(
-            String connectorName,
-            OptionRule dataSourceOptionRule,
-            OptionRule virtualTableOptionRule,
-            BusinessMode businessMode,
-            PluginType pluginType,
-            OptionRule connectorOptionRule,
-            List<RequiredOption> addRequiredOptions,
-            List<Option<?>> addOptionalOptions,
-            List<String> excludedKeys) {
-        // Exclude protocol since the switcher auto-sets it based on datasource type
-        excludedKeys.add(PROTOCOL_KEY);
-        // Exclude fields auto-generated in mergeDatasourceConfig
-        excludedKeys.add("tag_addresses");
-        excludedKeys.add("tags");
-        excludedKeys.add("connection_string");
-        // poll_interval_ms has a default in the engine connector, no user input needed
-        excludedKeys.add("poll_interval_ms");
-
-        Option<String> modeOption =
-                Options.key("mode")
-                        .singleChoice(String.class, Arrays.asList("polling", "subscription"))
-                        .defaultValue("polling")
-                        .withDescription(
-                                "PLC data collection mode: polling (periodic read) or subscription (real-time change notification)");
-        addOptionalOptions.add(modeOption);
-
-        Option<String> subscriptionTypeOption =
-                Options.key("subscription_type")
-                        .singleChoice(
-                                String.class, Arrays.asList("cyclic", "change_of_state", "event"))
-                        .defaultValue("cyclic")
-                        .withDescription(
-                                "PLC4X subscription type: cyclic (periodic), change_of_state (value change), event (event-based)");
-
-        Option<Long> subscriptionIntervalMsOption =
-                Options.key("subscription_interval_ms")
-                        .longType()
-                        .defaultValue(1000L)
-                        .withDescription(
-                                "Check/watch interval in milliseconds for subscription mode");
-
-        addRequiredOptions.add(
-                RequiredOption.ConditionalRequiredOptions.of(
-                        Expression.of(Condition.of(modeOption, "subscription")),
-                        Arrays.asList(subscriptionTypeOption, subscriptionIntervalMsOption)));
-
-        if (connectorOptionRule == null) {
-            return SeaTunnelOptionRuleWrapper.wrapper(
-                    OptionRule.builder().build(), connectorName + "[" + pluginType.getType() + "]");
-        }
-        return super.filterOptionRule(
-                connectorName,
-                dataSourceOptionRule,
-                virtualTableOptionRule,
-                businessMode,
-                pluginType,
-                connectorOptionRule,
-                addRequiredOptions,
-                addOptionalOptions,
-                excludedKeys);
-    }
-
-    @Override
-    public Config mergeDatasourceConfig(
-            Config dataSourceInstanceConfig,
-            VirtualTableDetailRes virtualTableDetail,
-            DataSourceOption dataSourceOption,
-            SelectTableFields selectTableFields,
-            BusinessMode businessMode,
-            PluginType pluginType,
-            Config connectorConfig) {
-        if (connectorConfig == null) {
-            connectorConfig = ConfigFactory.empty();
+        @Override
+        public String getDataSourceName() {
+                return "OPCUA";
         }
 
-        // Set PLC4J protocol based on datasource type (OPCUA)
-        connectorConfig =
-                connectorConfig.withValue(
-                        PROTOCOL_KEY, ConfigValueFactory.fromAnyRef(PROTOCOL_VALUE));
+        @Override
+        public FormStructure filterOptionRule(
+                        String connectorName,
+                        OptionRule dataSourceOptionRule,
+                        OptionRule virtualTableOptionRule,
+                        BusinessMode businessMode,
+                        PluginType pluginType,
+                        OptionRule connectorOptionRule,
+                        List<RequiredOption> addRequiredOptions,
+                        List<Option<?>> addOptionalOptions,
+                        List<String> excludedKeys) {
+                // Exclude protocol since the switcher auto-sets it based on datasource type
+                excludedKeys.add(PROTOCOL_KEY);
+                excludedKeys.add("tag_addresses");
+                excludedKeys.add("tags");
+                excludedKeys.add("connection_string");
+                excludedKeys.add("host");
+                excludedKeys.add("port");
 
-        // Copy host and port from datasource config if present
-        if (dataSourceInstanceConfig.hasPath("host")) {
-            connectorConfig =
-                    connectorConfig.withValue("host", dataSourceInstanceConfig.getValue("host"));
-        }
-        if (dataSourceInstanceConfig.hasPath("port")) {
-            connectorConfig =
-                    connectorConfig.withValue("port", dataSourceInstanceConfig.getValue("port"));
+                Option<String> modeOption = Options.key("mode")
+                                .singleChoice(String.class, Arrays.asList("polling", "subscription"))
+                                .defaultValue("polling")
+                                .withDescription("采集模式：轮询｜订阅");
+                addRequiredOptions.add(RequiredOption.AbsolutelyRequiredOptions.of(modeOption));
+
+                Option<String> subscriptionTypeOption = Options.key("subscription_type")
+                                .singleChoice(
+                                                String.class, Arrays.asList("cyclic", "change_of_state", "event"))
+                                .defaultValue("cyclic")
+                                .withDescription("订阅类型：周期轮询、状态变更、事件触发");
+
+                Option<Long> subscriptionIntervalMsOption = Options.key("subscription_interval_ms")
+                                .longType()
+                                .defaultValue(1000L)
+                                .withDescription("订阅模式下检查/轮询间隔（毫秒）");
+
+                addRequiredOptions.add(
+                                RequiredOption.ConditionalRequiredOptions.of(
+                                                Expression.of(Condition.of(modeOption, "subscription")),
+                                                Arrays.asList(subscriptionTypeOption, subscriptionIntervalMsOption)));
+
+                Option<Long> pollIntervalMsOption = Options.key("poll_interval_ms")
+                                .longType()
+                                .defaultValue(3000L)
+                                .withDescription("轮询模式下读取间隔（毫秒）");
+
+                addRequiredOptions.add(
+                                RequiredOption.ConditionalRequiredOptions.of(
+                                                Expression.of(Condition.of(modeOption, "polling")),
+                                                Arrays.asList(pollIntervalMsOption)));
+
+                if (connectorOptionRule == null) {
+                        return SeaTunnelOptionRuleWrapper.wrapper(
+                                        OptionRule.builder().build(), connectorName + "[" + pluginType.getType() + "]");
+                }
+                return super.filterOptionRule(
+                                connectorName,
+                                dataSourceOptionRule,
+                                virtualTableOptionRule,
+                                businessMode,
+                                pluginType,
+                                connectorOptionRule,
+                                addRequiredOptions,
+                                addOptionalOptions,
+                                excludedKeys);
         }
 
-        if (selectTableFields != null
-                && selectTableFields.getTableFields() != null
-                && !selectTableFields.getTableFields().isEmpty()) {
-            connectorConfig =
-                    connectorConfig.withValue(
-                            "tag_addresses",
-                            ConfigValueFactory.fromIterable(selectTableFields.getTableFields()));
-            connectorConfig =
-                    connectorConfig.withValue(
-                            "tags",
-                            ConfigValueFactory.fromIterable(selectTableFields.getTableFields()));
-        }
+        @Override
+        public Config mergeDatasourceConfig(
+                        Config dataSourceInstanceConfig,
+                        VirtualTableDetailRes virtualTableDetail,
+                        DataSourceOption dataSourceOption,
+                        SelectTableFields selectTableFields,
+                        BusinessMode businessMode,
+                        PluginType pluginType,
+                        Config connectorConfig) {
+                if (connectorConfig == null) {
+                        connectorConfig = ConfigFactory.empty();
+                }
 
-        return super.mergeDatasourceConfig(
-                dataSourceInstanceConfig,
-                virtualTableDetail,
-                dataSourceOption,
-                selectTableFields,
-                businessMode,
-                pluginType,
-                connectorConfig);
-    }
+                // Set PLC4J protocol based on datasource type (OPCUA)
+                connectorConfig = connectorConfig.withValue(
+                                PROTOCOL_KEY, ConfigValueFactory.fromAnyRef(PROTOCOL_VALUE));
+
+                // Copy host and port from datasource config if present
+                if (dataSourceInstanceConfig.hasPath("host")) {
+                        connectorConfig = connectorConfig.withValue("host", dataSourceInstanceConfig.getValue("host"));
+                }
+                if (dataSourceInstanceConfig.hasPath("port")) {
+                        connectorConfig = connectorConfig.withValue("port", dataSourceInstanceConfig.getValue("port"));
+                }
+
+                if (selectTableFields != null
+                                && selectTableFields.getTableFields() != null
+                                && !selectTableFields.getTableFields().isEmpty()) {
+                        connectorConfig = connectorConfig.withValue(
+                                        "tag_addresses",
+                                        ConfigValueFactory.fromIterable(selectTableFields.getTableFields()));
+                        connectorConfig = connectorConfig.withValue(
+                                        "tags",
+                                        ConfigValueFactory.fromIterable(selectTableFields.getTableFields()));
+                }
+
+                return super.mergeDatasourceConfig(
+                                dataSourceInstanceConfig,
+                                virtualTableDetail,
+                                dataSourceOption,
+                                selectTableFields,
+                                businessMode,
+                                pluginType,
+                                connectorConfig);
+        }
 }
