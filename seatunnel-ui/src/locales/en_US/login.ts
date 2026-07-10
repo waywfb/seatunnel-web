@@ -24,5 +24,36 @@ export default {
   password_tips: 'Please input password',
   use_ldap: 'Ldap Authentication',
   select_workspace: 'Select Workspace',
-  select_workspace_tips: 'Please select workspace'
+  select_workspace_tips: 'Please select workspace',
+  remember_device: 'Remember this device',
+  forgot_password: 'Forgot password?',
+  sso_divider: 'Single Sign-On',
+  enterprise_account: 'Enterprise Account',
+  saml_login: 'SAML Login',
+  // Brand & Hero
+  brand_subtitle: 'Industrial Data Fusion Platform',
+  hero_title: 'Fuse Industrial Data · Drive Smart Future',
+  hero_description: 'Connect devices, integrate data, build pipelines, unlock data value',
+  // Feature Cards
+  feature_multi_source: 'Multi-Source',
+  feature_multi_source_desc: '50+ Connectors',
+  feature_visual: 'Visual Pipeline',
+  feature_visual_desc: 'Drag & Drop',
+  feature_reliable: 'Reliable',
+  feature_reliable_desc: 'High Availability',
+  feature_monitoring: 'Monitoring',
+  feature_monitoring_desc: 'Full Observability',
+  // Stats
+  stat_throughput: 'Data Throughput',
+  stat_connectors: 'Connectors',
+  stat_uptime: 'Uptime',
+  // Login Panel
+  welcome_back: 'Welcome Back',
+  login_subtitle: 'Sign in to manage your industrial data pipelines.',
+  // Footer
+  footer_tagline: 'Empowering industrial digital transformation',
+  footer_brand: 'Industrial Data Fusion Platform',
+  footer_privacy: 'Privacy Policy',
+  footer_status: 'System Status',
+  footer_support: 'Contact Support'
 }

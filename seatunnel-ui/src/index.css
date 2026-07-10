@@ -576,6 +576,42 @@ body {
   box-shadow: var(--shadow-card);
 }
 
+.login-brand-section {
+  background: linear-gradient(135deg, #0B0F19 0%, #1a1f2e 100%);
+}
+
+.login-brand-overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 104, 95, 0.15) 0%,
+    rgba(11, 15, 25, 0.9) 50%,
+    rgba(0, 104, 95, 0.1) 100%
+  );
+}
+
+.login-data-flow {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-primary) 20%,
+    var(--color-primary) 80%,
+    transparent 100%
+  );
+  animation: dataFlow 3s ease-in-out infinite;
+}
+
+@keyframes dataFlow {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleX(0.8);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scaleX(1);
+  }
+}
+
 /* =========================================================
    MICRO-ANIMATIONS
    Smooth interactive transitions

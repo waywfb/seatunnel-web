@@ -17,9 +17,6 @@
 
 import { defineComponent, toRefs, withKeys, getCurrentInstance } from 'vue'
 import {
-  NSpace,
-  NLayout,
-  NLayoutContent,
   NForm,
   NFormItem,
   NInput,
@@ -47,96 +44,419 @@ const Login = defineComponent({
   },
   render() {
     return (
-      <NLayout>
-        <NLayoutContent>
-          <NSpace
-            justify='center'
-            align='center'
-            class='w-full h-screen login-bg'
-          >
-            <div class='w-96' style={{
-              background: 'var(--color-card)',
-              padding: 'var(--space-12) var(--space-12)',
-              borderRadius: 'var(--card-radius)',
-              boxShadow: 'var(--shadow-card)',
-              border: '1px solid var(--color-border)'
-            }}>
-              <div style={{
-                textAlign: 'center',
-                marginBottom: 'var(--space-8)'
-              }}>
-                <svg width='48' height='48' viewBox='0 0 32 32' fill='none'>
-                  <rect width='32' height='32' rx='8' fill='var(--color-primary)'/>
-                  <text x='16' y='21' text-anchor='middle' fill='white' font-size='15' font-weight='700' font-family='Inter, sans-serif'>ST</text>
-                </svg>
-                <h2 style={{
-                  fontSize: 'var(--font-size-xl)',
-                  fontWeight: 700,
-                  color: 'var(--color-foreground)',
-                  marginTop: 'var(--space-4)'
-                }}>
-                  {this.t('login.login_to_sea_tunnel')}
-                </h2>
+      <div class='flex min-h-screen'>
+        {/* Left Side: Brand & Visuals */}
+        <section class='hidden lg:flex lg:w-7/12 relative overflow-hidden login-brand-section'>
+          {/* Background Image */}
+          <div class='absolute inset-0 z-0'>
+            <div
+              class='w-full h-full bg-cover bg-center'
+              style={{
+                backgroundImage:
+                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCatEqV2Umh2ienP8y8XNH9q5tWjh3RPJ8wP5fiIK933-F5Drz2iq4WHBj5OviVp-nhZnTM18Ck6QUt47iyNTrDxV2r14AWmSPBsoKjI7p61hqylldgreN8K3z2V7xFRnP8mUdfNFQZmDvZZWDVgosItebr8I9soJSewhImA4U_D43z0b632Tk8Vc5cRpOdh9XI8uLkhbDxOyXfXq6mb_2bK1rEjsP_hez9T3o_uC1QbGS3IEaAdpOLbpJqCmVNEmn0-_jlLjnt2wezdQ")'
+              }}
+            />
+            <div class='absolute inset-0 login-brand-overlay' />
+          </div>
+
+          {/* Content Overlay */}
+          <div class='relative z-10 flex flex-col justify-between p-16 w-full'>
+            {/* Brand Anchor */}
+            <div class='flex items-center gap-3'>
+              <div class='w-10 h-10 bg-primary flex items-center justify-center rounded-lg shadow-lg'>
+                <span
+                  class='material-symbols-outlined text-white'
+                  style={{ fontVariationSettings: '"FILL" 1' }}
+                >
+                  waves
+                </span>
               </div>
-              <NForm rules={this.rules} ref='loginFormRef' class='mb-4'>
-                <NFormItem
-                  label={this.t('login.username')}
-                  label-style={{ color: 'var(--color-foreground)' }}
-                  path='userName'
-                >
-                  <NInput
-                    clearable
-                    allowInput={this.trim}
-                    type='text'
-                    v-model={[this.loginForm.username, 'value']}
-                    placeholder={this.t('login.username_tips')}
-                    autofocus
-                    onKeydown={withKeys(this.handleLogin, ['enter'])}
-                  />
-                </NFormItem>
-                <NFormItem
-                  label={this.t('login.password')}
-                  label-style={{ color: 'var(--color-foreground)' }}
-                  path='userPassword'
-                >
-                  <NInput
-                    clearable
-                    allowInput={this.trim}
-                    type='password'
-                    v-model={[this.loginForm.password, 'value']}
-                    placeholder={this.t('login.password_tips')}
-                    onKeydown={withKeys(this.handleLogin, ['enter'])}
-                  />
-                </NFormItem>
-                <NFormItem
-                    label={this.t('login.select_workspace')}
-                    label-style={{ color: 'var(--color-foreground)' }}
-                    path='selectedWorkspace'
-                >
-                  <NSelect
-                      options={this.workspaces.map(workspace => ({ label: workspace, value: workspace }))}
-                      v-model={[this.loginForm.selectedWorkspace, 'value']}
-                      placeholder={this.t('login.select_workspace_tips')}
-                  />
-                </NFormItem>
-                <NFormItem>
-                  <NCheckbox v-model={this.loginForm.useLdap} onUpdateChecked={(value) => this.loginForm.useLdap = value} >
-                    {this.t('login.use_ldap')}
-                  </NCheckbox>
-                </NFormItem>
-              </NForm>
-              <NButton
-                type='info'
-                disabled={!this.loginForm.username || !this.loginForm.password || !this.loginForm.selectedWorkspace}
-                style={{ width: '100%' }}
-                onClick={this.handleLogin}
-              >
-                {this.t('login.login')}
-              </NButton>
+              <div class='flex flex-col'>
+                <span class='font-tide-headline-lg text-tide-headline-lg text-white font-bold tracking-tight'>
+                  Data Fusion Studio
+                </span>
+                <span class='text-tide-primary-fixed-dim text-xs font-medium tracking-widest uppercase'>
+                  {this.t('login.brand_subtitle')}
+                </span>
+              </div>
             </div>
-          </NSpace>
-        </NLayoutContent>
-      </NLayout>
+
+            {/* Center Messaging */}
+            <div class='max-w-2xl'>
+              <h1 class='font-tide-headline-lg text-tide-headline-lg text-white mb-6 leading-tight text-4xl'>
+                {this.t('login.hero_title')}
+              </h1>
+              <p class='font-tide-body-md text-lg text-slate-300 leading-relaxed opacity-90 mb-10'>
+                {this.t('login.hero_description')}
+              </p>
+
+              {/* Feature Cards */}
+              <div class='grid grid-cols-4 gap-4 mb-10 relative'>
+                <div class='absolute inset-0 top-1/2 h-0.5 login-data-flow opacity-40' />
+                <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
+                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>hub
+                  </span>
+                  <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
+                    {this.t('login.feature_multi_source')}
+                  </span>
+                  <span class='text-slate-400 text-[10px]'>
+                    {this.t('login.feature_multi_source_desc')}
+                  </span>
+                </div>
+                <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
+                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>account_tree
+                  </span>
+                  <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
+                    {this.t('login.feature_visual')}
+                  </span>
+                  <span class='text-slate-400 text-[10px]'>
+                    {this.t('login.feature_visual_desc')}
+                  </span>
+                </div>
+                <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
+                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>verified_user
+                  </span>
+                  <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
+                    {this.t('login.feature_reliable')}
+                  </span>
+                  <span class='text-slate-400 text-[10px]'>
+                    {this.t('login.feature_reliable_desc')}
+                  </span>
+                </div>
+                <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
+                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>monitoring
+                  </span>
+                  <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
+                    {this.t('login.feature_monitoring')}
+                  </span>
+                  <span class='text-slate-400 text-[10px]'>
+                    {this.t('login.feature_monitoring_desc')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div class='flex gap-12 items-center'>
+                <div class='flex flex-col'>
+                  <span class='text-white font-bold font-tide-headline-md text-tide-headline-md'>
+                    10GB+
+                  </span>
+                  <span class='text-slate-400 font-tide-label-md text-tide-label-md'>
+                    {this.t('login.stat_throughput')}
+                  </span>
+                </div>
+                <div class='flex flex-col'>
+                  <span class='text-white font-bold font-tide-headline-md text-tide-headline-md'>
+                    50+
+                  </span>
+                  <span class='text-slate-400 font-tide-label-md text-tide-label-md'>
+                    {this.t('login.stat_connectors')}
+                  </span>
+                </div>
+                <div class='flex flex-col'>
+                  <span class='text-white font-bold font-tide-headline-md text-tide-headline-md'>
+                    99.99%
+                  </span>
+                  <span class='text-slate-400 font-tide-label-md text-tide-label-md'>
+                    {this.t('login.stat_uptime')}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Footer (Left) */}
+            <div class='flex items-center gap-4'>
+              <div class='flex -space-x-2'>
+                <div class='w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] text-white'>
+                  王
+                </div>
+                <div class='w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] text-white'>
+                  李
+                </div>
+                <div class='w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] text-white'>
+                  张
+                </div>
+              </div>
+              <p class='text-slate-400 font-tide-label-md text-tide-label-md'>
+                {this.t('login.footer_tagline')}
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Right Side: Login Panel */}
+        <section class='flex-1 flex flex-col bg-slate-50 relative'>
+          {/* Mobile Header */}
+          <div class='lg:hidden p-6 flex items-center gap-3'>
+            <div class='w-8 h-8 bg-primary flex items-center justify-center rounded'>
+              <span
+                class='material-symbols-outlined text-white text-sm'
+                style={{ fontVariationSettings: '"FILL" 1' }}
+              >
+                waves
+              </span>
+            </div>
+            <span class='font-tide-headline-md text-tide-headline-md text-primary font-bold'>
+              SeaTunnel
+            </span>
+          </div>
+
+          <div class='flex-1 flex items-center justify-center p-6 md:p-12 overflow-y-auto'>
+            <div class='w-full max-w-[440px] bg-white rounded-2xl shadow-xl shadow-slate-200/60 p-8 md:p-10 border border-slate-100'>
+              {/* Login Header */}
+              <div class='mb-8'>
+                <h2 class='font-tide-headline-lg text-2xl text-tide-on-surface mb-2'>
+                  {this.t('login.welcome_back')}
+                </h2>
+                <p class='font-tide-body-md text-tide-on-secondary-container'>
+                  {this.t('login.login_subtitle')}
+                </p>
+              </div>
+
+              {/* Login Form */}
+              <NForm rules={this.rules} ref='loginFormRef' class='space-y-6'>
+                {/* Username Field */}
+                <div class='space-y-2'>
+                  <label
+                    class='block font-tide-label-md text-tide-label-md text-tide-on-surface-variant'
+                    for='username'
+                  >
+                    {this.t('login.username')}
+                  </label>
+                  <div class='relative'>
+                    <span class='absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
+                      person
+                    </span>
+                    {/* Visual Shell (Tailwind) + NInput core */}
+                    <div class='w-full pl-10 pr-4 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
+                      <NInput
+                        ref='usernameInput'
+                        clearable
+                        allowInput={this.trim}
+                        type='text'
+                        v-model={[this.loginForm.username, 'value']}
+                        placeholder={this.t('login.username_tips')}
+                        autofocus
+                        onKeydown={withKeys(this.handleLogin, ['enter'])}
+                        bordered={false}
+                        style={{
+                          width: '100%',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '14px',
+                          lineHeight: '20px',
+                          color: 'var(--color-foreground)',
+                          fontFamily: 'var(--font-sans)',
+                          padding: '0'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password Field */}
+                <div class='space-y-2'>
+                  <div class='flex justify-between items-center'>
+                    <label
+                      class='block font-tide-label-md text-tide-label-md text-tide-on-surface-variant'
+                      for='password'
+                    >
+                      {this.t('login.password')}
+                    </label>
+                    <a
+                      class='font-tide-label-md text-tide-label-md text-primary hover:text-tide-primary-container transition-colors'
+                      href='#'
+                    >
+                      {this.t('login.forgot_password')}
+                    </a>
+                  </div>
+                  <div class='relative'>
+                    <span class='absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
+                      lock
+                    </span>
+                    {/* Visual Shell (Tailwind) + NInput core */}
+                    <div class='w-full pl-10 pr-12 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
+                      <NInput
+                        ref='passwordInput'
+                        clearable
+                        allowInput={this.trim}
+                        type='password'
+                        v-model={[this.loginForm.password, 'value']}
+                        placeholder={this.t('login.password_tips')}
+                        onKeydown={withKeys(this.handleLogin, ['enter'])}
+                        bordered={false}
+                        style={{
+                          width: '100%',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '14px',
+                          lineHeight: '20px',
+                          color: 'var(--color-foreground)',
+                          fontFamily: 'var(--font-sans)',
+                          padding: '0'
+                        }}
+                      />
+                      <button
+                        type='button'
+                        class='absolute right-3 top-1/2 -translate-y-1/2 text-tide-outline-variant hover:text-tide-outline transition-colors'
+                        onClick={() => {
+                          const input = this.passwordInput?.$el?.querySelector('input') as HTMLInputElement
+                          if (input) {
+                            input.type = input.type === 'password' ? 'text' : 'password'
+                          }
+                        }}
+                      >
+                        <span class='material-symbols-outlined text-[20px]'>
+                          {this.loginForm.password ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Workspace Select */}
+                <div class='space-y-2'>
+                  <label
+                    class='block font-tide-label-md text-tide-label-md text-tide-on-surface-variant'
+                    for='workspace'
+                  >
+                    {this.t('login.select_workspace')}
+                  </label>
+                  <div class='relative'>
+                    <span class='absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
+                      folder
+                    </span>
+                    {/* Visual Shell (Tailwind) + NSelect core */}
+                    <div class='w-full pl-10 pr-4 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
+                      <NSelect
+                        ref='workspaceSelect'
+                        options={this.workspaces.map((workspace: string) => ({
+                          label: workspace,
+                          value: workspace
+                        }))}
+                        v-model={[this.loginForm.selectedWorkspace, 'value']}
+                        placeholder={this.t('login.select_workspace_tips')}
+                        bordered={false}
+                        style={{
+                          width: '100%',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                          fontSize: '14px',
+                          lineHeight: '20px',
+                          color: 'var(--color-foreground)',
+                          fontFamily: 'var(--font-sans)',
+                          padding: '0'
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Remember + LDAP */}
+                <div class='flex items-center justify-between'>
+                  <div class='flex items-center'>
+                    <NCheckbox
+                      ref='rememberCheckbox'
+                      v-model={this.loginForm.remember}
+                      onUpdateChecked={(value: boolean) => (this.loginForm.remember = value)}
+                    >
+                      <span class='text-sm text-tide-on-secondary-container'>
+                        {this.t('login.remember_device')}
+                      </span>
+                    </NCheckbox>
+                  </div>
+                  <div class='flex items-center'>
+                    <NCheckbox
+                      v-model={this.loginForm.useLdap}
+                      onUpdateChecked={(value: boolean) => (this.loginForm.useLdap = value)}
+                    >
+                      <span class='text-sm text-tide-on-secondary-container'>
+                        {this.t('login.use_ldap')}
+                      </span>
+                    </NCheckbox>
+                  </div>
+                </div>
+
+                {/* Login Button */}
+                <NButton
+                  type='primary'
+                  disabled={
+                    !this.loginForm.username ||
+                    !this.loginForm.password ||
+                    !this.loginForm.selectedWorkspace
+                  }
+                  class='w-full'
+                  size='large'
+                  onClick={this.handleLogin}
+                >
+                  <span class='flex items-center justify-center gap-2'>
+                    {this.t('login.login')}
+                    <span class='material-symbols-outlined text-[18px]'>
+                      arrow_forward
+                    </span>
+                  </span>
+                </NButton>
+
+                {/* Divider */}
+                <div class='mt-8 mb-6 flex items-center'>
+                  <div class='flex-1 h-px bg-tide-outline-variant' />
+                  <span class='px-4 font-tide-label-caps text-[10px] text-tide-outline uppercase tracking-widest'>
+                    {this.t('login.sso_divider')}
+                  </span>
+                  <div class='flex-1 h-px bg-tide-outline-variant' />
+                </div>
+
+                {/* Alternate Logins */}
+                <div class='grid grid-cols-2 gap-3'>
+                  <button class='flex items-center justify-center gap-2 py-2.5 border border-tide-outline-variant rounded-lg hover:bg-tide-surface-container-low transition-colors font-tide-label-md text-tide-label-md text-tide-on-surface'>
+                    <span class='material-symbols-outlined text-[18px]'>corporate_fare</span>
+                    {this.t('login.enterprise_account')}
+                  </button>
+                  <button class='flex items-center justify-center gap-2 py-2.5 border border-tide-outline-variant rounded-lg hover:bg-tide-surface-container-low transition-colors font-tide-label-md text-tide-label-md text-tide-on-surface'>
+                    <span class='material-symbols-outlined text-[18px]'>key</span>
+                    {this.t('login.saml_login')}
+                  </button>
+                </div>
+              </NForm>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <footer class='p-8 border-t border-slate-200/60 bg-white/50 backdrop-blur-sm'>
+            <div class='flex flex-col md:flex-row justify-between items-center gap-4 max-w-4xl mx-auto w-full'>
+              <p class='font-tide-label-md text-tide-label-md text-tide-outline'>
+                © 2024 {this.t('login.footer_brand')}
+              </p>
+              <div class='flex gap-6'>
+                <a
+                  class='font-tide-label-md text-tide-label-md text-tide-on-secondary-container hover:text-primary transition-colors'
+                  href='#'
+                >
+                  {this.t('login.footer_privacy')}
+                </a>
+                <a
+                  class='font-tide-label-md text-tide-label-md text-tide-on-secondary-container hover:text-primary transition-colors'
+                  href='#'
+                >
+                  {this.t('login.footer_status')}
+                </a>
+                <a
+                  class='font-tide-label-md text-tide-label-md text-tide-on-secondary-container hover:text-primary transition-colors flex items-center gap-1'
+                  href='#'
+                >
+                  {this.t('login.footer_support')}
+                  <span class='material-symbols-outlined text-[14px]'>
+                    open_in_new
+                  </span>
+                </a>
+              </div>
+            </div>
+          </footer>
+        </section>
+      </div>
     )
   }
 })

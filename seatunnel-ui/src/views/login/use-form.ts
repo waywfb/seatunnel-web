@@ -36,6 +36,7 @@ export function useForm() {
       username: '',
       password: '',
       useLdap: false,
+      remember: false,
       selectedWorkspace: ''
     },
     workspaces: [] as string[],
