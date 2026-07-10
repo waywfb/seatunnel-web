@@ -1,0 +1,129 @@
+.configuration-form-container {
+  background-color: var(--color-card);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-border);
+  padding: 20px;
+}
+
+.configuration-form-header {
+  margin-bottom: 20px;
+}
+
+.configuration-form-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-foreground);
+  margin: 0 0 4px 0;
+}
+
+.configuration-form-header p {
+  font-size: 14px;
+  color: var(--color-muted-foreground);
+  margin: 0;
+}
+
+.configuration-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .configuration-form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.configuration-form-section {
+  margin-top: 16px;
+}
+
+.configuration-form-section-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-foreground);
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.configuration-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.configuration-form-modal {
+  width: 720px;
+  max-width: 90vw;
+}
+
+.configuration-form-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* Tide Command 样式适配 */
+.tide-command-form {
+  --form-label-color: var(--color-foreground);
+  --form-label-font-weight: 500;
+  --form-item-gap: 12px;
+  --form-section-gap: 20px;
+}
+
+.tide-command-form .n-form-item-label {
+  color: var(--form-label-color);
+  font-weight: var(--form-label-font-weight);
+}
+
+.tide-command-form .n-form-item {
+  margin-bottom: var(--form-item-gap);
+}
+
+.tide-command-form .n-form-item-blank {
+  min-height: 32px;
+}
+
+/* 表单输入框样式优化 */
+.tide-command-form .n-input,
+.tide-command-form .n-select {
+  width: 100%;
+}
+
+.tide-command-form .n-input--textarea {
+  min-height: 80px;
+}
+
+/* 传输组件样式 */
+.tide-command-form .n-transfer {
+  width: 100%;
+}
+
+/* 按钮组样式 */
+.tide-command-form .button-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* 高级设置区域 */
+.tide-command-form .advanced-settings {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 错误状态样式 */
+.tide-command-form .n-form-item--error .n-input,
+.tide-command-form .n-form-item--error .n-select {
+  border-color: var(--color-error);
+}
+
+/* 加载状态 */
+.tide-command-form .n-spin-container {
+  min-height: 200px;
+}
