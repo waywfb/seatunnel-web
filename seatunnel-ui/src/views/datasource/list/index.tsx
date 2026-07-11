@@ -182,7 +182,7 @@ const DatasourceList = defineComponent({
 
         {/* Page title */}
         <div>
-          <h2 class="font-tide-headline-lg text-tide-headline-lg text-tide-on-surface">接入中心 · 连接管理</h2>
+          <h2 class="font-tide-headline-lg text-tide-headline-lg text-tide-on-surface">数据资源 · 连接管理</h2>
           <p class="font-tide-body-md text-tide-body-md text-tide-on-surface-variant mt-1">
             按你要接入的系统类型直接查找，无需先了解"数据源"这个概念
           </p>

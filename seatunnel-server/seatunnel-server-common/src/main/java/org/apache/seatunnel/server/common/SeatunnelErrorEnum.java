@@ -92,7 +92,17 @@ public enum SeatunnelErrorEnum {
     TASK_NAME_ALREADY_EXISTS(60020, "任务名称已存在", "任务[%s]已存在"),
     RESOURCE_NOT_FOUND(404, "", "资源不存在：%s"),
     RESOURCE_ALREADY_EXISTS(60021, "资源已存在", "资源[%s]已存在"),
-    ACCESS_DENIED(403, "权限不足", "%s");
+    ACCESS_DENIED(403, "权限不足", "%s"),
+
+    /* data standard */
+    DATA_STANDARD_NOT_FOUND(70001, "数据标准不存在", "数据标准[%s]不存在"),
+    DATA_STANDARD_CODE_ALREADY_EXISTS(70002, "数据标准编码已存在", "数据标准编码[%s]已存在"),
+    DATA_STANDARD_HAS_VIRTUAL_TABLE_REFERENCE(70003, "数据标准已被虚拟表引用，无法删除", "该数据标准已被虚拟表引用，不允许删除"),
+    DATA_STANDARD_VERSION_NOT_FOUND(70004, "数据标准版本不存在", "数据标准版本[%s]不存在"),
+    DATA_STANDARD_VERSION_ALREADY_EXISTS(70005, "数据标准版本已存在", "数据标准版本[%s]已存在"),
+    DATA_STANDARD_VERSION_NOT_DRAFT(70006, "版本状态不是草稿", "仅草稿状态的版本允许修改"),
+    DATA_STANDARD_VERSION_NOT_RELEASED(70007, "版本状态不是已发布", "仅已发布状态的版本允许归档"),
+    VIRTUAL_TABLE_STANDARD_NOT_BOUND(70008, "虚拟表未绑定数据标准", "虚拟表[%s]未绑定数据标准");
 
     private final int code;
     private final String msg;

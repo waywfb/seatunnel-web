@@ -82,4 +82,22 @@ public class SeatunnelFuncPermissionKeyConstant {
     public static final String VIRTUAL_TABLE_DELETE = "datasource:virtual-table-delete";
     public static final String VIRTUAL_TABLE_VIEW = "datasource:virtual-table-view";
     public static final String VIRTUAL_TABLE_DETAIL = "datasource:virtual-table-detail";
+
+    public static final String DATA_STANDARD_VIEW = "data-standard:view";
+    public static final String DATA_STANDARD_CREATE = "data-standard:create";
+    public static final String DATA_STANDARD_UPDATE = "data-standard:update";
+    public static final String DATA_STANDARD_DELETE = "data-standard:delete";
+    public static final String DATA_STANDARD_VERSION_VIEW = "data-standard:version-view";
+    public static final String DATA_STANDARD_VERSION_CREATE = "data-standard:version-create";
+    public static final String DATA_STANDARD_VERSION_UPDATE = "data-standard:version-update";
+    public static final String DATA_STANDARD_VERSION_DELETE = "data-standard:version-delete";
+    public static final String DATA_STANDARD_VERSION_PUBLISH = "data-standard:version-publish";
+    public static final String DATA_STANDARD_VERSION_ARCHIVE = "data-standard:version-archive";
+    public static final String DATA_STANDARD_FIELD_UPDATE = "data-standard:field-update";
+    public static final String DATA_STANDARD_FORMAT_UPDATE = "data-standard:format-update";
+    public static final String DATA_STANDARD_MAPPING_UPDATE = "data-standard:mapping-update";
+    public static final String DATA_STANDARD_VIRTUAL_TABLE_BIND =
+            "data-standard:virtual-table-bind";
+    public static final String DATA_STANDARD_VIRTUAL_TABLE_UNBIND =
+            "data-standard:virtual-table-unbind";
 }
