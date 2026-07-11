@@ -42,7 +42,8 @@ const DISPLAY_NAMES: Record<string, string> = {
   Hive: 'Hive',
   Console: 'Console',
   StarRocks: 'StarRocks',
-  'Jdbc-MultiTableSink': 'JDBC'
+  'Jdbc-MultiTableSink': 'JDBC',
+  'FTP': 'FTP'
 }
 
 function formatNodeName(raw: string): string {

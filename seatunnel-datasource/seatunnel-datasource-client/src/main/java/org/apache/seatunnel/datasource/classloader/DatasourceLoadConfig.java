@@ -115,6 +115,8 @@ public class DatasourceLoadConfig {
                 "OPCUA", "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
         classLoaderFactoryName.put(
                 "S7", "org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceFactory");
+        classLoaderFactoryName.put(
+                "FTP", "org.apache.seatunnel.datasource.plugin.ftp.FtpDataSourceFactory");
 
         classLoaderJarName.put("JDBC-ORACLE", "datasource-jdbc-oracle-");
         classLoaderJarName.put("JDBC-CLICKHOUSE", "datasource-jdbc-clickhouse-");
@@ -143,6 +145,7 @@ public class DatasourceLoadConfig {
         classLoaderJarName.put("MODBUS", "datasource-plc4x-");
         classLoaderJarName.put("OPCUA", "datasource-plc4x-");
         classLoaderJarName.put("S7", "datasource-plc4x-");
+        classLoaderJarName.put("FTP", "datasource-ftp-");
     }
 
     public static final Set<String> pluginSet =
@@ -168,7 +171,8 @@ public class DatasourceLoadConfig {
                     "Console",
                     "Modbus",
                     "OPCUA",
-                    "S7");
+                    "S7",
+                    "FTP");
 
     public static Map<String, DatasourceClassLoader> datasourceClassLoaders = new HashMap<>();
 

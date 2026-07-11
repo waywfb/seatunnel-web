@@ -24,7 +24,7 @@ const CATEGORIES = [
   { key: 'api', label: '接口服务', color: '#1DA7B4', bg: '#E4F6F7', icon: 'api',
     pluginNames: ['Http', 'ElasticSearch'] },
   { key: 'file', label: '文件', color: '#4C9A5B', bg: '#EAF6EC', icon: 'folder',
-    pluginNames: ['S3'] },
+    pluginNames: ['S3', 'FTP'] },
 ]
 
 const PLUGIN_DISPLAY: Record<string, string> = {
@@ -35,7 +35,7 @@ const PLUGIN_DISPLAY: Record<string, string> = {
   'JDBC-Redshift': 'Redshift', 'Hive': 'Hive', 'StarRocks': 'StarRocks',
   'MySQL-CDC': 'MySQL CDC', 'SqlServer-CDC': 'SQL Server CDC', 'Postgres-CDC': 'PostgreSQL CDC',
   'Kafka': 'Kafka', 'ElasticSearch': 'Elasticsearch', 'S3': 'Amazon S3', 'Http': 'HTTP',
-  'FakeSource': 'FakeSource', 'Console': 'Console',
+  'FakeSource': 'FakeSource', 'Console': 'Console', 'FTP': 'FTP',
 }
 
 const PLUGIN_CATEGORY: Record<string, string> = {}

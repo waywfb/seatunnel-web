@@ -42,7 +42,8 @@ const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
   StarRocks: 'StarRocks',
   Modbus: 'Modbus',
   OPCUA: 'OPC UA',
-  S7: 'S7'
+  S7: 'S7',
+  FTP: 'FTP'
 }
 
 export function getDatasourceDisplayName(datasourceName: string): string {

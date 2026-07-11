@@ -12,6 +12,7 @@ import elasticsearchSvg from '@/assets/elasticsearch.svg'
 import s3Svg from '@/assets/AWS_S3.svg'
 import mongodbSvg from '@/assets/mongoDB.svg'
 import httpSvg from '@/assets/Http.svg'
+import ftpSvg from '@/assets/Ftp.svg'
 
 const SVG_MAP: Record<string, string> = {
   'JDBC-Mysql': mysqlSvg,
@@ -37,6 +38,7 @@ const SVG_MAP: Record<string, string> = {
   'Modbus': '',
   'OPCUA': '',
   'S7': '',
+  'FTP': ftpSvg,
 }
 
 const ICON_COLORS: Record<string, string> = {
@@ -66,6 +68,7 @@ const ICON_COLORS: Record<string, string> = {
   'Modbus': '#E67E22',
   'OPCUA': '#2980B9',
   'S7': '#00A3E0',
+  'FTP': '#2B88D8',
 }
 
 export function getDatasourceIcon(name: string): string {

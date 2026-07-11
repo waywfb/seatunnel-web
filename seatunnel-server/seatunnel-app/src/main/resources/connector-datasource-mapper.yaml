@@ -83,6 +83,10 @@ connector-datasource-mapper:
         - Modbus
         - S7
 
+    FtpFile:
+      dataSources:
+        - FTP
+
   sourceDatasourceFeatures:
     JDBC-Mysql:
       businessMode:
@@ -210,6 +214,12 @@ connector-datasource-mapper:
       sceneMode:
         - SINGLE_TABLE
 
+    FTP:
+      businessMode:
+        - DATA_INTEGRATION
+      sceneMode:
+        - SINGLE_TABLE
+
   sinkDatasourceFeatures:
     JDBC-Mysql:
       businessMode:
@@ -312,6 +322,12 @@ connector-datasource-mapper:
         - MULTIPLE_TABLE
 
     Hive:
+      businessMode:
+        - DATA_INTEGRATION
+      sceneMode:
+        - SINGLE_TABLE
+
+    FTP:
       businessMode:
         - DATA_INTEGRATION
       sceneMode:
