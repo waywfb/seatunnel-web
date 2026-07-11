@@ -42,9 +42,7 @@ public class SftpOptionRule {
             Options.key("file_path").stringType().noDefaultValue().withDescription("File path");
 
     public static OptionRule optionRule() {
-        return OptionRule.builder()
-                .required(HOST, PORT, USERNAME, PASSWORD)
-                .build();
+        return OptionRule.builder().required(HOST, PORT, USERNAME, PASSWORD).build();
     }
 
     public static OptionRule metadataRule() {

@@ -25,7 +25,6 @@ import org.apache.seatunnel.datasource.plugin.api.model.TableField;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -103,8 +102,7 @@ public class SftpDatasourceChannel implements DataSourceChannel {
             return true;
         } catch (Exception e) {
             throw new DataSourcePluginException(
-                    String.format(
-                            "SFTP connectivity check failed, host: %s, port: %d", host, port),
+                    String.format("SFTP connectivity check failed, host: %s, port: %d", host, port),
                     e);
         } finally {
             if (channelSftp != null && channelSftp.isConnected()) {
