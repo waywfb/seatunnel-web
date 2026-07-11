@@ -43,7 +43,8 @@ const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
   Modbus: 'Modbus',
   OPCUA: 'OPC UA',
   S7: 'S7',
-  FTP: 'FTP'
+  FTP: 'FTP',
+  SFTP: 'SFTP'
 }
 
 export function getDatasourceDisplayName(datasourceName: string): string {

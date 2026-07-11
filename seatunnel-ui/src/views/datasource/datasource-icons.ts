@@ -39,6 +39,7 @@ const SVG_MAP: Record<string, string> = {
   'OPCUA': '',
   'S7': '',
   'FTP': ftpSvg,
+  'SFTP': ftpSvg,
 }
 
 const ICON_COLORS: Record<string, string> = {
@@ -69,6 +70,7 @@ const ICON_COLORS: Record<string, string> = {
   'OPCUA': '#2980B9',
   'S7': '#00A3E0',
   'FTP': '#2B88D8',
+  'SFTP': '#2B88D8',
 }
 
 export function getDatasourceIcon(name: string): string {

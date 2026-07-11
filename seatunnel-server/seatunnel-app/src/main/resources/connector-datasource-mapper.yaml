@@ -87,6 +87,10 @@ connector-datasource-mapper:
       dataSources:
         - FTP
 
+    SftpFile:
+      dataSources:
+        - SFTP
+
   sourceDatasourceFeatures:
     JDBC-Mysql:
       businessMode:
@@ -220,6 +224,12 @@ connector-datasource-mapper:
       sceneMode:
         - SINGLE_TABLE
 
+    SFTP:
+      businessMode:
+        - DATA_INTEGRATION
+      sceneMode:
+        - SINGLE_TABLE
+
   sinkDatasourceFeatures:
     JDBC-Mysql:
       businessMode:
@@ -328,6 +338,12 @@ connector-datasource-mapper:
         - SINGLE_TABLE
 
     FTP:
+      businessMode:
+        - DATA_INTEGRATION
+      sceneMode:
+        - SINGLE_TABLE
+
+    SFTP:
       businessMode:
         - DATA_INTEGRATION
       sceneMode:
