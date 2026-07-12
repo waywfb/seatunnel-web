@@ -77,6 +77,16 @@ export default {
   field_default: 'Default',
   field_required: 'Required',
   field_desc: 'Description',
+  field_type: 'Field Type',
+  field_type_header: 'Header',
+  field_type_body: 'Body',
+
+  // Inspector panel
+  inspector_title: 'Field Properties',
+  inspector_basic: 'Basic Info',
+  inspector_constraints: 'Constraints',
+  inspector_metadata: 'Metadata',
+
   add_format: 'Add Format',
   save_formats: 'Save Formats',
   format_type: 'Format Type',
@@ -87,6 +97,7 @@ export default {
   format_header_rows: 'Header Rows',
   format_quote: 'Quote Char',
   format_escape: 'Escape Char',
+  format_file_terminator: 'File Terminator',
   add_mapping: 'Add Mapping',
   save_mappings: 'Save Mappings',
   mapping_field: 'Standard Field',

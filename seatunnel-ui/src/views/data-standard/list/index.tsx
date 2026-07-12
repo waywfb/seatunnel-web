@@ -25,6 +25,8 @@ import {
   NPagination,
   NCard,
   NSelect,
+  NTabs,
+  NTabPane,
   useMessage
 } from 'naive-ui'
 import { SearchOutlined } from '@vicons/antd'
@@ -32,20 +34,14 @@ import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { useTable } from './use-table'
 import { useColumns } from './use-columns'
-
-const INDUSTRY_OPTIONS = [
-  { label: '金融', value: '金融' },
-  { label: '医疗', value: '医疗' },
-  { label: '教育', value: '教育' },
-  { label: '制造', value: '制造' },
-  { label: '零售', value: '零售' },
-  { label: '其他', value: '其他' }
-]
+import { TYPE_OPTIONS } from '../types'
 
 const STATUS_OPTIONS = [
   { label: '启用', value: 1 },
   { label: '停用', value: 0 }
 ]
+
+const ALL_TAB = { label: '全部', value: null }
 
 const DataStandardList = defineComponent({
   name: 'DataStandardList',
@@ -66,7 +62,7 @@ const DataStandardList = defineComponent({
     } = useTable()
 
     const { columns } = useColumns(
-      async (id: number, type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy' | 'version') => {
+      async (id: number, type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy') => {
         switch (type) {
           case 'edit':
             router.push({ name: 'data-standard-edit', params: { id } })
@@ -83,9 +79,6 @@ const DataStandardList = defineComponent({
           case 'copy':
             await onCopy(id)
             break
-          case 'version':
-            router.push({ name: 'data-standard-detail', params: { id } })
-            break
         }
       }
     )
@@ -96,36 +89,58 @@ const DataStandardList = defineComponent({
       }
     }
 
+    const handleTypeChange = (val: string | null) => {
+      state.params.type = val
+      state.page = 1
+      onSearch()
+    }
+
+    const tabOptions = [
+      ALL_TAB,
+      ...TYPE_OPTIONS
+    ]
+
     return () => (
       <NSpace vertical>
         <NCard>
-          <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
-            <NButton
-              type='info'
-              onClick={() => router.push({ name: 'data-standard-create' })}
+          <NSpace vertical size={16}>
+            <NTabs
+              type='line'
+              value={state.params.type}
+              onUpdate:value={handleTypeChange}
             >
-              {t('data_standard.create')}
-            </NButton>
-            <NSpace justify='end'>
-              <NInput
-                v-model:value={state.params.name}
-                clearable
-                placeholder={t('data_standard.search_name')}
-                onKeyup={handleKeyup}
-                style={{ width: '200px' }}
-              />
-              <NSelect
-                v-model:value={state.params.status}
-                clearable
-                placeholder={t('data_standard.search_status')}
-                options={STATUS_OPTIONS}
-                style={{ width: '120px' }}
-              />
-              <NButton type='primary' onClick={onSearch}>
-                <NIcon>
-                  <SearchOutlined />
-                </NIcon>
+              {tabOptions.map(opt => (
+                <NTabPane name={opt.value} tab={opt.label} />
+              ))}
+            </NTabs>
+            <NSpace justify='space-between'>
+              <NButton
+                type='info'
+                onClick={() => router.push({ name: 'data-standard-create' })}
+              >
+                {t('data_standard.create')}
               </NButton>
+              <NSpace justify='end'>
+                <NInput
+                  v-model:value={state.params.name}
+                  clearable
+                  placeholder={t('data_standard.search_name')}
+                  onKeyup={handleKeyup}
+                  style={{ width: '200px' }}
+                />
+                <NSelect
+                  v-model:value={state.params.status}
+                  clearable
+                  placeholder={t('data_standard.search_status')}
+                  options={STATUS_OPTIONS}
+                  style={{ width: '120px' }}
+                />
+                <NButton type='primary' onClick={onSearch}>
+                  <NIcon>
+                    <SearchOutlined />
+                  </NIcon>
+                </NButton>
+              </NSpace>
             </NSpace>
           </NSpace>
         </NCard>

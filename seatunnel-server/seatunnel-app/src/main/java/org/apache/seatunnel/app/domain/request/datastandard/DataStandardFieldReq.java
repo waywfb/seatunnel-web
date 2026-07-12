@@ -49,4 +49,6 @@ public class DataStandardFieldReq {
     private String description;
 
     private Integer sortOrder;
+
+    private String fieldType;
 }

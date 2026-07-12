@@ -74,6 +74,9 @@ public class DataStandardField {
     @TableField("sort_order")
     private Integer sortOrder;
 
+    @TableField("field_type")
+    private String fieldType;
+
     @TableField("workspace_id")
     private Long workspaceId;
 

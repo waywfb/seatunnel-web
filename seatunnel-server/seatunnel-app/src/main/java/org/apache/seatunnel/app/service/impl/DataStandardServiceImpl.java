@@ -190,10 +190,10 @@ public class DataStandardServiceImpl extends SeatunnelBaseServiceImpl
 
     @Override
     public PageInfo<DataStandardRes> getDataStandardPage(
-            String name, String industry, Integer status, Integer pageNo, Integer pageSize) {
+            String name, String type, Integer status, Integer pageNo, Integer pageSize) {
         Page<DataStandard> page = new Page<>(pageNo, pageSize);
         IPage<DataStandard> dataStandardPage =
-                dataStandardDao.selectDataStandardPage(page, name, industry, status);
+                dataStandardDao.selectDataStandardPage(page, name, type, status);
 
         PageInfo<DataStandardRes> pageInfo = new PageInfo<>(pageNo, pageSize);
         pageInfo.setTotalCount((int) dataStandardPage.getTotal());

@@ -33,7 +33,7 @@ public interface IDataStandardService {
     DataStandardDetailRes getDataStandardDetail(Long id);
 
     PageInfo<DataStandardRes> getDataStandardPage(
-            String name, String industry, Integer status, Integer pageNo, Integer pageSize);
+            String name, String type, Integer status, Integer pageNo, Integer pageSize);
 
     boolean enableDataStandard(Long id);
 

@@ -18,7 +18,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.apache.seatunnel.app.dal.mapper.DataStandardFieldMapper">
   <insert id="insertBatchSomeColumn">
-    insert into t_st_data_standard_field (id, version_id, group_name, name, code, data_type, length, `precision`, unit, default_value, required, description, sort_order, workspace_id, create_time, update_time)
+    insert into t_st_data_standard_field (id, version_id, group_name, name, code, data_type, length, `precision`, unit, default_value, required, description, sort_order, field_type, workspace_id, create_time, update_time)
     values
     <foreach collection="list" item="item" separator=",">
       (#{item.id},
@@ -34,6 +34,7 @@
       #{item.required},
       #{item.description},
       #{item.sortOrder},
+      #{item.fieldType},
       #{item.workspaceId},
       #{item.createTime},
       #{item.updateTime})

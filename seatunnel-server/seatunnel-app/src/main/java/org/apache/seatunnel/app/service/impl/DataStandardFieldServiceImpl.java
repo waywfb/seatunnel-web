@@ -107,6 +107,7 @@ public class DataStandardFieldServiceImpl extends SeatunnelBaseServiceImpl
                                                             : false)
                                             .description(req.getDescription())
                                             .sortOrder(req.getSortOrder())
+                                            .fieldType(req.getFieldType())
                                             .workspaceId(getCurrentWorkspaceId())
                                             .createTime(now)
                                             .updateTime(now)
@@ -134,6 +135,7 @@ public class DataStandardFieldServiceImpl extends SeatunnelBaseServiceImpl
                 .required(field.getRequired())
                 .description(field.getDescription())
                 .sortOrder(field.getSortOrder())
+                .fieldType(field.getFieldType())
                 .createTime(field.getCreateTime())
                 .updateTime(field.getUpdateTime())
                 .build();

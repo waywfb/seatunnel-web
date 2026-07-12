@@ -86,7 +86,7 @@ public class DataStandardDaoImpl implements IDataStandardDao {
 
     @Override
     public IPage<DataStandard> selectDataStandardPage(
-            Page<DataStandard> page, String name, String industry, Integer status) {
+            Page<DataStandard> page, String name, String type, Integer status) {
         QueryWrapper<DataStandard> queryWrapper =
                 new QueryWrapper<DataStandard>()
                         .eq("workspace_id", getCurrentWorkspaceId())
@@ -94,8 +94,8 @@ public class DataStandardDaoImpl implements IDataStandardDao {
         if (StringUtils.isNotBlank(name)) {
             queryWrapper.like("name", "%" + name + "%");
         }
-        if (StringUtils.isNotBlank(industry)) {
-            queryWrapper.eq("industry", industry);
+        if (StringUtils.isNotBlank(type)) {
+            queryWrapper.eq("type", type);
         }
         if (status != null) {
             queryWrapper.eq("status", status);

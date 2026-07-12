@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, onMounted, computed, ref, h } from 'vue'
+import { defineComponent, onMounted, computed, ref, h, watch } from 'vue'
 import {
   NButton,
   NInput,
@@ -31,17 +31,17 @@ import {
   NDataTable,
   NSwitch,
   NPopconfirm,
-  NInputNumber,
   NTag,
-  NH3,
-  useMessage
+  NEmpty,
+  NModal,
+  NText,
+  NScrollbar
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useDetail } from './use-detail'
 import {
   TYPE_OPTIONS,
-  INDUSTRY_OPTIONS,
   DATA_TYPE_OPTIONS,
   FORMAT_TYPE_OPTIONS,
   FILE_TYPE_OPTIONS,
@@ -54,7 +54,6 @@ export default defineComponent({
     const { t } = useI18n()
     const router = useRouter()
     const route = useRoute()
-    const message = useMessage()
 
     const {
       id,
@@ -90,50 +89,89 @@ export default defineComponent({
     const activeTab = ref('fields')
     const showVersionModal = ref(false)
     const newVersionDesc = ref('')
+    const selectedGroup = ref<string | null>(null)
+    const showAddGroupModal = ref(false)
+    const newGroupName = ref('')
+    const groups = ref<string[]>([])
+
+    // Inspector state
+    const selectedIndex = ref<number | null>(null)
+    const searchQuery = ref('')
+    const selectedField = computed(() => {
+      if (selectedIndex.value === null) return null
+      return filteredFields.value[selectedIndex.value] || null
+    })
 
     const isCreatePage = computed(() => route.name === 'data-standard-create')
 
-    // Field columns
-    const fieldColumns = computed(() => [
-      { title: t('data_standard.field_group'), key: 'groupName', width: 120 },
-      { title: t('data_standard.field_name'), key: 'name', width: 150 },
-      { title: t('data_standard.field_code'), key: 'code', width: 150 },
-      {
-        title: t('data_standard.field_data_type'),
-        key: 'dataType',
-        width: 120,
-        render: (row: any) => h(NSelect, {
-          value: row.dataType,
-          options: DATA_TYPE_OPTIONS,
-          size: 'small',
-          'onUpdate:value': (val: string) => { row.dataType = val }
-        })
-      },
-      { title: t('data_standard.field_length'), key: 'length', width: 100 },
-      { title: t('data_standard.field_precision'), key: 'precision', width: 100 },
-      { title: t('data_standard.field_unit'), key: 'unit', width: 80 },
-      { title: t('data_standard.field_default'), key: 'defaultValue', width: 100 },
-      {
-        title: t('data_standard.field_required'),
-        key: 'required',
-        width: 80,
-        render: (row: any) => h(NSwitch, {
-          value: row.required,
-          'onUpdate:value': (val: boolean) => { row.required = val }
-        })
-      },
-      { title: t('data_standard.field_desc'), key: 'description', width: 150 },
-      {
-        title: t('data_standard.operation'),
-        key: 'operation',
-        width: 80,
-        render: (_: any, index: number) => h(NButton, {
-          type: 'error',
-          size: 'small',
-          onClick: () => removeField(index)
-        }, { default: () => t('data_standard.delete') })
+    const groupTreeData = computed(() => {
+      const allGroups = new Set<string>(groups.value)
+      fields.value.forEach((f: any) => {
+        if (f.groupName) allGroups.add(f.groupName)
+      })
+      return Array.from(allGroups).map(g => ({
+        key: g,
+        label: g + ' (' + fields.value.filter((f: any) => f.groupName === g).length + ')'
+      }))
+    })
+
+    const filteredFields = computed(() => {
+      let result = fields.value
+      // Filter by group
+      if (selectedGroup.value) {
+        result = result.filter((f: any) => f.groupName === selectedGroup.value)
       }
-    ])
+      // Filter by search
+      if (searchQuery.value) {
+        const q = searchQuery.value.toLowerCase()
+        result = result.filter((f: any) =>
+          (f.name || '').toLowerCase().includes(q) ||
+          (f.code || '').toLowerCase().includes(q) ||
+          (f.description || '').toLowerCase().includes(q)
+        )
+      }
+      return result
+    })
+
+    const handleAddGroup = () => {
+      if (!newGroupName.value.trim()) return
+      const name = newGroupName.value.trim()
+      if (!groups.value.includes(name)) {
+        groups.value.push(name)
+      }
+      newGroupName.value = ''
+      showAddGroupModal.value = false
+    }
+
+    const handleDeleteGroup = (groupKey: string) => {
+      fields.value.forEach((f: any) => {
+        if (f.groupName === groupKey) f.groupName = ''
+      })
+      groups.value = groups.value.filter(g => g !== groupKey)
+      if (selectedGroup.value === groupKey) selectedGroup.value = null
+    }
+
+    const handleAddFieldToGroup = () => {
+      if (!selectedGroup.value) {
+        return
+      }
+      addField()
+      const lastField = fields.value[fields.value.length - 1]
+      if (lastField) {
+        lastField.groupName = selectedGroup.value
+        selectedIndex.value = filteredFields.value.length - 1
+      }
+    }
+
+    const handleSelectField = (index: number) => {
+      selectedIndex.value = index
+    }
+
+    const handleUpdateField = (key: string, value: any) => {
+      if (selectedField.value) {
+        ;(selectedField.value as any)[key] = value
+      }
+    }
 
     // Format columns
     const formatColumns = computed(() => [
@@ -159,13 +197,86 @@ export default defineComponent({
           'onUpdate:value': (val: string) => { row.fileType = val }
         })
       },
-      { title: t('data_standard.format_record_sep'), key: 'recordSeparator', width: 120 },
-      { title: t('data_standard.format_field_sep'), key: 'fieldSeparator', width: 120 },
-      { title: t('data_standard.format_encoding'), key: 'encoding', width: 100 },
-      { title: t('data_standard.format_header_rows'), key: 'headerRows', width: 100 },
-      { title: t('data_standard.format_quote'), key: 'quoteChar', width: 80 },
-      { title: t('data_standard.format_escape'), key: 'escapeChar', width: 80 },
-      { title: t('data_standard.field_desc'), key: 'description', width: 150 },
+      {
+        title: t('data_standard.format_record_sep'),
+        key: 'recordSeparator',
+        width: 120,
+        render: (row: any) => h(NInput, {
+          value: row.recordSeparator,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.recordSeparator = val }
+        })
+      },
+      {
+        title: t('data_standard.format_field_sep'),
+        key: 'fieldSeparator',
+        width: 120,
+        render: (row: any) => h(NInput, {
+          value: row.fieldSeparator,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.fieldSeparator = val }
+        })
+      },
+      {
+        title: t('data_standard.format_encoding'),
+        key: 'encoding',
+        width: 100,
+        render: (row: any) => h(NInput, {
+          value: row.encoding,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.encoding = val }
+        })
+      },
+      {
+        title: t('data_standard.format_header_rows'),
+        key: 'headerRows',
+        width: 100,
+        render: (row: any) => h(NInput, {
+          value: row.headerRows,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.headerRows = val }
+        })
+      },
+      {
+        title: t('data_standard.format_quote'),
+        key: 'quoteChar',
+        width: 80,
+        render: (row: any) => h(NInput, {
+          value: row.quoteChar,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.quoteChar = val }
+        })
+      },
+      {
+        title: t('data_standard.format_escape'),
+        key: 'escapeChar',
+        width: 80,
+        render: (row: any) => h(NInput, {
+          value: row.escapeChar,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.escapeChar = val }
+        })
+      },
+      {
+        title: t('data_standard.format_file_terminator'),
+        key: 'fileTerminator',
+        width: 100,
+        render: (row: any) => h(NInput, {
+          value: row.fileTerminator,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.fileTerminator = val }
+        })
+      },
+      {
+        title: t('data_standard.field_desc'),
+        key: 'description',
+        width: 150,
+        render: (row: any) => h(NInput, {
+          value: row.description,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.description = val }
+        })
+      },
       {
         title: t('data_standard.operation'),
         key: 'operation',
@@ -192,8 +303,26 @@ export default defineComponent({
           'onUpdate:value': (val: number | null) => { row.fieldId = val }
         })
       },
-      { title: t('data_standard.mapping_source_name'), key: 'sourceName', width: 150 },
-      { title: t('data_standard.mapping_source_index'), key: 'sourceIndex', width: 120 },
+      {
+        title: t('data_standard.mapping_source_name'),
+        key: 'sourceName',
+        width: 150,
+        render: (row: any) => h(NInput, {
+          value: row.sourceName,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.sourceName = val }
+        })
+      },
+      {
+        title: t('data_standard.mapping_source_index'),
+        key: 'sourceIndex',
+        width: 120,
+        render: (row: any) => h(NInput, {
+          value: row.sourceIndex,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.sourceIndex = val }
+        })
+      },
       {
         title: t('data_standard.mapping_type'),
         key: 'mappingType',
@@ -205,7 +334,16 @@ export default defineComponent({
           'onUpdate:value': (val: string) => { row.mappingType = val }
         })
       },
-      { title: t('data_standard.mapping_sample'), key: 'sampleValue', width: 150 },
+      {
+        title: t('data_standard.mapping_sample'),
+        key: 'sampleValue',
+        width: 150,
+        render: (row: any) => h(NInput, {
+          value: row.sampleValue,
+          size: 'small',
+          'onUpdate:value': (val: string) => { row.sampleValue = val }
+        })
+      },
       {
         title: t('data_standard.operation'),
         key: 'operation',
@@ -241,7 +379,27 @@ export default defineComponent({
         RELEASED: '已发布',
         ARCHIVED: '已归档'
       }
-      return h(NTag, { type: map[status] as any, size: 'small' }, { default: () => labelMap[status] || status })
+      return h(NTag, { type: map[status] as any, size: 'small', round: true, bordered: false },
+        { default: () => labelMap[status] || status })
+    }
+
+    const dataTypeTag = (dataType: string) => {
+      const map: Record<string, string> = {
+        '字符': 'info',
+        '数值': 'success',
+        '日期': 'warning'
+      }
+      return h(NTag, { type: (map[dataType] || 'default') as any, size: 'tiny', round: true, bordered: false },
+        { default: () => dataType })
+    }
+
+    const fieldTypeTag = (fieldType: string) => {
+      const map: Record<string, string> = {
+        HEADER: 'warning',
+        BODY: 'info'
+      }
+      return h(NTag, { type: (map[fieldType] || 'default') as any, size: 'tiny', round: true, bordered: false },
+        { default: () => fieldType === 'HEADER' ? t('data_standard.field_type_header') : t('data_standard.field_type_body') })
     }
 
     onMounted(() => {
@@ -250,10 +408,17 @@ export default defineComponent({
       }
     })
 
+    // Watch for fields to auto-select first group
+    watch(() => fields.value, (newFields) => {
+      if (newFields.length > 0 && !selectedGroup.value && groupTreeData.value.length > 0) {
+        selectedGroup.value = groupTreeData.value[0].key
+      }
+    }, { immediate: true })
+
     return () => (
-      <NSpace vertical>
+      <NSpace vertical size='large'>
         {/* Standard Form */}
-        <NCard title={isCreatePage.value ? t('data_standard.create') : t('data_standard.edit')}>
+        <NCard bordered={false}>
           <NForm label-placement='left' label-width={100}>
             <NGrid cols={2} xGap={24}>
               <NGridItem>
@@ -290,7 +455,7 @@ export default defineComponent({
                   <NInput
                     v-model:value={form.description}
                     type='textarea'
-                    rows={3}
+                    rows={2}
                     placeholder={t('data_standard.description_placeholder')}
                   />
                 </NFormItem>
@@ -309,7 +474,7 @@ export default defineComponent({
 
         {/* Version & Detail Tabs (only when editing) */}
         {isEdit.value && (
-          <NCard>
+          <NCard bordered={false}>
             {/* Version selector */}
             <NSpace justify='space-between' align='center' style={{ marginBottom: '16px' }}>
               <NSpace align='center'>
@@ -351,24 +516,228 @@ export default defineComponent({
             </NSpace>
 
             {/* Tabs: Fields / Formats / Mappings */}
-            <NTabs v-model:value={activeTab.value}>
+            <NTabs v-model:value={activeTab.value} type='line'>
               <NTabPane name='fields' tab={t('data_standard.tab_fields')}>
-                <NSpace vertical>
-                  {isCurrentVersionDraft.value && (
-                    <NSpace justify='end'>
-                      <NButton size='small' onClick={addField}>{t('data_standard.add_field')}</NButton>
-                      <NButton type='primary' size='small' onClick={saveFields}>{t('data_standard.save_fields')}</NButton>
+                <div style={{ display: 'flex', gap: '16px', minHeight: '500px' }}>
+                  {/* Left: Field List */}
+                  <div style={{ flex: '1', minWidth: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {/* Toolbar */}
+                    <NSpace justify='space-between' align='center'>
+                      <NSpace>
+                        <NInput
+                          v-model:value={searchQuery.value}
+                          placeholder='搜索字段...'
+                          size='small'
+                          clearable
+                          style={{ width: '200px' }}
+                        />
+                        <NSelect
+                          v-model:value={selectedGroup.value}
+                          options={groupTreeData.value.map(g => ({ label: g.label, value: g.key }))}
+                          size='small'
+                          style={{ width: '180px' }}
+                          placeholder='选择分组'
+                          clearable
+                        />
+                      </NSpace>
+                      {isCurrentVersionDraft.value && (
+                        <NSpace>
+                          <NButton size='small' onClick={() => { showAddGroupModal.value = true }}>
+                            新建分组
+                          </NButton>
+                          <NButton type='primary' size='small' onClick={handleAddFieldToGroup}>
+                            {t('data_standard.add_field')}
+                          </NButton>
+                          <NButton type='primary' size='small' onClick={saveFields}>
+                            {t('data_standard.save_fields')}
+                          </NButton>
+                        </NSpace>
+                      )}
                     </NSpace>
+
+                    {/* Field Cards */}
+                    <NScrollbar style={{ maxHeight: '450px' }}>
+                      <NSpace vertical size={8}>
+                        {filteredFields.value.map((field: any, index: number) => (
+                          <div
+                            key={field.id || index}
+                            onClick={() => handleSelectField(index)}
+                            style={{
+                              padding: '12px 16px',
+                              border: selectedIndex.value === index ? '2px solid #2080f0' : '1px solid #e0e0e6',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              backgroundColor: selectedIndex.value === index ? '#f0f8ff' : '#fff',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <NSpace justify='space-between' align='center'>
+                              <NSpace align='center' size={8}>
+                                <NText strong style={{ fontSize: '14px' }}>{field.name}</NText>
+                                {fieldTypeTag(field.fieldType)}
+                                {dataTypeTag(field.dataType)}
+                                {field.required && (
+                                  <NTag type='error' size='tiny' round bordered={false}>
+                                    必填
+                                  </NTag>
+                                )}
+                              </NSpace>
+                              <NText depth={3} style={{ fontSize: '12px', fontFamily: 'monospace' }}>
+                                {field.code}
+                              </NText>
+                            </NSpace>
+                            {field.description && (
+                              <NText depth={2} style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                                {field.description}
+                              </NText>
+                            )}
+                          </div>
+                        ))}
+                        {filteredFields.value.length === 0 && (
+                          <NEmpty description='暂无字段' style={{ padding: '40px' }} />
+                        )}
+                      </NSpace>
+                    </NScrollbar>
+                  </div>
+
+                  {/* Right: Inspector Panel */}
+                  {selectedField.value && (
+                    <div style={{ width: '320px', flexShrink: 0, borderLeft: '1px solid #e0e0e6', paddingLeft: '16px' }}>
+                      <NSpace vertical size={16}>
+                        <NText strong style={{ fontSize: '16px' }}>
+                          {t('data_standard.inspector_title')}
+                        </NText>
+
+                        {/* Basic Info */}
+                        <NCard size='small' title={t('data_standard.inspector_basic')} bordered={false} style={{ backgroundColor: '#fafafa' }}>
+                          <NForm labelPlacement='top' size='small'>
+                            <NFormItem label={t('data_standard.field_name')}>
+                              <NInput
+                                value={(selectedField.value as any).name}
+                                onUpdate:value={(val: string) => handleUpdateField('name', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                            <NFormItem label={t('data_standard.field_code')}>
+                              <NInput
+                                value={(selectedField.value as any).code}
+                                onUpdate:value={(val: string) => handleUpdateField('code', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                                style={{ fontFamily: 'monospace' }}
+                              />
+                            </NFormItem>
+                            <NFormItem label={t('data_standard.field_data_type')}>
+                              <NSelect
+                                value={(selectedField.value as any).dataType}
+                                options={DATA_TYPE_OPTIONS}
+                                onUpdate:value={(val: string) => handleUpdateField('dataType', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                            <NFormItem label={t('data_standard.field_type')}>
+                              <NSelect
+                                value={(selectedField.value as any).fieldType}
+                                options={[
+                                  { label: t('data_standard.field_type_header'), value: 'HEADER' },
+                                  { label: t('data_standard.field_type_body'), value: 'BODY' }
+                                ]}
+                                onUpdate:value={(val: string) => handleUpdateField('fieldType', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                          </NForm>
+                        </NCard>
+
+                        {/* Constraints */}
+                        <NCard size='small' title={t('data_standard.inspector_constraints')} bordered={false} style={{ backgroundColor: '#fafafa' }}>
+                          <NForm labelPlacement='top' size='small'>
+                            <NFormItem label={t('data_standard.field_length')}>
+                              <NInput
+                                value={(selectedField.value as any).length}
+                                onUpdate:value={(val: string) => handleUpdateField('length', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                            <NFormItem label={t('data_standard.field_precision')}>
+                              <NInput
+                                value={(selectedField.value as any).precision}
+                                onUpdate:value={(val: string) => handleUpdateField('precision', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                            <NFormItem label={t('data_standard.field_default')}>
+                              <NInput
+                                value={(selectedField.value as any).defaultValue}
+                                onUpdate:value={(val: string) => handleUpdateField('defaultValue', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                            <NFormItem label={t('data_standard.field_required')}>
+                              <NSwitch
+                                value={(selectedField.value as any).required}
+                                onUpdate:value={(val: boolean) => handleUpdateField('required', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                          </NForm>
+                        </NCard>
+
+                        {/* Metadata */}
+                        <NCard size='small' title={t('data_standard.inspector_metadata')} bordered={false} style={{ backgroundColor: '#fafafa' }}>
+                          <NForm labelPlacement='top' size='small'>
+                            <NFormItem label={t('data_standard.field_unit')}>
+                              <NInput
+                                value={(selectedField.value as any).unit}
+                                onUpdate:value={(val: string) => handleUpdateField('unit', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                              />
+                            </NFormItem>
+                            <NFormItem label={t('data_standard.field_desc')}>
+                              <NInput
+                                value={(selectedField.value as any).description}
+                                onUpdate:value={(val: string) => handleUpdateField('description', val)}
+                                disabled={!isCurrentVersionDraft.value}
+                                type='textarea'
+                                rows={2}
+                              />
+                            </NFormItem>
+                          </NForm>
+                        </NCard>
+
+                        {/* Delete button */}
+                        {isCurrentVersionDraft.value && (
+                          <NPopconfirm onPositiveClick={() => {
+                            if (selectedIndex.value !== null) {
+                              removeField(selectedIndex.value)
+                              selectedIndex.value = null
+                            }
+                          }}>
+                            {{ trigger: () => <NButton type='error' block>{t('data_standard.delete')}</NButton>,
+                              default: () => '确认删除此字段？' }}
+                          </NPopconfirm>
+                        )}
+                      </NSpace>
+                    </div>
                   )}
-                  <NDataTable
-                    columns={fieldColumns.value}
-                    data={fields.value}
-                    loading={loading.value}
-                    bordered
-                    size='small'
+                </div>
+
+                {/* Add Group Modal */}
+                <NModal
+                  v-model:show={showAddGroupModal.value}
+                  preset='dialog'
+                  title='新建分组'
+                  positiveText='确定'
+                  negativeText='取消'
+                  onPositiveClick={handleAddGroup}
+                >
+                  <NInput
+                    v-model:value={newGroupName.value}
+                    placeholder='请输入分组名称'
+                    onKeyup={(e: KeyboardEvent) => { if (e.key === 'Enter') handleAddGroup() }}
                   />
-                </NSpace>
+                </NModal>
               </NTabPane>
+
               <NTabPane name='formats' tab={t('data_standard.tab_formats')}>
                 <NSpace vertical>
                   {isCurrentVersionDraft.value && (
@@ -386,6 +755,7 @@ export default defineComponent({
                   />
                 </NSpace>
               </NTabPane>
+
               <NTabPane name='mappings' tab={t('data_standard.tab_mappings')}>
                 <NSpace vertical>
                   {isCurrentVersionDraft.value && (

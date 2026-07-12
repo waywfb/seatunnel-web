@@ -18,7 +18,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.apache.seatunnel.app.dal.mapper.DataStandardFormatMapper">
   <insert id="insertBatchSomeColumn">
-    insert into t_st_data_standard_format (id, version_id, format_type, file_type, record_separator, field_separator, encoding, header_rows, quote_char, escape_char, description, workspace_id, create_time, update_time)
+    insert into t_st_data_standard_format (id, version_id, format_type, file_type, record_separator, field_separator, encoding, header_rows, quote_char, escape_char, file_terminator, description, workspace_id, create_time, update_time)
     values
     <foreach collection="list" item="item" separator=",">
       (#{item.id},
@@ -31,6 +31,7 @@
       #{item.headerRows},
       #{item.quoteChar},
       #{item.escapeChar},
+      #{item.fileTerminator},
       #{item.description},
       #{item.workspaceId},
       #{item.createTime},

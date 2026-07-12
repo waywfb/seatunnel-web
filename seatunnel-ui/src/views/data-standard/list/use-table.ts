@@ -31,6 +31,7 @@ export function useTable() {
   const state = reactive({
     params: {
       name: null as string | null,
+      type: null as string | null,
       status: null as number | null
     },
     list: [] as any[],
@@ -49,6 +50,7 @@ export function useTable() {
         pageNo: state.page,
         pageSize: state.pageSize,
         name: state.params.name || undefined,
+        type: state.params.type || undefined,
         status: state.params.status ?? undefined
       })
       state.list = result?.data || []

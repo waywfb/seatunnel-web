@@ -39,7 +39,7 @@ public interface IDataStandardDao {
     boolean checkDataStandardCodeUnique(String code, Long standardId);
 
     IPage<DataStandard> selectDataStandardPage(
-            Page<DataStandard> page, String name, String industry, Integer status);
+            Page<DataStandard> page, String name, String type, Integer status);
 
     List<DataStandard> selectDataStandardByIds(List<Long> ids);
 

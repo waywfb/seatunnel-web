@@ -94,6 +94,15 @@ export default {
   field_default: '默认值',
   field_required: '必填',
   field_desc: '描述',
+  field_type: '字段类型',
+  field_type_header: '消息头',
+  field_type_body: '消息体',
+
+  // Inspector panel
+  inspector_title: '字段属性',
+  inspector_basic: '基本信息',
+  inspector_constraints: '约束条件',
+  inspector_metadata: '元数据',
 
   // Format form
   add_format: '添加格式',
@@ -106,6 +115,7 @@ export default {
   format_header_rows: '表头行数',
   format_quote: '引号符',
   format_escape: '转义符',
+  format_file_terminator: '文件终止符',
 
   // Mapping form
   add_mapping: '添加映射',

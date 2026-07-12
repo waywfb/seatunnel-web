@@ -50,6 +50,8 @@ public class DataStandardFormatRes {
 
     private String escapeChar;
 
+    private String fileTerminator;
+
     private String description;
 
     private Date createTime;

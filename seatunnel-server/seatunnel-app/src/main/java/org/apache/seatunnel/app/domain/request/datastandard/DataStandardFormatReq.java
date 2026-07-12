@@ -44,5 +44,7 @@ public class DataStandardFormatReq {
 
     private String escapeChar;
 
+    private String fileTerminator;
+
     private String description;
 }

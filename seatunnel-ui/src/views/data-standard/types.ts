@@ -43,6 +43,7 @@ export interface FieldForm {
   required?: boolean
   description?: string
   sortOrder?: number
+  fieldType?: string
 }
 
 export interface FormatForm {
@@ -55,6 +56,7 @@ export interface FormatForm {
   headerRows?: number | null
   quoteChar?: string
   escapeChar?: string
+  fileTerminator?: string
   description?: string
 }
 
@@ -78,18 +80,20 @@ export const DEFAULT_FIELD_FORM: FieldForm = {
   defaultValue: '',
   required: false,
   description: '',
-  sortOrder: 0
+  sortOrder: 0,
+  fieldType: 'BODY'
 }
 
 export const DEFAULT_FORMAT_FORM: FormatForm = {
-  formatType: 'FILE',
-  fileType: 'CSV',
-  recordSeparator: '\\n',
-  fieldSeparator: ',',
+  formatType: 'DELIMITER',
+  fileType: '.txt',
+  recordSeparator: '~',
+  fieldSeparator: ';',
   encoding: 'UTF-8',
-  headerRows: 1,
-  quoteChar: '"',
-  escapeChar: '\\',
+  headerRows: 0,
+  quoteChar: '',
+  escapeChar: '',
+  fileTerminator: '||',
   description: ''
 }
 
@@ -102,20 +106,23 @@ export const DEFAULT_MAPPING_FORM: MappingForm = {
 }
 
 export const FORMAT_TYPE_OPTIONS = [
-  { label: 'FILE', value: 'FILE' },
+  { label: 'DELIMITER (分隔符)', value: 'DELIMITER' },
   { label: 'JSON', value: 'JSON' },
   { label: 'MQTT', value: 'MQTT' },
   { label: 'API', value: 'API' }
 ]
 
 export const FILE_TYPE_OPTIONS = [
-  { label: 'TXT', value: 'TXT' },
-  { label: 'CSV', value: 'CSV' },
-  { label: 'JSON', value: 'JSON' },
-  { label: 'XML', value: 'XML' }
+  { label: '.txt', value: '.txt' },
+  { label: '.csv', value: '.csv' },
+  { label: '.json', value: '.json' },
+  { label: '.xml', value: '.xml' }
 ]
 
 export const DATA_TYPE_OPTIONS = [
+  { label: '字符', value: '字符' },
+  { label: '数值', value: '数值' },
+  { label: '日期', value: '日期' },
   { label: 'STRING', value: 'STRING' },
   { label: 'INT', value: 'INT' },
   { label: 'BIGINT', value: 'BIGINT' },

@@ -56,6 +56,8 @@ public class DataStandardFieldRes {
 
     private Integer sortOrder;
 
+    private String fieldType;
+
     private Date createTime;
 
     private Date updateTime;

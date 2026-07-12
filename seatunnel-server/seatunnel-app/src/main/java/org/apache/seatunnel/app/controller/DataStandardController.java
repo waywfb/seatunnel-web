@@ -103,12 +103,12 @@ public class DataStandardController extends BaseController {
     @GetMapping("/page")
     Result<PageInfo<DataStandardRes>> getDataStandardPage(
             @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "industry", required = false) String industry,
+            @RequestParam(value = "type", required = false) String type,
             @RequestParam(value = "status", required = false) Integer status,
             @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo,
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return Result.success(
-                dataStandardService.getDataStandardPage(name, industry, status, pageNo, pageSize));
+                dataStandardService.getDataStandardPage(name, type, status, pageNo, pageSize));
     }
 
     @ApiOperation("启用数据标准")

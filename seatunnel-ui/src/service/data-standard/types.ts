@@ -21,7 +21,7 @@ export interface DataStandardPageParams {
   pageNo: number
   pageSize: number
   name?: string
-  industry?: string
+  type?: string
   status?: number
 }
 
@@ -35,6 +35,7 @@ export interface DataStandardReq {
 }
 
 export interface DataStandardVersionReq {
+  version?: string
   description?: string
 }
 
@@ -51,6 +52,7 @@ export interface DataStandardFieldReq {
   required?: boolean
   description?: string
   sortOrder?: number
+  fieldType?: string
 }
 
 export interface DataStandardFormatReq {
@@ -63,6 +65,7 @@ export interface DataStandardFormatReq {
   headerRows?: number
   quoteChar?: string
   escapeChar?: string
+  fileTerminator?: string
   description?: string
 }
 
@@ -125,6 +128,7 @@ export interface DataStandardFieldRes {
   required?: boolean
   description?: string
   sortOrder?: number
+  fieldType?: string
 }
 
 export interface DataStandardFormatRes {
@@ -138,6 +142,7 @@ export interface DataStandardFormatRes {
   headerRows?: number
   quoteChar?: string
   escapeChar?: string
+  fileTerminator?: string
   description?: string
 }
 

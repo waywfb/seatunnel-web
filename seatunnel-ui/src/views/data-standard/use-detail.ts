@@ -152,7 +152,12 @@ export function useDetail() {
   // Create new version
   const handleCreateVersion = async (description?: string) => {
     if (!id.value) return
-    await createVersion(id.value, { description })
+    const maxVersion = versions.value.reduce((max: number, v: any) => {
+      const num = parseInt((v.version || '').replace(/\D/g, ''), 10)
+      return !isNaN(num) && num > max ? num : max
+    }, 0)
+    const nextVersion = 'V' + (maxVersion + 1) + '.0'
+    await createVersion(id.value, { version: nextVersion, description })
     message.success('版本创建成功')
     await loadVersions()
   }

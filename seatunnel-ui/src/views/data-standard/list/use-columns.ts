@@ -22,13 +22,12 @@ import { useTableOperation } from '@/hooks'
 import {
   EditOutlined,
   CopyOutlined,
-  BranchesOutlined,
   CheckCircleOutlined,
   PauseCircleOutlined
 } from '@vicons/antd'
 
 export function useColumns(
-  onCallback: (id: number, type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy' | 'version') => void
+  onCallback: (id: number, type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy') => void
 ) {
   const { t } = useI18n()
   const columns = ref<any[]>([])
@@ -97,11 +96,6 @@ export function useColumns(
             text: t('data_standard.edit'),
             icon: h(EditOutlined),
             onClick: (rowData) => void onCallback(rowData.id, 'edit')
-          },
-          {
-            text: t('data_standard.version_manage'),
-            icon: h(BranchesOutlined),
-            onClick: (rowData) => void onCallback(rowData.id, 'version')
           },
           {
             text: t('data_standard.copy'),

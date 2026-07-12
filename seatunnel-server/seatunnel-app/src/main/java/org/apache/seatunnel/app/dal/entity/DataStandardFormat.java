@@ -65,6 +65,9 @@ public class DataStandardFormat {
     @TableField("escape_char")
     private String escapeChar;
 
+    @TableField("file_terminator")
+    private String fileTerminator;
+
     @TableField("description")
     private String description;
 
