@@ -31,6 +31,7 @@ import common from '@/locales/en_US/common'
 import security from '@/locales/en_US/security'
 import data_pipes from '@/locales/en_US/data-pipes'
 import transforms from '@/locales/en_US/transforms'
+import data_standard from '@/locales/en_US/data-standard'
 
 export default {
   security,
@@ -49,6 +50,7 @@ export default {
   hook,
   data_pipes,
   transforms,
+  data_standard,
   dag: {
     nodeConfigHint: 'Double click to configure. After configure, Connect each node ends to another.'
   },

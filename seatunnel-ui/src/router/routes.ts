@@ -21,6 +21,7 @@ import userManage from '@/router/user-manage'
 import datasource from '@/router/datasource'
 import virtualTables from '@/router/virtual-tables'
 import ai from '@/router/ai'
+import dataStandard from '@/router/data-standard'
 import type { RouteRecordRaw } from 'vue-router'
 import type { Component } from 'vue'
 
@@ -36,7 +37,8 @@ const basePage: RouteRecordRaw[] = [
   userManage,
   datasource,
   virtualTables,
-  ai
+  ai,
+  dataStandard
 ]
 
 const loginPage: RouteRecordRaw[] = [

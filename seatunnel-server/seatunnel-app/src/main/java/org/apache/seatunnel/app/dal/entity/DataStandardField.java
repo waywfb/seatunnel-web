@@ -56,7 +56,7 @@ public class DataStandardField {
     @TableField("length")
     private Integer length;
 
-    @TableField("precision")
+    @TableField("`precision`")
     private Integer precision;
 
     @TableField("unit")

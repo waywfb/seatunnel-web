@@ -32,6 +32,7 @@ export default {
   section_pipeline: '数据集成',
   section_resources: '数据资源',
   section_ai: '人工智能',
+  data_standard: '数据标准',
   section_admin: '系统管理',
   ai_assistant: 'AI 助手',
 }

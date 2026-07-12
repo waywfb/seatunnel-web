@@ -68,6 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { key: 'datasource', icon: 'database', route: '/datasource' },
       { key: 'tag_manage', icon: 'sell', route: '/datasource/tags' },
       { key: 'virtual_tables', icon: 'table', route: '/virtual-tables' },
+      { key: 'data_standard', icon: 'table', route: '/data-standard' },
     ]
   },
   {

@@ -31,6 +31,7 @@ import common from '@/locales/zh_CN/common'
 import security from '@/locales/zh_CN/security'
 import data_pipes from '@/locales/zh_CN/data-pipes'
 import transforms from '@/locales/zh_CN/transforms'
+import data_standard from '@/locales/zh_CN/data-standard'
 
 export default {
   security,
@@ -49,6 +50,7 @@ export default {
   hook,
   data_pipes,
   transforms,
+  data_standard,
   dag: {
     nodeConfigHint: '双击节点进行配置。配置完成后，连接每个节点的端点到其他节点。'
   },
