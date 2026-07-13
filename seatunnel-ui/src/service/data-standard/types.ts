@@ -176,6 +176,10 @@ export interface VirtualTableStandardRes {
 }
 
 export interface PageInfo<T> {
-  total: number
-  list: T[]
+  data: T
+  totalCount: number
+  totalPage: number
+  pageNo: number
+  pageSize: number
+  currentPage: number
 }

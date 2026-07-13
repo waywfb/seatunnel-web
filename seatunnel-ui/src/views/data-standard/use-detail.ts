@@ -57,7 +57,8 @@ export function useDetail() {
     code: '',
     type: null,
     source: '',
-    description: ''
+    description: '',
+    groups: []
   })
 
   // Version state
@@ -89,6 +90,9 @@ export function useDetail() {
         form.type = result.type || null
         form.source = result.source || ''
         form.description = result.description || ''
+        // Load groups from localStorage (backend doesn't persist them)
+        const saved = localStorage.getItem(`ds_groups_${id.value}`)
+        form.groups = saved ? JSON.parse(saved) : []
       }
       await loadVersions()
     } finally {
@@ -136,9 +140,15 @@ export function useDetail() {
     try {
       if (isEdit.value && id.value) {
         await updateDataStandard(id.value, form)
+        // Persist groups to localStorage (backend doesn't store them)
+        localStorage.setItem(`ds_groups_${id.value}`, JSON.stringify(form.groups || []))
         message.success('更新成功')
       } else {
         const result = await createDataStandard(form)
+        const newId = (result as any)?.id || (result as any)?.data?.id
+        if (newId && form.groups?.length) {
+          localStorage.setItem(`ds_groups_${newId}`, JSON.stringify(form.groups))
+        }
         message.success('创建成功')
         router.push({ name: 'data-standard-list' })
       }

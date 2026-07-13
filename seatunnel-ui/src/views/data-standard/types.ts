@@ -23,6 +23,7 @@ export interface DataStandardForm {
   type?: string | null
   source?: string
   description?: string
+  groups?: string[]
 }
 
 export interface VersionForm {

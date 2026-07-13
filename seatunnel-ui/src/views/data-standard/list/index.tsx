@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent } from 'vue'
+import { defineComponent, computed } from 'vue'
 import {
   NButton,
   NInput,
@@ -25,10 +25,10 @@ import {
   NPagination,
   NCard,
   NSelect,
-  NTabs,
-  NTabPane,
   useMessage
 } from 'naive-ui'
+import STabs from '@/components/tabs'
+import { Plus } from 'lucide-vue-next'
 import { SearchOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -41,7 +41,7 @@ const STATUS_OPTIONS = [
   { label: '停用', value: 0 }
 ]
 
-const ALL_TAB = { label: '全部', value: null }
+const ALL_TAB = { label: '全部', value: '__all__' }
 
 const DataStandardList = defineComponent({
   name: 'DataStandardList',
@@ -60,6 +60,12 @@ const DataStandardList = defineComponent({
       onPageChange,
       onPageSizeChange
     } = useTable()
+
+    // 获取各类型统计数量
+    const getTypeCount = (type: string | null) => {
+      if (type === null || type === '__all__') return state.allData.length
+      return state.typeCounts[type] || 0
+    }
 
     const { columns } = useColumns(
       async (id: number, type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy') => {
@@ -89,8 +95,8 @@ const DataStandardList = defineComponent({
       }
     }
 
-    const handleTypeChange = (val: string | null) => {
-      state.params.type = val
+    const handleTypeChange = (val: string) => {
+      state.params.type = val === '__all__' ? null : val
       state.page = 1
       onSearch()
     }
@@ -100,73 +106,98 @@ const DataStandardList = defineComponent({
       ...TYPE_OPTIONS
     ]
 
+    const tabs = computed(() => tabOptions.map(opt => ({
+      name: String(opt.value),
+      label: opt.label,
+      count: getTypeCount(opt.value)
+    })))
+
+    const tabValue = computed(() => state.params.type == null ? '__all__' : String(state.params.type))
+
     return () => (
-      <NSpace vertical>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+        {/* Page title with action button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+              {t('data_standard.data_standard')}
+            </h2>
+            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
+              管理国家、行业、企业等标准规范
+            </p>
+          </div>
+          <button
+            onClick={() => router.push({ name: 'data-standard-create' })}
+            style={{
+              backgroundColor: '#10b981',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <Plus size={18} />
+            {t('data_standard.create')}
+          </button>
+        </div>
+
+        {/* STabs */}
+        <STabs
+          value={tabValue.value}
+          onUpdate:value={handleTypeChange}
+          tabs={tabs.value}
+          style={{ marginBottom: '4px' }}
+        />
+
+        {/* Table with search toolbar */}
         <NCard>
-          <NSpace vertical size={16}>
-            <NTabs
-              type='line'
-              value={state.params.type}
-              onUpdate:value={handleTypeChange}
-            >
-              {tabOptions.map(opt => (
-                <NTabPane name={opt.value} tab={opt.label} />
-              ))}
-            </NTabs>
-            <NSpace justify='space-between'>
-              <NButton
-                type='info'
-                onClick={() => router.push({ name: 'data-standard-create' })}
-              >
-                {t('data_standard.create')}
-              </NButton>
-              <NSpace justify='end'>
-                <NInput
-                  v-model:value={state.params.name}
-                  clearable
-                  placeholder={t('data_standard.search_name')}
-                  onKeyup={handleKeyup}
-                  style={{ width: '200px' }}
-                />
-                <NSelect
-                  v-model:value={state.params.status}
-                  clearable
-                  placeholder={t('data_standard.search_status')}
-                  options={STATUS_OPTIONS}
-                  style={{ width: '120px' }}
-                />
-                <NButton type='primary' onClick={onSearch}>
-                  <NIcon>
-                    <SearchOutlined />
-                  </NIcon>
-                </NButton>
-              </NSpace>
-            </NSpace>
-          </NSpace>
-        </NCard>
-        <NCard>
-          <NSpace vertical>
-            <NDataTable
-              columns={columns.value}
-              data={state.list}
-              loading={state.loading}
-              row-key={(row: any) => row.id}
+          <NSpace justify='end' style={{ marginBottom: '16px' }}>
+            <NInput
+              v-model:value={state.params.name}
+              clearable
+              placeholder={t('data_standard.search_name')}
+              onKeyup={handleKeyup}
+              style={{ width: '200px' }}
             />
-            <NSpace justify='center'>
-              <NPagination
-                v-model:page={state.page}
-                v-model:page-size={state.pageSize}
-                item-count={state.itemCount}
-                show-size-picker
-                page-sizes={[10, 30, 50]}
-                show-quick-jumper
-                on-update:page={onPageChange}
-                on-update:page-size={onPageSizeChange}
-              />
-            </NSpace>
+            <NSelect
+              v-model:value={state.params.status}
+              clearable
+              placeholder={t('data_standard.search_status')}
+              options={STATUS_OPTIONS}
+              style={{ width: '120px' }}
+            />
+            <NButton type='primary' onClick={onSearch}>
+              <NIcon>
+                <SearchOutlined />
+              </NIcon>
+            </NButton>
+          </NSpace>
+          <NDataTable
+            columns={columns.value}
+            data={state.list}
+            loading={state.loading}
+            row-key={(row: any) => row.id}
+          />
+          <NSpace justify='center' style={{ marginTop: '16px' }}>
+            <NPagination
+              v-model:page={state.page}
+              v-model:page-size={state.pageSize}
+              item-count={state.itemCount}
+              show-size-picker
+              page-sizes={[10, 30, 50]}
+              show-quick-jumper
+              on-update:page={onPageChange}
+              on-update:page-size={onPageSizeChange}
+            />
           </NSpace>
         </NCard>
-      </NSpace>
+      </div>
     )
   }
 })

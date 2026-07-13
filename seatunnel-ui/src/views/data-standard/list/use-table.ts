@@ -35,13 +35,35 @@ export function useTable() {
       status: null as number | null
     },
     list: [] as any[],
+    allData: [] as any[],
     loading: false,
     page: 1,
     pageSize: 10,
-    itemCount: 0
+    itemCount: 0,
+    typeCounts: {} as Record<string, number>
   })
   const route = useRoute()
   const router = useRouter()
+
+  const getAllData = async () => {
+    try {
+      const result = await getDataStandardPage({
+        pageNo: 1,
+        pageSize: 999,
+        name: undefined,
+        type: undefined,
+        status: undefined
+      })
+      state.allData = result?.data || []
+      // 统计各类型数量
+      const counts: Record<string, number> = {}
+      for (const item of state.allData) {
+        const type = item.type || 'Other'
+        counts[type] = (counts[type] || 0) + 1
+      }
+      state.typeCounts = counts
+    } catch {}
+  }
 
   const getList = async () => {
     state.loading = true
@@ -124,6 +146,7 @@ export function useTable() {
   }
 
   onMounted(() => {
+    getAllData()
     getList()
   })
 
