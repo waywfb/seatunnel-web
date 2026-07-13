@@ -36,7 +36,10 @@ export default {
       component: components['data-standard-list'],
       meta: {
         title: 'data-standard-list',
-        activeMenu: 'data-standard'
+        activeMenu: 'data-standard',
+        breadcrumb: [
+          { label: '数据标准', path: '/data-standard/list' }
+        ]
       }
     },
     {
@@ -45,7 +48,11 @@ export default {
       component: components['data-standard-detail'],
       meta: {
         title: 'data-standard-create',
-        activeMenu: 'data-standard'
+        activeMenu: 'data-standard',
+        breadcrumb: [
+          { label: '数据标准', path: '/data-standard/list' },
+          { label: '新建标准' }
+        ]
       }
     },
     {
@@ -54,7 +61,11 @@ export default {
       component: components['data-standard-detail'],
       meta: {
         title: 'data-standard-detail',
-        activeMenu: 'data-standard'
+        activeMenu: 'data-standard',
+        breadcrumb: [
+          { label: '数据标准', path: '/data-standard/list' },
+          { label: '标准详情' }
+        ]
       }
     },
     {
@@ -63,7 +74,11 @@ export default {
       component: components['data-standard-detail'],
       meta: {
         title: 'data-standard-edit',
-        activeMenu: 'data-standard'
+        activeMenu: 'data-standard',
+        breadcrumb: [
+          { label: '数据标准', path: '/data-standard/list' },
+          { label: '编辑标准' }
+        ]
       }
     }
   ]

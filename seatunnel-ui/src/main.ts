@@ -23,6 +23,7 @@ import i18n from '@/locales'
 import router from './router'
 import utils from '@/utils'
 import 'material-symbols'
+import 'lucide-vue-next'
 import './index.css'
 import './assets/styles/default.scss'
 

@@ -16,16 +16,37 @@
  */
 
 import { defineComponent } from 'vue'
-import { NSpace } from 'naive-ui'
+import { useRoute, useRouter } from 'vue-router'
+import { NBreadcrumb, NBreadcrumbItem } from 'naive-ui'
 import User from './user'
 
 const Header = defineComponent({
-  setup() {},
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
+    return { route, router }
+  },
   render() {
+    const breadcrumbItems = this.route.meta?.breadcrumb as Array<{ label: string; path?: string }> || []
+
     return (
-      <NSpace justify='end' class='h-16 border-gray-200' style='width: 100%;'>
+      <div class='h-14 flex items-center justify-between px-6 border-b border-gray-100 bg-white' style='width: 100%;'>
+        <NBreadcrumb>
+          <NBreadcrumbItem onClick={() => this.router.push('/')}>
+            首页
+          </NBreadcrumbItem>
+          {breadcrumbItems.map((item, index) => (
+            <NBreadcrumbItem
+              key={index}
+              onClick={() => item.path && this.router.push(item.path)}
+              style={{ cursor: item.path ? 'pointer' : 'default' }}
+            >
+              {item.label}
+            </NBreadcrumbItem>
+          ))}
+        </NBreadcrumb>
         <User />
-      </NSpace>
+      </div>
     )
   }
 })

@@ -36,7 +36,10 @@ export default {
       component: components['datasource-list'],
       meta: {
         title: 'datasource-list',
-        activeMenu: 'datasource'
+        activeMenu: 'datasource',
+        breadcrumb: [
+          { label: '数据源', path: '/datasource/list' }
+        ]
       }
     },
     {
@@ -45,7 +48,11 @@ export default {
       component: components['datasource-create'],
       meta: {
         title: 'datasource-create',
-        activeMenu: 'datasource'
+        activeMenu: 'datasource',
+        breadcrumb: [
+          { label: '数据源', path: '/datasource/list' },
+          { label: '新建数据源' }
+        ]
       }
     },
     {
@@ -54,7 +61,11 @@ export default {
       component: components['datasource-create'],
       meta: {
         title: 'datasource-edit',
-        activeMenu: 'datasource'
+        activeMenu: 'datasource',
+        breadcrumb: [
+          { label: '数据源', path: '/datasource/list' },
+          { label: '编辑数据源' }
+        ]
       }
     },
     {
@@ -63,7 +74,10 @@ export default {
       component: components['datasource-tags'],
       meta: {
         title: 'datasource-tags',
-        activeMenu: 'tag_manage'
+        activeMenu: 'tag_manage',
+        breadcrumb: [
+          { label: '测点管理', path: '/datasource/tags' }
+        ]
       }
     }
   ]

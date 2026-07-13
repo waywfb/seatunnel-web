@@ -37,6 +37,9 @@ export default {
       meta: {
         title: 'virtual-tables-list',
         activeMenu: 'virtual-tables',
+        breadcrumb: [
+          { label: '数据模型', path: '/virtual-tables/list' }
+        ]
       }
     },
     {
@@ -46,6 +49,10 @@ export default {
       meta: {
         title: 'virtual-tables-create',
         activeMenu: 'virtual-tables',
+        breadcrumb: [
+          { label: '数据模型', path: '/virtual-tables/list' },
+          { label: '新建模型' }
+        ]
       }
     },
     {
@@ -55,6 +62,10 @@ export default {
       meta: {
         title: 'virtual-tables-editor',
         activeMenu: 'virtual-tables',
+        breadcrumb: [
+          { label: '数据模型', path: '/virtual-tables/list' },
+          { label: '编辑模型' }
+        ]
       }
     }
   ]

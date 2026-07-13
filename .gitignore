@@ -58,7 +58,6 @@ seatunnel-server/seatunnel-app/src/main/resources/application.yml
 .codegraph
 .opencode
 .opencode/*
-.opencode/*
 .codegraph/*
 .vscode/*
 .vscode/
@@ -75,3 +74,4 @@ DESIGN-bak.md
 .playwright-mcp/*
 seatunnel-ui/.omo/*
 .zed/*
+.mimocode/*
