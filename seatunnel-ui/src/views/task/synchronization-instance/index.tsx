@@ -16,8 +16,9 @@
  */
 
 import { defineComponent, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { NTabs, NTabPane } from 'naive-ui'
+import { useRoute } from 'vue-router'
+import STabs from '@/components/tabs'
+import PageLayout from '@/components/page-layout'
 import { useI18n } from 'vue-i18n'
 import { SyncTask } from './sync-task'
 
@@ -25,30 +26,31 @@ const SynchronizationInstance = defineComponent({
   name: 'SynchronizationInstance',
   setup() {
     const route = useRoute()
-    const router = useRouter()
     const { t } = useI18n()
-    let syncTaskType = ref(route.query.syncTaskType || 'BATCH')
-    
-    return { t, syncTaskType }
-  },
-  render() {
-    return (
-      <div class='h-full flex flex-col overflow-hidden'>
-        <NTabs v-model:value={this.syncTaskType}>
-          <NTabPane
-            name='BATCH'
-            tab={this.t('project.synchronization_instance.offline_sync')}
-          >
-            <SyncTask syncTaskType='BATCH' />
-          </NTabPane>
-          <NTabPane
-            name='STREAMING'
-            tab={this.t('project.synchronization_instance.real_time_sync')}
-          >
-            <SyncTask syncTaskType='STREAMING' />
-          </NTabPane>
-        </NTabs>
-      </div>
+    const syncTaskType = ref((route.query.syncTaskType as string) || 'BATCH')
+
+    const tabs = [
+      { name: 'BATCH', label: t('project.synchronization_instance.offline_sync') },
+      { name: 'STREAMING', label: t('project.synchronization_instance.real_time_sync') }
+    ]
+
+    return () => (
+      <PageLayout>
+        {{
+          tabs: () => (
+            <STabs
+              value={syncTaskType.value}
+              onUpdate:value={(val: string) => syncTaskType.value = val}
+              tabs={tabs}
+            >
+              {{
+                'pane:BATCH': () => <SyncTask syncTaskType='BATCH' />,
+                'pane:STREAMING': () => <SyncTask syncTaskType='STREAMING' />
+              }}
+            </STabs>
+          )
+        }}
+      </PageLayout>
     )
   }
 })

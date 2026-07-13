@@ -15,18 +15,17 @@
  * limitations under the License.
  */
 
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { RunningInstance } from './running-instance'
 import { TaskDefinition } from './task-definition'
 import { TaskMetrics } from './task-metrics'
 import {
   NBreadcrumb,
   NBreadcrumbItem,
-  NCard,
-  NSpace,
-  NTabPane,
-  NTabs
+  NCard
 } from 'naive-ui'
+import STabs from '@/components/tabs'
+import PageLayout from '@/components/page-layout'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import type { Router } from 'vue-router'
@@ -37,58 +36,55 @@ const SynchronizationInstanceDetail = defineComponent({
     const { t } = useI18n()
     const router: Router = useRouter()
     const route = useRoute()
+    const activeTab = ref('task-definition')
 
-    return {
-      t,
-      router,
-      route
-    }
-  },
-  render() {
-    return (
-      <NSpace vertical>
-        <NCard>
+    const tabs = [
+      { name: 'task-definition', label: t('project.synchronization_instance.sync_task_definition') },
+      { name: 'running-instance', label: t('project.synchronization_instance.data_pipeline_running_instance') },
+      { name: 'task-metrics', label: t('project.synchronization_instance.task_metrics') }
+    ]
+
+    return () => (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <NCard style={{ marginBottom: '8px' }}>
           <NBreadcrumb>
             <NBreadcrumbItem>
               <span
                 onClick={() =>
-                  this.router.push({
+                  router.push({
                     name: 'synchronization-instance',
-                    params: { projectCode: this.route.params.projectCode },
+                    params: { projectCode: route.params.projectCode },
                     query: {
-                      project: this.route.query.project,
-                      global: this.route.query.global
+                      project: route.query.project,
+                      global: route.query.global
                     }
                   })
                 }
               >
-                {this.t('menu.synchronization_instance')}
+                {t('menu.synchronization_instance')}
               </span>
             </NBreadcrumbItem>
-            <NBreadcrumbItem>{this.route.query.taskName}</NBreadcrumbItem>
+            <NBreadcrumbItem>{route.query.taskName}</NBreadcrumbItem>
           </NBreadcrumb>
         </NCard>
-        <NTabs type='segment'>
-          <NTabPane
-            name='task-definition'
-            tab={this.t('project.synchronization_instance.sync_task_definition')}
-          >
-            <TaskDefinition />
-          </NTabPane>
-          <NTabPane
-            name='running-instance'
-            tab={this.t('project.synchronization_instance.data_pipeline_running_instance')}
-          >
-            <RunningInstance />
-          </NTabPane>
-          <NTabPane
-            name='task-metrics'
-            tab={this.t('project.synchronization_instance.task_metrics')}
-          >
-            <TaskMetrics />
-          </NTabPane>
-        </NTabs>
-      </NSpace>
+        <PageLayout>
+          {{
+            tabs: () => (
+              <STabs
+                value={activeTab.value}
+                onUpdate:value={(val: string) => activeTab.value = val}
+                tabs={tabs}
+              >
+                {{
+                  'pane:task-definition': () => <TaskDefinition />,
+                  'pane:running-instance': () => <RunningInstance />,
+                  'pane:task-metrics': () => <TaskMetrics />
+                }}
+              </STabs>
+            )
+          }}
+        </PageLayout>
+      </div>
     )
   }
 })
