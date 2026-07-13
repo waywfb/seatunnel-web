@@ -3,7 +3,8 @@ import {
   NDataTable,
   NPagination,
   NSpace,
-  NCard
+  NCard,
+  NInput
 } from 'naive-ui'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -11,19 +12,21 @@ import { useColumns } from './use-columns'
 import { useTable } from './use-table'
 import { datasourceList } from '@/service/data-source'
 import SourceModal from '../components/source-modal'
+import STabs from '@/components/tabs'
+import { Plus, Settings, Upload, Globe, Folder, Database } from 'lucide-vue-next'
 import type { Ref } from 'vue'
 import type { TableColumns } from 'naive-ui/es/data-table/src/interface'
 
 const CATEGORIES = [
-  { key: 'industrial', label: '工业设备', color: '#D97B29', bg: '#FDF0E2', icon: 'precision_manufacturing',
+  { key: 'industrial', label: '工业设备', color: '#D97B29', bg: '#FDF0E2', icon: Settings,
     pluginNames: ['OPCUA', 'S7', 'Modbus'] },
-  { key: 'db', label: '数据库', color: '#2E6BE0', bg: '#E9F0FE', icon: 'database',
+  { key: 'db', label: '数据库', color: '#2E6BE0', bg: '#E9F0FE', icon: Database,
     pluginNames: ['JDBC-Mysql', 'JDBC-Postgres', 'JDBC-Oracle', 'JDBC-SQLServer', 'JDBC-ClickHouse', 'JDBC-TiDB', 'JDBC-Db2', 'JDBC-Hive', 'JDBC-StarRocks', 'JDBC-Redshift', 'Hive', 'StarRocks', 'MySQL-CDC', 'SqlServer-CDC', 'Postgres-CDC'] },
-  { key: 'mq', label: '消息队列', color: '#7B4FE0', bg: '#F1ECFD', icon: 'move_up',
+  { key: 'mq', label: '消息队列', color: '#7B4FE0', bg: '#F1ECFD', icon: Upload,
     pluginNames: ['Kafka'] },
-  { key: 'api', label: '接口服务', color: '#1DA7B4', bg: '#E4F6F7', icon: 'api',
+  { key: 'api', label: '接口服务', color: '#1DA7B4', bg: '#E4F6F7', icon: Globe,
     pluginNames: ['Http', 'ElasticSearch'] },
-  { key: 'file', label: '文件', color: '#4C9A5B', bg: '#EAF6EC', icon: 'folder',
+  { key: 'file', label: '文件', color: '#4C9A5B', bg: '#EAF6EC', icon: Folder,
     pluginNames: ['S3', 'FTP', 'SFTP'] },
 ]
 
@@ -109,8 +112,12 @@ const DatasourceList = defineComponent({
     })
 
     const handleSearch = () => {
-      data.page = 1
-      updateList()
+      tablePage.value = 1
+    }
+
+    const handleTableSearch = (val: string) => {
+      searchQuery.value = val
+      tablePage.value = 1
     }
 
     const handleKeyup = (event: KeyboardEvent) => {
@@ -135,6 +142,43 @@ const DatasourceList = defineComponent({
       router.push({ name: 'datasource-create', query: { type: pluginName } })
     }
 
+    // Tab配置
+    const tabOptions = computed(() => {
+      const allTab = { name: 'all', label: '全部', count: allDatasources.value.length }
+      const catTabs = categoryStats.value.map(cat => ({
+        name: cat.key,
+        label: cat.label,
+        count: cat.uniqueTypes
+      }))
+      return [allTab, ...catTabs]
+    })
+
+    const tablePage = ref(1)
+    const tablePageSize = ref(10)
+
+    const tableFiltered = computed(() => {
+      const allPluginNames = categoryTab.value === 'all'
+        ? null
+        : CATEGORIES.find(c => c.key === categoryTab.value)?.pluginNames || []
+      return allDatasources.value.filter((item: any) => {
+        if (allPluginNames && !allPluginNames.includes(item.pluginName)) return false
+        const q = searchQuery.value.toLowerCase()
+        if (q && !item.displayName?.toLowerCase().includes(q) && !item.pluginName?.toLowerCase().includes(q) && !item.datasourceName?.toLowerCase().includes(q)) return false
+        return true
+      })
+    })
+
+    const tableItemCount = computed(() => tableFiltered.value.length)
+    const tableList = computed(() => {
+      const start = (tablePage.value - 1) * tablePageSize.value
+      return tableFiltered.value.slice(start, start + tablePageSize.value)
+    })
+
+    const handleTablePageChange = (page: number) => { tablePage.value = page }
+    const handleTablePageSizeChange = (pageSize: number) => { tablePage.value = 1; tablePageSize.value = pageSize }
+
+    const handleTabChange = (val: string) => { categoryTab.value = val; tablePage.value = 1 }
+
     const initSearch = () => {
       const { searchVal } = route.query
       if (searchVal) data.searchVal = searchVal as string
@@ -157,65 +201,65 @@ const DatasourceList = defineComponent({
       t, showSourceModal, columns, ...toRefs(data),
       categoryTab, searchQuery, categoryStats, filteredByCategory, searched,
       changePage, changePageSize, onCreate, handleSearch, handleKeyup,
-      handleSelectSourceType, handleCardClick, closeSourceModal,
+      handleSelectSourceType, handleCardClick, closeSourceModal, tabOptions,
+      handleTabChange,
+      tablePage, tablePageSize, tableItemCount, tableList,
+      handleTablePageChange, handleTablePageSizeChange, handleTableSearch,
     }
   },
   render() {
     const {
       t, showSourceModal, columns, list, page, pageSize, itemCount,
       onCreate, handleSelectSourceType, handleCardClick, closeSourceModal,
-      categoryTab, searchQuery, searched, changePage, changePageSize,
+      categoryTab, searchQuery, searched, changePage, changePageSize, tabOptions,
+      handleTabChange,
+      tablePage, tablePageSize, tableItemCount, tableList,
+      handleTablePageChange, handleTablePageSizeChange, handleTableSearch,
     } = this
 
     return (
-      <div class="flex flex-col gap-tide-gap-lg" style="min-height:0">
-        {/* Top header bar — matches demo layout: env label + search + right icons */}
-        <div class="flex items-center justify-end">
-          <button
-            class="bg-tide-primary text-tide-on-primary py-2 px-4 rounded-tide-lg font-tide-label-md text-tide-label-md flex items-center gap-2 hover:bg-tide-primary-container hover:text-tide-on-primary-container transition-all shadow-none"
-            onClick={onCreate}
-          >
-            <span class="material-symbols-outlined text-[18px]">add</span>
-            新建数据源
-          </button>
-        </div>
-
-        {/* Page title */}
-        <div>
-          <h2 class="font-tide-headline-lg text-tide-headline-lg text-tide-on-surface">数据资源 · 连接管理</h2>
-          <p class="font-tide-body-md text-tide-body-md text-tide-on-surface-variant mt-1">
-            按你要接入的系统类型直接查找，无需先了解"数据源"这个概念
-          </p>
-        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+          {/* Page title with action button */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+                {t('menu.datasource')}
+              </h2>
+              <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
+                管理数据源连接与配置
+              </p>
+            </div>
+            <button
+              style={{
+                backgroundColor: '#10b981',
+                color: '#fff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+              onClick={onCreate}
+            >
+              <Plus size={18} />
+              新建数据源
+            </button>
+          </div>
 
         {/* Category tabs */}
-        <div class="flex gap-1 border-b border-tide-outline-variant">
-          <button
-            class={`font-tide-label-md text-tide-label-md px-tide-gap-md py-2 transition-colors ${
-              categoryTab === 'all'
-                ? 'text-tide-primary border-b-2 border-tide-primary'
-                : 'text-tide-on-surface-variant hover:text-tide-on-surface'
-            }`}
-            onClick={() => { this.categoryTab = 'all' }}
-          >
-            全部
-          </button>
-          {this.categoryStats.map(cat => (
-            <button
-              key={cat.key}
-              class={`font-tide-label-md text-tide-label-md px-tide-gap-md py-2 transition-colors ${
-                categoryTab === cat.key
-                  ? 'text-tide-primary border-b-2 border-tide-primary'
-                  : 'text-tide-on-surface-variant hover:text-tide-on-surface'
-              }`}
-              onClick={() => { this.categoryTab = cat.key }}
-            >
-              {cat.label} ({cat.uniqueTypes})
-            </button>
-          ))}
+        <div style={{ marginBottom: '4px' }}>
+          <STabs
+            value={categoryTab}
+            onUpdate:value={handleTabChange}
+            tabs={tabOptions}
+          />
         </div>
 
-        {/* Category cards — matches demo.html card section design */}
+        {/* Category cards */}
         <div class="space-y-tide-gap-lg">
           {searched.map(cat => (
             <div
@@ -248,7 +292,7 @@ const DatasourceList = defineComponent({
                         class="w-10 h-10 rounded-tide-lg flex items-center justify-center text-white flex-shrink-0"
                         style={{ backgroundColor: cat.color }}
                       >
-                        <span class="material-symbols-outlined text-[20px]">{cat.icon}</span>
+                        <cat.icon size={20} />
                       </div>
                       <div class="min-w-0 flex-1">
                         <div class="font-tide-label-md text-tide-label-md text-tide-on-surface truncate">{item.displayName}</div>
@@ -274,26 +318,33 @@ const DatasourceList = defineComponent({
           )}
         </div>
 
-        {/* Data table */}
+        {/* Data table with search */}
         <NCard>
-          <NSpace vertical>
-            <NDataTable
-              row-class-name='data-source-items'
-              columns={columns}
-              data={list}
+          <NSpace justify='end' style={{ marginBottom: '16px' }}>
+            <NInput
+              value={searchQuery}
+              onUpdate:value={handleTableSearch}
+              clearable
+              placeholder="搜索数据源名称"
+              style={{ width: '200px' }}
             />
-            <NSpace justify='center'>
-              <NPagination
-                page={page}
-                page-size={pageSize}
-                item-count={itemCount}
-                show-quick-jumper
-                show-size-picker
-                page-sizes={[10, 30, 50]}
-                on-update:page={changePage}
-                on-update:page-size={changePageSize}
-              />
-            </NSpace>
+          </NSpace>
+          <NDataTable
+            row-class-name='data-source-items'
+            columns={columns}
+            data={tableList}
+          />
+          <NSpace justify='center' style={{ marginTop: '16px' }}>
+            <NPagination
+              page={tablePage}
+              page-size={tablePageSize}
+              item-count={tableItemCount}
+              show-quick-jumper
+              show-size-picker
+              page-sizes={[10, 30, 50]}
+              on-update:page={handleTablePageChange}
+              on-update:page-size={handleTablePageSizeChange}
+            />
           </NSpace>
         </NCard>
 

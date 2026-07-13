@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-import { defineComponent, PropType } from 'vue'
+import { defineComponent, PropType, ref } from 'vue'
 import {
   NSpace,
   NModal,
   NCard,
   NButton,
-  NTabs,
-  NTabPane,
   NEmpty
 } from 'naive-ui'
+import STabs from '@/components/tabs'
 import { useI18n } from 'vue-i18n'
 import { useSource } from './use-source'
 import styles from './source-model.module.scss'
@@ -47,6 +46,7 @@ const SourceModal = defineComponent({
   setup(props, ctx) {
     const { t } = useI18n()
     const { state } = useSource(false)
+    const activeType = ref(state.types[0]?.key || '')
     const handleTypeSelect = (type: string) => {
       const pluginName = type === 'MySQL' ? 'JDBC-Mysql' : type
       ctx.emit('change', pluginName)
@@ -55,35 +55,48 @@ const SourceModal = defineComponent({
       ctx.emit('cancel')
     }
 
+    const tabs = state.types.map((item: any) => ({
+      name: item.key,
+      label: item.label
+    }))
+
     return () => (
       <NModal show={props.show} onMaskClick={onCancel} onEsc={onCancel}>
         <NCard
           class={styles.content}
           title={t('datasource.choose_datasource_type')}
+          bordered={false}
         >
-          <NTabs>
-            {state.types.map((item) => (
-              <NTabPane name={item.key} tab={item.label} key={item.key}>
-                <div class={styles['types']}>
-                  {item?.children.map((slip: any) => (
-                    <div
-                      class={styles.itemBox}
-                      onClick={() => handleTypeSelect(slip.label as string)}
-                    >
-                      <img
-                        src={slip.iconSvg}
-                        width="28"
-                        height="28"
-                        class={styles.iconImg}
-                      />
-                      <span class={styles.itemLabel}>{slip.label}</span>
-                    </div>
-                  ))}
-                </div>
-                {item.children.length === 0 && <NEmpty />}
-              </NTabPane>
-            ))}
-          </NTabs>
+          <STabs
+            value={activeType.value}
+            onUpdate:value={(val: string) => activeType.value = val}
+            tabs={tabs}
+          >
+            {Object.fromEntries(
+              state.types.map((item: any) => [
+                `pane:${item.key}`,
+                () => (
+                  <div class={styles['types']}>
+                    {item?.children.map((slip: any) => (
+                      <div
+                        class={styles.itemBox}
+                        onClick={() => handleTypeSelect(slip.label as string)}
+                      >
+                        <img
+                          src={slip.iconSvg}
+                          width="28"
+                          height="28"
+                          class={styles.iconImg}
+                        />
+                        <span class={styles.itemLabel}>{slip.label}</span>
+                      </div>
+                    ))}
+                    {item.children.length === 0 && <NEmpty />}
+                  </div>
+                )
+              ])
+            )}
+          </STabs>
           <NSpace justify='end'>
             <NButton onClick={onCancel}>{t('datasource.cancel')}</NButton>
           </NSpace>

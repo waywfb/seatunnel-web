@@ -17,8 +17,6 @@
 import { defineComponent, ref, watch } from 'vue'
 import {
   NSpace,
-  NBreadcrumb,
-  NBreadcrumbItem,
   NForm,
   useDialog,
   NInput,
@@ -104,18 +102,11 @@ const DatasourceCreate = defineComponent({
       <NSpace vertical>
         <NCard>
           {{
-            header: () => <NBreadcrumb>
-              <NBreadcrumbItem onClick={onClose}>
-                {t('datasource.datasource')}
-              </NBreadcrumbItem>
-              <NBreadcrumbItem>
-                {t(
-                  route.params.id
-                    ? 'datasource.edit_datasource'
-                    : 'datasource.create_datasource'
-                )}
-              </NBreadcrumbItem>
-            </NBreadcrumb>,
+            header: () => t(
+              route.params.id
+                ? 'datasource.edit_datasource'
+                : 'datasource.create_datasource'
+            ),
             'header-extra': () => <NSpace>
               <NButton secondary type='primary' onClick={testConnect} loading={status.testing}>
                 {t('datasource.test_connect')}

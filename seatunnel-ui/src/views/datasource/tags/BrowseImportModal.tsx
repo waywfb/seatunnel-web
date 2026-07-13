@@ -5,6 +5,7 @@ import { useBrowseStore } from './use-browse-store'
 import { useTagImport } from './use-tag-import'
 import { FolderList } from './FolderList'
 import { BrowseTable } from './BrowseTable'
+import { Compass, X, RefreshCw } from 'lucide-vue-next'
 
 export const BrowseImportModal = defineComponent({
   props: {
@@ -105,7 +106,7 @@ export const BrowseImportModal = defineComponent({
             {/* Modal header */}
             <div class="flex items-center justify-between px-tide-gap-md py-tide-gap-sm border-b border-tide-outline-variant bg-tide-surface flex-shrink-0">
               <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px] text-tide-primary">travel_explore</span>
+                <Compass size={20} class="text-tide-primary" />
                 <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">浏览节点导入测点</h3>
               </div>
               <div class="flex items-center gap-2">
@@ -113,7 +114,7 @@ export const BrowseImportModal = defineComponent({
                   class="p-1.5 rounded-tide text-tide-outline hover:bg-tide-surface-container transition-colors"
                   onClick={() => { browse.clear(); tagImport.clearChecks(); emit('close') }}
                 >
-                  <span class="material-symbols-outlined text-[18px]">close</span>
+                  <X size={18} />
                 </button>
               </div>
             </div>
@@ -122,7 +123,7 @@ export const BrowseImportModal = defineComponent({
             {/* Loading state */}
             {browseLoading.value ? (
               <div class="flex-1 h-full flex items-center justify-center text-tide-outline gap-2">
-                <span class="material-symbols-outlined text-[24px] animate-spin">sync</span>
+                <RefreshCw size={24} class="animate-spin" />
                 <span class="font-tide-body-sm">加载设备层级...</span>
               </div>
             ) : (
