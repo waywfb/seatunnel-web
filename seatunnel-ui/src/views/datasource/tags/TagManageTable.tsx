@@ -1,4 +1,5 @@
 import { defineComponent } from 'vue'
+import { Home, Upload, Plus, RefreshCw, Database, Eye, Edit3, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 interface TagRow {
   id: string
@@ -50,7 +51,7 @@ export const TagManageTable = defineComponent({
         {/* Path + Actions */}
         <div class="flex items-center justify-between px-tide-gap-md py-tide-gap-sm border-b border-tide-outline-variant bg-tide-surface flex-shrink-0">
           <div class="flex items-center gap-2 text-sm text-tide-on-surface-variant">
-            <span class="material-symbols-outlined text-[16px]">home</span>
+            <Home size={16} />
             <span>当前位置：</span>
             <span class="font-medium text-tide-on-surface">{props.selectedGroupName || '全部测点'}</span>
             {props.totalTagCount > 0 && (
@@ -59,7 +60,7 @@ export const TagManageTable = defineComponent({
           </div>
           <div class="flex items-center gap-2">
             <button class="bg-white text-tide-on-surface border border-tide-outline-variant px-3 py-1.5 rounded-tide hover:bg-tide-surface-container transition-colors font-tide-label-md text-tide-label-md flex items-center gap-1 text-xs">
-              <span class="material-symbols-outlined text-[16px]">upload_file</span>
+              <Upload size={16} />
               导入CSV
             </button>
             <button
@@ -67,7 +68,7 @@ export const TagManageTable = defineComponent({
               disabled={!props.canAdd}
               onClick={() => emit('add')}
             >
-              <span class="material-symbols-outlined text-[16px]">add</span>
+              <Plus size={16} />
               新增测点
             </button>
           </div>
@@ -90,14 +91,14 @@ export const TagManageTable = defineComponent({
               {props.loading ? (
                 <tr>
                   <td colspan="6" class="p-8 text-center text-tide-outline">
-                    <span class="material-symbols-outlined text-[24px] animate-spin inline-block mr-2">sync</span>
+                    <RefreshCw size={24} class="animate-spin inline-block mr-2" />
                     <span class="font-tide-body-sm">加载中...</span>
                   </td>
                 </tr>
               ) : props.tags.length === 0 ? (
                 <tr>
                   <td colspan="6" class="p-8 text-center text-tide-outline font-tide-body-sm">
-                    <span class="material-symbols-outlined text-[32px] block mx-auto mb-2">database_off</span>
+                    <Database size={32} class="block mx-auto mb-2" />
                     暂无测点数据
                   </td>
                 </tr>
@@ -118,9 +119,7 @@ export const TagManageTable = defineComponent({
                       </td>
                       <td class="p-tide-gap-sm text-tide-on-surface-variant">
                         <span class="inline-flex items-center gap-1">
-                          <span class={`material-symbols-outlined text-[14px] ${tag.readOnly ? 'text-tide-outline' : 'text-tide-data-api'}`}>
-                            {tag.readOnly ? 'visibility' : 'edit'}
-                          </span>
+                          {tag.readOnly ? <Eye size={14} class="text-tide-outline" /> : <Edit3 size={14} class="text-tide-data-api" />}
                           {tag.readOnly ? '只读' : '读写'}
                         </span>
                       </td>
@@ -163,7 +162,7 @@ export const TagManageTable = defineComponent({
                 disabled={props.page <= 1}
                 onClick={() => emit('update:page', props.page - 1)}
               >
-                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
+                <ChevronLeft size={16} />
               </button>
               <span class="px-3 py-1 rounded-tide bg-tide-primary text-white font-tide-label-md text-tide-label-md">{props.page}</span>
               <button
@@ -171,7 +170,7 @@ export const TagManageTable = defineComponent({
                 disabled={props.page >= props.totalPages}
                 onClick={() => emit('update:page', props.page + 1)}
               >
-                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                <ChevronRight size={16} />
               </button>
             </div>
           </div>

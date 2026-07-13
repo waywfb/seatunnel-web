@@ -80,7 +80,7 @@ const StatCard = defineComponent({
                     stroke-linecap='round'
                     stroke-linejoin='round'
                   >
-                    <polyline points={trendIcon()} />
+                    <path d={trendIcon()} />
                   </svg>
                   {props.trend === 'up' ? '+' : ''}{props.trendText || ''}
                 </span>

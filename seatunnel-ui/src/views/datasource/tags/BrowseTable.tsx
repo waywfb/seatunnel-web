@@ -1,4 +1,5 @@
 import { defineComponent, computed, ref } from 'vue'
+import { ArrowLeft, Database, Download, Search, FolderOpen, RefreshCw, Check, Minus, X } from 'lucide-vue-next'
 import type { BrowseNode } from './types'
 
 export const BrowseTable = defineComponent({
@@ -44,10 +45,10 @@ export const BrowseTable = defineComponent({
               onClick={() => emit('back')}
               title="返回导入列表"
             >
-              <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+              <ArrowLeft size={18} />
             </button>
             <div class="flex items-center gap-2 min-w-0">
-              <span class="material-symbols-outlined text-[18px] text-tide-primary flex-shrink-0">dns</span>
+              <Database size={18} class="text-tide-primary flex-shrink-0" />
               <div class="flex flex-col min-w-0">
                 <span class="font-tide-label-md text-tide-label-md text-tide-on-surface truncate">
                   {props.selectedLabel || '浏览'}
@@ -65,15 +66,13 @@ export const BrowseTable = defineComponent({
                 onClick={() => emit('import')}
                 disabled={props.checkedIds.length === 0}
               >
-                <span class="material-symbols-outlined text-[16px]">download</span>
+                <Download size={16} />
                 导入选中 ({props.checkedIds.length})
               </button>
             )}
           </div>
           <div class="relative">
-            <span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-tide-outline text-[16px]">
-              search
-            </span>
+            <Search size={16} class="absolute left-2 top-1/2 -translate-y-1/2 text-tide-outline" />
             <input
               class="w-full pl-8 pr-3 py-1.5 bg-tide-surface-container-lowest border border-tide-outline-variant rounded-tide font-tide-body-sm text-tide-body-sm focus:outline-none focus:border-tide-primary focus:ring-1 focus:ring-tide-primary/20 placeholder:text-tide-outline"
               placeholder="搜索节点..."
@@ -87,12 +86,12 @@ export const BrowseTable = defineComponent({
         <div class="flex-1 overflow-auto bg-tide-surface-container-lowest">
           {props.showEmpty ? (
             <div class="flex-1 h-full flex items-center justify-center text-tide-outline gap-2 py-16">
-              <span class="material-symbols-outlined text-[40px]">folder_open</span>
+              <FolderOpen size={40} />
               <span class="font-tide-body-sm">请选择设备层级节点浏览</span>
             </div>
           ) : props.loading ? (
             <div class="flex items-center justify-center py-16 text-tide-outline">
-              <span class="material-symbols-outlined text-[24px] animate-spin mr-2">sync</span>
+              <RefreshCw size={24} class="animate-spin mr-2" />
               <span class="font-tide-body-sm">加载中...</span>
             </div>
           ) : (
@@ -116,9 +115,9 @@ export const BrowseTable = defineComponent({
                         onClick={() => emit('checkAll', !allChecked.value, filteredNodes.value.map(n => n.nodeId))}
                       >
                         {allChecked.value ? (
-                          <span class="material-symbols-outlined text-[12px]">check</span>
+                          <Check size={12} />
                         ) : indeterminate.value ? (
-                          <span class="material-symbols-outlined text-[12px]">horizontal_rule</span>
+                          <Minus size={12} />
                         ) : null}
                       </span>
                     </div>
@@ -129,9 +128,7 @@ export const BrowseTable = defineComponent({
                 {filteredNodes.value.length === 0 ? (
                   <tr>
                     <td colspan="5" class="p-8 text-center text-tide-outline font-tide-body-sm">
-                      <span class="material-symbols-outlined text-[32px] block mx-auto mb-2">
-                        folder_off
-                      </span>
+                      <X size={32} class="block mx-auto mb-2" />
                       暂无节点
                     </td>
                   </tr>
@@ -141,9 +138,7 @@ export const BrowseTable = defineComponent({
                     return (
                       <tr class="hover:bg-tide-surface-container-low transition-colors group/row">
                         <td class="p-tide-gap-sm pl-tide-gap-md w-8">
-                          <span class="material-symbols-outlined text-[18px] text-tide-outline">
-                            contract_edit
-                          </span>
+                          <Edit3 size={18} class="text-tide-outline" />
                         </td>
                         <td class="p-tide-gap-sm font-medium">{child.label || '-'}</td>
                         <td class="p-tide-gap-sm font-tide-mono-data text-tide-mono-data text-tide-on-surface-variant">
@@ -162,7 +157,7 @@ export const BrowseTable = defineComponent({
                               onClick={() => emit('check', child.nodeId)}
                             >
                               {checked && (
-                                <span class="material-symbols-outlined text-[12px]">check</span>
+                                <Check size={12} />
                               )}
                             </span>
                           </div>

@@ -1,4 +1,5 @@
 import { defineComponent } from 'vue'
+import { RefreshCw, Folder, Database } from 'lucide-vue-next'
 import type { FolderItem } from './types'
 
 export const FolderList = defineComponent({
@@ -18,12 +19,12 @@ export const FolderList = defineComponent({
       <div class="flex-1 overflow-y-auto">
         {props.loading ? (
           <div class="flex items-center justify-center py-8 text-tide-outline">
-            <span class="material-symbols-outlined text-[24px] animate-spin mr-2">sync</span>
+            <RefreshCw size={24} class="animate-spin mr-2" />
             <span class="font-tide-body-sm">加载中...</span>
           </div>
         ) : props.folders.length === 0 ? (
           <div class="py-8 text-center text-sm text-tide-outline">
-            <span class="material-symbols-outlined text-[32px] block mx-auto mb-2">folder_off</span>
+            <Folder size={32} class="block mx-auto mb-2" />
             <span class="font-tide-body-sm">点击"浏览节点"展开设备层级</span>
           </div>
         ) : (
@@ -42,16 +43,14 @@ export const FolderList = defineComponent({
                   style={{ paddingLeft: `${12 + folder.depth * 20}px` }}
                   onClick={() => emit('select', folder.nodeId)}
                 >
-                  <span
-                    class={`material-symbols-outlined text-[16px] flex-shrink-0 ${iconColor(folder)}`}
-                  >
-                    {folder.nodeId?.includes('Objects') ? 'dns' : 'folder'}
-                  </span>
+                  {folder.nodeId?.includes('Objects') ? (
+                    <Database size={16} class={`flex-shrink-0 ${iconColor(folder)}`} />
+                  ) : (
+                    <Folder size={16} class={`flex-shrink-0 ${iconColor(folder)}`} />
+                  )}
                   <span class="truncate">{folder.label}</span>
                   {folder.loading && (
-                    <span class="material-symbols-outlined text-[14px] animate-spin ml-auto">
-                      sync
-                    </span>
+                    <RefreshCw size={14} class="animate-spin ml-auto" />
                   )}
                 </div>
               )

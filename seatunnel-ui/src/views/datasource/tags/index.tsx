@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { datasourceList } from '@/service/data-source'
 import TagManage from './tag-manage'
+import STabs from '@/components/tabs'
 
 const PLC_TYPES = ['OPCUA', 'S7', 'Modbus', 'Plc4x']
 
@@ -35,56 +36,62 @@ export default defineComponent({
 
     const handleChange = (id: string) => {
       selectedId.value = id
-      router.replace({ query: { datasourceId: id } })
+      // Use history.replaceState to update URL without triggering Vue Router navigation
+      const url = new URL(window.location.href)
+      url.searchParams.set('datasourceId', id)
+      window.history.replaceState({}, '', url.toString())
     }
 
     const selectedDs = computed(() =>
       datasources.value.find((d: any) => d.id === selectedId.value)
     )
 
+    // Tab配置
+    const tabOptions = computed(() =>
+      datasources.value.map((ds: any) => ({
+        name: ds.id,
+        label: ds.datasourceName
+      }))
+    )
+
     onMounted(() => { loadDatasources() })
 
     return () => (
-      <div class="flex flex-col gap-4 p-4 h-[calc(100vh-200px)] overflow-hidden">
-        {/* 测点管理 */}
-        <div class="flex-1 flex flex-col gap-4 min-h-0 overflow-hidden">
-            {/* Info banner */}
-            <div class="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-sm text-green-800 flex items-start gap-2 flex-shrink-0">
-              <span class="material-symbols-outlined text-[18px] mt-0.5 flex-shrink-0">info</span>
-              <span>
-                测点按系统/设备的实际层级组织，和现场台账结构保持一致，不用先拍平成一张大表
-              </span>
-            </div>
-
-            {/* Gateway tabs */}
-            <div class="flex gap-1 border-b border-tide-outline-variant flex-shrink-0">
-              {datasources.value.map(ds => (
-                <button
-                  key={ds.id}
-                  class={`font-tide-label-md text-tide-label-md px-tide-gap-md py-2 transition-colors ${
-                    selectedId.value === ds.id
-                      ? 'text-tide-primary border-b-2 border-tide-primary'
-                      : 'text-tide-on-surface-variant hover:text-tide-on-surface'
-                  }`}
-                  onClick={() => handleChange(ds.id)}
-                >
-                  {ds.datasourceName}
-                </button>
-              ))}
-            </div>
-
-            {/* Tag manage content */}
-            {selectedDs.value ? (
-              <TagManage
-                datasourceId={selectedDs.value.id}
-                pluginName={selectedDs.value.pluginName}
-              />
-            ) : !loadingList.value ? (
-              <div class="flex-1 flex items-center justify-center text-tide-outline font-tide-body-sm">
-                {datasources.value.length === 0 ? '暂无 PLC 数据源' : '请选择采集网关'}
-              </div>
-            ) : null}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+        {/* Page title with action button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+              {t('datasource.tag_manage')}
+            </h2>
+            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
+              按系统/设备的实际层级组织测点，和现场台账结构保持一致
+            </p>
           </div>
+        </div>
+
+        {/* Gateway tabs */}
+        <div style={{ marginBottom: '4px' }}>
+          <STabs
+            value={selectedId.value}
+            onUpdate:value={handleChange}
+            tabs={tabOptions.value}
+          />
+        </div>
+
+        {/* Tag manage content */}
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          {selectedDs.value ? (
+            <TagManage
+              datasourceId={selectedDs.value.id}
+              pluginName={selectedDs.value.pluginName}
+            />
+          ) : !loadingList.value ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#94a3b8', fontSize: '14px' }}>
+              {datasources.value.length === 0 ? '暂无 PLC 数据源' : '请选择采集网关'}
+            </div>
+          ) : null}
+        </div>
       </div>
     )
   },
