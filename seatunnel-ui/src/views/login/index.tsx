@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, toRefs, withKeys, getCurrentInstance } from 'vue'
+import { defineComponent, toRefs, withKeys, getCurrentInstance, h } from 'vue'
 import {
   NForm,
   NFormItem,
@@ -27,6 +27,21 @@ import {
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { useForm } from './use-form'
+import {
+  Network,
+  GitBranch,
+  ShieldCheck,
+  Activity,
+  Waves,
+  Eye,
+  EyeOff,
+  User,
+  Lock,
+  Building2,
+  ChevronDown,
+  ExternalLink
+} from 'lucide-vue-next'
+import backgroundImage from '@/assets/background.png'
 
 const Login = defineComponent({
   setup() {
@@ -53,7 +68,7 @@ const Login = defineComponent({
               class='w-full h-full bg-cover bg-center'
               style={{
                 backgroundImage:
-                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCatEqV2Umh2ienP8y8XNH9q5tWjh3RPJ8wP5fiIK933-F5Drz2iq4WHBj5OviVp-nhZnTM18Ck6QUt47iyNTrDxV2r14AWmSPBsoKjI7p61hqylldgreN8K3z2V7xFRnP8mUdfNFQZmDvZZWDVgosItebr8I9soJSewhImA4U_D43z0b632Tk8Vc5cRpOdh9XI8uLkhbDxOyXfXq6mb_2bK1rEjsP_hez9T3o_uC1QbGS3IEaAdpOLbpJqCmVNEmn0-_jlLjnt2wezdQ")'
+                  `url("${backgroundImage}")`
               }}
             />
             <div class='absolute inset-0 login-brand-overlay' />
@@ -64,12 +79,7 @@ const Login = defineComponent({
             {/* Brand Anchor */}
             <div class='flex items-center gap-3'>
               <div class='w-10 h-10 bg-primary flex items-center justify-center rounded-lg shadow-lg'>
-                <span
-                  class='material-symbols-outlined text-white'
-                  style={{ fontVariationSettings: '"FILL" 1' }}
-                >
-                  waves
-                </span>
+                <Waves class='text-white' size={24} />
               </div>
               <div class='flex flex-col'>
                 <span class='font-tide-headline-lg text-tide-headline-lg text-white font-bold tracking-tight'>
@@ -94,8 +104,7 @@ const Login = defineComponent({
               <div class='grid grid-cols-4 gap-4 mb-10 relative'>
                 <div class='absolute inset-0 top-1/2 h-0.5 login-data-flow opacity-40' />
                 <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
-                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>hub
-                  </span>
+                  <Network class='text-tide-primary-fixed-dim' size={32} />
                   <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
                     {this.t('login.feature_multi_source')}
                   </span>
@@ -104,8 +113,7 @@ const Login = defineComponent({
                   </span>
                 </div>
                 <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
-                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>account_tree
-                  </span>
+                  <GitBranch class='text-tide-primary-fixed-dim' size={32} />
                   <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
                     {this.t('login.feature_visual')}
                   </span>
@@ -114,8 +122,7 @@ const Login = defineComponent({
                   </span>
                 </div>
                 <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
-                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>verified_user
-                  </span>
+                  <ShieldCheck class='text-tide-primary-fixed-dim' size={32} />
                   <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
                     {this.t('login.feature_reliable')}
                   </span>
@@ -124,8 +131,7 @@ const Login = defineComponent({
                   </span>
                 </div>
                 <div class='bg-white/5 backdrop-blur-md border border-white/10 p-4 rounded-xl flex flex-col items-center gap-2 z-10'>
-                  <span class='material-symbols-outlined text-tide-primary-fixed-dim text-3xl'>monitoring
-                  </span>
+                  <Activity class='text-tide-primary-fixed-dim' size={32} />
                   <span class='text-white text-[11px] font-medium tracking-wider uppercase'>
                     {this.t('login.feature_monitoring')}
                   </span>
@@ -189,12 +195,7 @@ const Login = defineComponent({
           {/* Mobile Header */}
           <div class='lg:hidden p-6 flex items-center gap-3'>
             <div class='w-8 h-8 bg-primary flex items-center justify-center rounded'>
-              <span
-                class='material-symbols-outlined text-white text-sm'
-                style={{ fontVariationSettings: '"FILL" 1' }}
-              >
-                waves
-              </span>
+              <Waves class='text-white' size={20} />
             </div>
             <span class='font-tide-headline-md text-tide-headline-md text-primary font-bold'>
               SeaTunnel
@@ -224,8 +225,8 @@ const Login = defineComponent({
                     {this.t('login.username')}
                   </label>
                   <div class='relative'>
-                    <span class='absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
-                      person
+                    <span class='absolute left-3 top-1/2 -translate-y-1/2 text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
+                      <User size={20} />
                     </span>
                     {/* Visual Shell (Tailwind) + NInput core */}
                     <div class='w-full pl-10 pr-4 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
@@ -272,8 +273,8 @@ const Login = defineComponent({
                     </a>
                   </div>
                   <div class='relative'>
-                    <span class='absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
-                      lock
+                    <span class='absolute left-3 top-1/2 -translate-y-1/2 text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
+                      <Lock size={20} />
                     </span>
                     {/* Visual Shell (Tailwind) + NInput core */}
                     <div class='w-full pl-10 pr-12 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
@@ -308,9 +309,7 @@ const Login = defineComponent({
                           }
                         }}
                       >
-                        <span class='material-symbols-outlined text-[20px]'>
-                          {this.loginForm.password ? 'visibility_off' : 'visibility'}
-                        </span>
+                        {this.loginForm.password ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
@@ -325,8 +324,8 @@ const Login = defineComponent({
                     {this.t('login.select_workspace')}
                   </label>
                   <div class='relative'>
-                    <span class='absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
-                      folder
+                    <span class='absolute left-3 top-1/2 -translate-y-1/2 text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
+                      <Folder size={20} />
                     </span>
                     {/* Visual Shell (Tailwind) + NSelect core */}
                     <div class='w-full pl-10 pr-4 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
@@ -394,9 +393,7 @@ const Login = defineComponent({
                 >
                   <span class='flex items-center justify-center gap-2'>
                     {this.t('login.login')}
-                    <span class='material-symbols-outlined text-[18px]'>
-                      arrow_forward
-                    </span>
+                    <ArrowRight size={18} />
                   </span>
                 </NButton>
 
@@ -412,11 +409,11 @@ const Login = defineComponent({
                 {/* Alternate Logins */}
                 <div class='grid grid-cols-2 gap-3'>
                   <button class='flex items-center justify-center gap-2 py-2.5 border border-tide-outline-variant rounded-lg hover:bg-tide-surface-container-low transition-colors font-tide-label-md text-tide-label-md text-tide-on-surface'>
-                    <span class='material-symbols-outlined text-[18px]'>corporate_fare</span>
+                    <Building2 size={18} />
                     {this.t('login.enterprise_account')}
                   </button>
                   <button class='flex items-center justify-center gap-2 py-2.5 border border-tide-outline-variant rounded-lg hover:bg-tide-surface-container-low transition-colors font-tide-label-md text-tide-label-md text-tide-on-surface'>
-                    <span class='material-symbols-outlined text-[18px]'>key</span>
+                    <KeyRound size={18} />
                     {this.t('login.saml_login')}
                   </button>
                 </div>
@@ -448,9 +445,7 @@ const Login = defineComponent({
                   href='#'
                 >
                   {this.t('login.footer_support')}
-                  <span class='material-symbols-outlined text-[14px]'>
-                    open_in_new
-                  </span>
+                  <ExternalLink size={14} />
                 </a>
               </div>
             </div>
