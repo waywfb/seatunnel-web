@@ -14,21 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineComponent } from 'vue'
+import { defineComponent, ref, computed } from 'vue'
 import {
   NSpace,
-  NBreadcrumb,
-  NBreadcrumbItem,
-  NSteps,
-  NStep,
   NButton,
   NText,
   NIcon,
-  NCard,
   NModal,
   NInput,
   useDialog
 } from 'naive-ui'
+import STabs from '@/components/tabs'
+import PageLayout from '@/components/page-layout'
 import StepOneForm from './step-one-form'
 import StepTwoForm from './step-two-form'
 import StepTwoTable from './step-two-table'
@@ -46,12 +43,12 @@ const VirtualTablesDetail = defineComponent({
     const route = useRoute()
     const router = useRouter()
     const dialog = useDialog()
+    const activeTab = ref('configure')
     const {
       state,
       stepOneFormRef,
       stepTwoFormRef,
       onAddRecord,
-      onChangeStep,
       createOrUpdate,
       onDeriveSchema,
       onPasteDerive,
@@ -60,6 +57,24 @@ const VirtualTablesDetail = defineComponent({
       onPreviewClose
     } = useDetail(route.params.id as string)
     console.log('create')
+
+    // 根据源类型动态设置tab页
+    const tabConfig = computed(() => {
+      const pluginName = state.stepOne.pluginName
+      const tabs = [
+        { name: 'configure', label: t('virtual_tables.configure') },
+        { name: 'model', label: t('virtual_tables.model') },
+        { name: 'complete', label: t('virtual_tables.complete') }
+      ]
+      return tabs
+    })
+
+    // 源类型是否支持schema推导
+    const canDeriveSchema = computed(() => {
+      const pluginName = state.stepOne.pluginName
+      return ['Http', 'Kafka'].includes(pluginName || '')
+    })
+
     const onClose = () => {
       dialog.warning({
         title: t('virtual_tables.warning'),
@@ -76,139 +91,110 @@ const VirtualTablesDetail = defineComponent({
     }
 
     return () => (
-      <NSpace vertical>
-        <NBreadcrumb>
-          <NBreadcrumbItem
-            // @ts-ignore
-            onClick={onClose}
-          >
-            {t('virtual_tables.virtual_tables')}
-          </NBreadcrumbItem>
-          <NBreadcrumbItem>
-            {t(
-              route.params.id
-                ? t('virtual_tables.edit_virtual_tables')
-                : t('virtual_tables.create_virtual_tables')
-            )}
-          </NBreadcrumbItem>
-        </NBreadcrumb>
-        <NCard
-          title={t(
-            route.params.id
-              ? t('virtual_tables.edit_virtual_tables')
-              : t('virtual_tables.create_virtual_tables')
-          )}
-        >
-          <div class={styles['detail-content']}>
-            <NSteps current={state.current} class={styles['detail-step']}>
-              <NStep title={t('virtual_tables.configure')} />
-              <NStep title={t('virtual_tables.model')} />
-              <NStep title={t('virtual_tables.complete')} />
-            </NSteps>
-            <div class={styles['width-100']} v-show={state.current === 1}>
-              <NSpace justify='center'>
-                <StepOneForm params={state.stepOne} ref={stepOneFormRef} />
+      <PageLayout
+        title={t(
+          route.params.id
+            ? t('virtual_tables.edit_virtual_tables')
+            : t('virtual_tables.create_virtual_tables')
+        )}
+      >
+        {{
+          tabs: () => (
+            <STabs
+              value={activeTab.value}
+              onUpdate:value={(val: string) => activeTab.value = val}
+              tabs={tabConfig.value}
+            />
+          ),
+          default: () => (
+            <>
+              <div class={styles['detail-content']}>
+                <div class={styles['width-100']} v-show={activeTab.value === 'configure'}>
+                  <NSpace justify='center'>
+                    <StepOneForm params={state.stepOne} ref={stepOneFormRef} />
+                  </NSpace>
+                </div>
+                <div class={styles['detail-step-two']} v-show={activeTab.value === 'model'}>
+                  <StepTwoForm ref={stepTwoFormRef} />
+                  <div class={styles['detail-table-header']}>
+                    <NText class={styles['detail-table-title']}>
+                      {t('virtual_tables.table_structure')}
+                    </NText>
+                    <NButton text type='primary' onClick={onAddRecord}>
+                      {{
+                        icon: () => (
+                          <NIcon>
+                            <PlusOutlined />
+                          </NIcon>
+                        ),
+                        default: () => t('virtual_tables.add')
+                      }}
+                    </NButton>
+                    {canDeriveSchema.value && (
+                      <NButton text type='primary' onClick={onDeriveSchema}>
+                        {{
+                          icon: () => (
+                            <NIcon>
+                              <SyncOutlined />
+                            </NIcon>
+                          ),
+                          default: () => t('virtual_tables.derive_schema')
+                        }}
+                      </NButton>
+                    )}
+                  </div>
+                  <StepTwoTable
+                    list={state.stepTwo.list}
+                    fieldTypes={state.fieldTypes}
+                  />
+                </div>
+                <div
+                  class={styles['detail-step-three']}
+                  v-show={activeTab.value === 'complete'}
+                >
+                  <div class={styles['detail-step-three-params']}>
+                    <StepThreeParams
+                      class={styles['detail-step-three-left']}
+                      params={[
+                        {
+                          label: t('virtual_tables.source_type'),
+                          value: state.stepOne.pluginName || ''
+                        },
+                        {
+                          label: t('virtual_tables.source_name'),
+                          value: state.stepOne.datasourceName || ''
+                        },
+                        {
+                          label: t('virtual_tables.virtual_tables_name'),
+                          value: state.stepOne.tableName || ''
+                        }
+                      ]}
+                    />
+                    <StepThreeParams
+                      class={styles['detail-step-three-right']}
+                      params={state.stepTwo.config}
+                      cols={3}
+                    />
+                  </div>
+                  <StepTwoTable
+                    class={styles['width-100']}
+                    list={state.stepTwo.list}
+                    plain
+                    fieldTypes={state.fieldTypes}
+                  />
+                </div>
+              </div>
+              <NSpace justify='end'>
+                <NButton onClick={onClose}>{t('virtual_tables.cancel')}</NButton>
+                <NButton
+                  onClick={createOrUpdate}
+                  loading={state.saving}
+                  type='primary'
+                >
+                  {t('virtual_tables.confirm')}
+                </NButton>
               </NSpace>
-            </div>
-            <div class={styles['detail-step-two']} v-show={state.current === 2}>
-              <StepTwoForm ref={stepTwoFormRef} />
-              <div class={styles['detail-table-header']}>
-                <NText class={styles['detail-table-title']}>
-                  {t('virtual_tables.table_structure')}
-                </NText>
-                <NButton text type='primary' onClick={onAddRecord}>
-                  {{
-                    icon: () => (
-                      <NIcon>
-                        <PlusOutlined />
-                      </NIcon>
-                    ),
-                    default: () => t('virtual_tables.add')
-                  }}
-                </NButton>
-                <NButton text type='primary' onClick={onDeriveSchema}>
-                  {{
-                    icon: () => (
-                      <NIcon>
-                        <SyncOutlined />
-                      </NIcon>
-                    ),
-                    default: () => t('virtual_tables.derive_schema')
-                  }}
-                </NButton>
-              </div>
-              <StepTwoTable
-                list={state.stepTwo.list}
-                fieldTypes={state.fieldTypes}
-              />
-            </div>
-            <div
-              class={styles['detail-step-three']}
-              v-show={state.current === 3}
-            >
-              <div class={styles['detail-step-three-params']}>
-                <StepThreeParams
-                  class={styles['detail-step-three-left']}
-                  params={[
-                    {
-                      label: t('virtual_tables.source_type'),
-                      value: state.stepOne.pluginName || ''
-                    },
-                    {
-                      label: t('virtual_tables.source_name'),
-                      value: state.stepOne.datasourceName || ''
-                    },
-                    {
-                      label: t('virtual_tables.virtual_tables_name'),
-                      value: state.stepOne.tableName || ''
-                    }
-                  ]}
-                />
-                <StepThreeParams
-                  class={styles['detail-step-three-right']}
-                  params={state.stepTwo.config}
-                  cols={3}
-                />
-              </div>
-              <StepTwoTable
-                class={styles['width-100']}
-                list={state.stepTwo.list}
-                plain
-                fieldTypes={state.fieldTypes}
-              />
-            </div>
-          </div>
-          <NSpace justify='end'>
-            <NButton
-              v-show={state.current !== 1}
-              type='primary'
-              onClick={() => void onChangeStep(-1)}
-            >
-              {t('virtual_tables.previous_step')}
-            </NButton>
-            <NButton onClick={onClose}>{t('virtual_tables.cancel')}</NButton>
-
-            {state.current !== 3 && (
-              <NButton
-                type='primary'
-                onClick={() => void onChangeStep(1)}
-                loading={state.goNexting}
-              >
-                {t('virtual_tables.next_step')}
-              </NButton>
-            )}
-            <NButton
-              v-show={state.current === 3}
-              onClick={createOrUpdate}
-              loading={state.saving}
-              type='primary'
-            >
-              {t('virtual_tables.confirm')}
-            </NButton>
-          </NSpace>
-        </NCard>
-
-        <NModal
+              <NModal
           show={state.previewModal.show}
           preset='card'
           title={
@@ -297,7 +283,10 @@ const VirtualTablesDetail = defineComponent({
             </NSpace>
           )}
         </NModal>
-      </NSpace>
+            </>
+          )
+        }}
+      </PageLayout>
     )
   }
 })

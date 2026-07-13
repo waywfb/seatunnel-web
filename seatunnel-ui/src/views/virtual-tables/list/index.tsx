@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref } from 'vue'
 import {
   NButton,
   NInput,
@@ -28,19 +28,40 @@ import {
   SelectOption,
   SelectGroupOption
 } from 'naive-ui'
+import { Plus } from 'lucide-vue-next'
 import { SearchOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import STabs from '@/components/tabs'
 import { useTable } from './use-table'
 import { useColumns } from './use-columns'
 import { useSource } from '@/views/datasource/list/use-source'
-import StatCard from '@/components/stat-card'
+
+// 源类型分类配置
+const CATEGORIES = [
+  { key: 'db', label: '数据库', color: '#2E6BE0', icon: 'database',
+    pluginNames: ['JDBC-Mysql', 'JDBC-Postgres', 'JDBC-Oracle', 'JDBC-SQLServer', 'JDBC-ClickHouse', 'JDBC-TiDB', 'JDBC-Db2', 'JDBC-Hive', 'JDBC-StarRocks', 'JDBC-Redshift', 'MySQL-CDC', 'SqlServer-CDC', 'Postgres-CDC'] },
+  { key: 'mq', label: '消息队列', color: '#7B4FE0', icon: 'move_up',
+    pluginNames: ['Kafka'] },
+  { key: 'api', label: '接口服务', color: '#1DA7B4', icon: 'api',
+    pluginNames: ['Http', 'ElasticSearch'] },
+  { key: 'file', label: '文件', color: '#4C9A5B', icon: 'folder',
+    pluginNames: ['S3', 'FTP', 'SFTP'] },
+]
+
+const PLUGIN_CATEGORY: Record<string, string> = {}
+for (const cat of CATEGORIES) {
+  for (const pn of cat.pluginNames) {
+    PLUGIN_CATEGORY[pn] = cat.key
+  }
+}
 
 const VirtualTablesList = defineComponent({
   setup() {
     const { t } = useI18n()
     const router = useRouter()
     const { state: sourceState } = useSource(true)
+    const categoryTab = ref('all')
     const { columns } = useColumns(
       (id: string, type: 'edit' | 'delete') => {
         if (type === 'edit') {
@@ -71,23 +92,94 @@ const VirtualTablesList = defineComponent({
       }
     })
 
+    // 分类统计
+    const categoryStats = computed(() => {
+      const list = state.list || []
+      return CATEGORIES.map(cat => {
+        const items = cat.pluginNames.map(pn => ({
+          pluginName: pn,
+          count: stats.value.typeCounts[pn] || 0
+        }))
+        const total = items.reduce((sum, i) => sum + i.count, 0)
+        return { ...cat, items, total }
+      }).filter(cat => cat.total > 0)
+    })
+
+    // 当前分类数据
+    const filteredList = computed(() => {
+      if (categoryTab.value === 'all') return state.list
+      const cat = CATEGORIES.find(c => c.key === categoryTab.value)
+      if (!cat) return state.list
+      return (state.list || []).filter((item: any) => cat.pluginNames.includes(item.pluginName))
+    })
+
     const handleKeyup = (event: KeyboardEvent) => {
       if (event.key === 'Enter') {
         onSearch()
       }
     }
 
+    const handleCategoryTab = (key: string) => {
+      categoryTab.value = key
+    }
+
+    // Tab配置
+    const tabOptions = computed(() => {
+      const allTab = { name: 'all', label: '全部', count: stats.value.total }
+      const catTabs = categoryStats.value.map(cat => ({
+        name: cat.key,
+        label: cat.label,
+        count: cat.total
+      }))
+      return [allTab, ...catTabs]
+    })
+
     return () => {
-      const renderSearchBar = () => (
-        <NCard>
-          <NSpace justify='space-between' itemStyle={{ flexGrow: 1 }}>
-            <NButton
-              type='info'
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+          {/* Page title with action button */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+                {t('menu.virtual_tables')}
+              </h2>
+              <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
+                管理业务模型与结构映射
+              </p>
+            </div>
+            <button
               onClick={() => router.push({ name: 'virtual-tables-create' })}
+              style={{
+                backgroundColor: '#10b981',
+                color: '#fff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
             >
+              <Plus size={18} />
               {t('virtual_tables.create')}
-            </NButton>
-            <NSpace justify='end'>
+            </button>
+          </div>
+
+          {/* Category tabs */}
+          <div style={{ marginBottom: '4px' }}>
+            <STabs
+              value={categoryTab.value}
+              onUpdate:value={handleCategoryTab}
+              tabs={tabOptions.value}
+            />
+          </div>
+
+          {/* Table with search toolbar */}
+          <NCard>
+            <NSpace justify='end' style={{ marginBottom: '16px' }}>
               <NSelect
                 v-model:value={state.params.pluginName}
                 clearable
@@ -109,47 +201,25 @@ const VirtualTablesList = defineComponent({
                 </NIcon>
               </NButton>
             </NSpace>
-          </NSpace>
-        </NCard>
-      )
-
-      const renderStatCards = () => (
-        <div class='flex gap-3'>
-          <StatCard
-            label={t('virtual_tables.virtual_tables')}
-            value={stats.value.total}
-            color='var(--color-info)'
-            loading={false}
-          />
-        </div>
-      )
-
-      return (
-        <NSpace vertical>
-          {renderSearchBar()}
-          {renderStatCards()}
-          <NCard>
-            <NSpace vertical>
-              <NDataTable
-                columns={columns.value}
-                data={state.list}
-                loading={state.loading}
+            <NDataTable
+              columns={columns.value}
+              data={filteredList.value}
+              loading={state.loading}
+            />
+            <NSpace justify='center' style={{ marginTop: '16px' }}>
+              <NPagination
+                v-model:page={state.page}
+                v-model:page-size={state.pageSize}
+                item-count={state.itemCount}
+                show-size-picker
+                page-sizes={[10, 30, 50]}
+                show-quick-jumper
+                on-update:page={onPageChange}
+                on-update:page-size={onPageSizeChange}
               />
-              <NSpace justify='center'>
-                <NPagination
-                  v-model:page={state.page}
-                  v-model:page-size={state.pageSize}
-                  item-count={state.itemCount}
-                  show-size-picker
-                  page-sizes={[10, 30, 50]}
-                  show-quick-jumper
-                  on-update:page={onPageChange}
-                  on-update:page-size={onPageSizeChange}
-                />
-              </NSpace>
             </NSpace>
           </NCard>
-        </NSpace>
+        </div>
       )
     }
   }
