@@ -22,7 +22,7 @@ export default {
   setting: '设置',
   logout: '登出',
   tasks: '数据接入',
-  datasource: '数据源',
+  datasource: '数据连接',
   tag_manage: '测点管理',
   virtual_tables: '数据模型',
   sync_task_definition: '同步任务定义',

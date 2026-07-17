@@ -20,7 +20,7 @@ export default {
   data_standard: '数据标准',
 
   // List page
-  create: '新建标准',
+  create: '新建',
   edit: '编辑',
   delete: '删除',
   copy: '复制',

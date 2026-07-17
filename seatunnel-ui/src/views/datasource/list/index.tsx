@@ -246,7 +246,7 @@ const DatasourceList = defineComponent({
               onClick={onCreate}
             >
               <Plus size={18} />
-              新建数据源
+              新建
             </button>
           </div>
 

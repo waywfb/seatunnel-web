@@ -49,23 +49,8 @@ import {
   MAPPING_TYPE_OPTIONS
 } from './types'
 import type { FieldForm } from './types'
-
-/** Preset field library */
-const PRESET_FIELDS = [
-  { label: 'UUID 唯一标识', key: 'uuid', fields: [{ name: 'UUID', code: 'uuid', dataType: '字符', fieldType: 'HEADER', required: true, description: '全局唯一标识符' }] },
-  { label: '时间戳', key: 'timestamp', fields: [{ name: '采集时间', code: 'collect_time', dataType: '日期', fieldType: 'HEADER', required: true, description: '数据采集时间戳' }] },
-  { label: 'IP 地址', key: 'ip', fields: [{ name: '设备IP', code: 'device_ip', dataType: '字符', fieldType: 'HEADER', required: false, description: '设备IP地址' }] },
-  { label: '煤矿基础信息', key: 'coal_mine', fields: [
-    { name: '煤矿编码', code: 'coal_mine_code', dataType: '字符', fieldType: 'BODY', required: true, description: '煤矿唯一编码' },
-    { name: '煤矿名称', code: 'coal_mine_name', dataType: '字符', fieldType: 'BODY', required: true, description: '煤矿名称' },
-    { name: '矿区坐标', code: 'mine_coordinate', dataType: '字符', fieldType: 'BODY', required: false, description: '矿区经纬度坐标' }
-  ]},
-  { label: '测点基础信息', key: 'point', fields: [
-    { name: '测点编码', code: 'point_code', dataType: '字符', fieldType: 'BODY', required: true, description: '测点唯一编码' },
-    { name: '测点名称', code: 'point_name', dataType: '字符', fieldType: 'BODY', required: true, description: '测点显示名称' },
-    { name: '测点类型', code: 'point_type', dataType: '字符', fieldType: 'BODY', required: true, description: '测点类型分类' }
-  ]}
-]
+import { parseFile, downloadTemplate, exportFields } from '@/utils/file-parser'
+import type { FieldData } from '@/utils/file-parser'
 
 /** Color map for standard types */
 const TYPE_COLOR_MAP: Record<string, string> = {
@@ -146,10 +131,14 @@ export default defineComponent({
     const searchQuery = ref('')
     const selectedIndex = ref<number | null>(null)
     const inspectorCollapsed = ref(false)
-    const basicInfoCollapsed = ref(false)
+    const basicInfoCollapsed = ref(true)
     const showImportModal = ref(false)
     const importJsonText = ref('')
     const importDragging = ref(false)
+    const importFile = ref<File | null>(null)
+    const importFileName = ref('')
+    const showExportModal = ref(false)
+    const exportFormat = ref<'csv' | 'xls' | 'xlsx'>('xlsx')
     const showVersionModal = ref(false)
     const newVersionDesc = ref('')
     const showAddGroupModal = ref(false)
@@ -244,30 +233,62 @@ export default defineComponent({
       }
     }
 
-    const handlePresetSelect = (key: string) => {
-      const preset = PRESET_FIELDS.find(p => p.key === key)
-      if (!preset) return
-      const targetGroup = selectedGroup.value || groupList.value[0]?.key || ''
-      preset.fields.forEach(pf => {
-        fields.value.push({
-          name: pf.name,
-          code: pf.code,
-          dataType: pf.dataType,
-          fieldType: pf.fieldType,
-          required: pf.required,
-          description: pf.description,
-          groupName: targetGroup,
-          sortOrder: fields.value.length
-        })
-      })
-      message.success(`已添加 ${preset.label} (${preset.fields.length} 个字段)`)
+    const handleFileSelect = (e: Event) => {
+      const input = e.target as HTMLInputElement
+      if (input.files && input.files[0]) {
+        importFile.value = input.files[0]
+        importFileName.value = input.files[0].name
+      }
     }
 
-    const handleImportJson = () => {
+    const handleFileDrop = (e: DragEvent) => {
+      e.preventDefault()
+      importDragging.value = false
+      const file = e.dataTransfer?.files?.[0]
+      if (file) {
+        importFile.value = file
+        importFileName.value = file.name
+      }
+    }
+
+    const clearImportFile = () => {
+      importFile.value = null
+      importFileName.value = ''
+      importJsonText.value = ''
+    }
+
+    const handleImportFile = async () => {
       try {
+        if (!importFile.value) {
+          message.error('请选择文件')
+          return
+        }
+        const targetGroup = selectedGroup.value || groupList.value[0]?.key || ''
+        const parsedFields = await parseFile(importFile.value)
+        parsedFields.forEach(field => {
+          fields.value.push({
+            ...field,
+            groupName: field.groupName || targetGroup,
+            sortOrder: fields.value.length
+          })
+        })
+        showImportModal.value = false
+        clearImportFile()
+        message.success(`成功导入 ${parsedFields.length} 个字段`)
+      } catch (e: any) {
+        message.error(e.message || '文件解析失败')
+      }
+    }
+
+    const handleImportJson = async () => {
+      try {
+        if (!importJsonText.value.trim()) {
+          message.error('请输入 JSON 内容')
+          return
+        }
+        const targetGroup = selectedGroup.value || groupList.value[0]?.key || ''
         const data = JSON.parse(importJsonText.value)
         const arr = Array.isArray(data) ? data : [data]
-        const targetGroup = selectedGroup.value || groupList.value[0]?.key || ''
         let count = 0
         arr.forEach((item: any) => {
           if (item.name || item.code) {
@@ -289,23 +310,31 @@ export default defineComponent({
           }
         })
         showImportModal.value = false
-        importJsonText.value = ''
+        clearImportFile()
         message.success(`成功导入 ${count} 个字段`)
       } catch (e) {
         message.error('JSON 解析失败，请检查格式')
       }
     }
 
-    const handleExportJson = () => {
-      const json = JSON.stringify(fields.value, null, 2)
-      const blob = new Blob([json], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${form.name || 'data-standard'}-fields.json`
-      a.click()
-      URL.revokeObjectURL(url)
-      message.success('导出成功')
+    const handleExport = () => {
+      try {
+        const name = form.name || '数据标准字段'
+        exportFields(fields.value, exportFormat.value, name)
+        showExportModal.value = false
+        message.success('导出成功')
+      } catch (e: any) {
+        message.error(e.message || '导出失败')
+      }
+    }
+
+    const handleDownloadTemplate = (format: 'csv' | 'xls' | 'xlsx') => {
+      try {
+        downloadTemplate(format, '数据标准模板')
+        message.success('模板下载成功')
+      } catch (e: any) {
+        message.error(e.message || '模板下载失败')
+      }
     }
 
     const handleSave = async () => {
@@ -634,22 +663,16 @@ export default defineComponent({
                         clearable
                         style={{ width: '200px' }}
                       />
-                      <NDropdown
-                        trigger="click"
-                        options={PRESET_FIELDS.map(p => ({ label: p.label, key: p.key }))}
-                        onSelect={handlePresetSelect}
-                      >
-                        <NButton size="tiny" style={{ color: '#10b981', borderColor: '#10b981' }}>内置常用预设</NButton>
-                      </NDropdown>
+
                     </div>
                     {isCurrentVersionDraft.value && (
                       <div class="ds-toolbar-right">
                         {isCurrentVersionDraft.value && (
-                          <NButton size="tiny" onClick={() => { showImportModal.value = true }}>
+                          <NButton size="tiny" onClick={() => { showImportModal.value = true; clearImportFile() }}>
                             导入
                           </NButton>
                         )}
-                        <NButton size="tiny" onClick={handleExportJson}>
+                        <NButton size="tiny" onClick={() => { showExportModal.value = true }}>
                           导出
                         </NButton>
                         {isCurrentVersionDraft.value && (
@@ -966,46 +989,96 @@ export default defineComponent({
         </div>
 
         {/* ===== Import Modal ===== */}
-        <NModal v-model:show={showImportModal.value} preset="card" title="导入字段 (JSON)" style={{ width: '560px' }}>
+        <NModal v-model:show={showImportModal.value} preset="card" title="导入字段" style={{ width: '560px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <NButton size="small" quaternary type="primary" onClick={() => handleDownloadTemplate('xlsx')}>
+              下载模板 (XLSX)
+            </NButton>
+            <NButton size="small" quaternary type="primary" onClick={() => handleDownloadTemplate('csv')} style={{ marginLeft: '8px' }}>
+              下载模板 (CSV)
+            </NButton>
+          </div>
           <div
             class={`ds-import-drop ${importDragging.value ? 'ds-import-drop--active' : ''}`}
             onDragover={(e: DragEvent) => { e.preventDefault(); importDragging.value = true }}
             onDragleave={() => { importDragging.value = false }}
-            onDrop={(e: DragEvent) => {
-              e.preventDefault()
-              importDragging.value = false
-              const file = e.dataTransfer?.files?.[0]
-              if (file) {
-                const reader = new FileReader()
-                reader.onload = (ev) => {
-                  importJsonText.value = (ev.target?.result as string) || ''
-                }
-                reader.readAsText(file)
-              }
-            }}
+            onDrop={handleFileDrop}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style={{ color: '#94a3b8', marginBottom: '6px' }}>
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="12" y1="18" x2="12" y2="12"></line>
-              <polyline points="9 15 12 12 15 15"></polyline>
-            </svg>
-            <div style={{ fontSize: '12px', color: '#475569' }}>拖拽 JSON 文件到此处</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>或在下方粘贴 JSON 内容</div>
+            {importFileName.value ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style={{ color: '#10b981' }}>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <polyline points="9 15 12 18 15 15"></polyline>
+                  </svg>
+                  <span style={{ fontSize: '13px', color: '#1e293b', fontWeight: 500 }}>{importFileName.value}</span>
+                </div>
+                <NButton size="tiny" quaternary onClick={clearImportFile}>清除</NButton>
+              </div>
+            ) : (
+              <>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style={{ color: '#94a3b8', marginBottom: '6px' }}>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="12" y1="18" x2="12" y2="12"></line>
+                  <polyline points="9 15 12 12 15 15"></polyline>
+                </svg>
+                <div style={{ fontSize: '12px', color: '#475569' }}>拖拽 CSV / XLS / XLSX 文件到此处</div>
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                  或
+                  <label style={{ color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline' }}>
+                    点击选择文件
+                    <input type="file" accept=".csv,.xls,.xlsx" style={{ display: 'none' }} onChange={handleFileSelect} />
+                  </label>
+                </div>
+              </>
+            )}
           </div>
+          <NDivider style={{ margin: '14px 0' }}>
+            <span style={{ fontSize: '11px', color: '#94a3b8' }}>或粘贴 JSON 内容</span>
+          </NDivider>
           <NInput
             v-model:value={importJsonText.value}
             type="textarea"
-            rows={8}
+            rows={6}
             placeholder='[{"name": "字段名", "code": "field_code", "dataType": "字符", "fieldType": "BODY"}]'
-            style={{ marginTop: '12px', fontFamily: 'var(--ds-font-mono)' }}
+            style={{ fontFamily: 'var(--ds-font-mono)' }}
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
-            <NButton onClick={() => { showImportModal.value = false; importJsonText.value = '' }}>
+            <NButton onClick={() => { showImportModal.value = false; clearImportFile() }}>
               {t('data_standard.cancel')}
             </NButton>
-            <NButton type="primary" onClick={handleImportJson} disabled={!importJsonText.value.trim()}>
+            <NButton
+              type="primary"
+              onClick={importFile.value ? handleImportFile : handleImportJson}
+              disabled={!importFile.value && !importJsonText.value.trim()}
+            >
               确认导入
+            </NButton>
+          </div>
+        </NModal>
+
+        {/* ===== Export Modal ===== */}
+        <NModal v-model:show={showExportModal.value} preset="card" title="导出字段" style={{ width: '400px' }}>
+          <div style={{ marginBottom: '8px', fontSize: '13px', color: '#475569' }}>
+            选择导出格式
+          </div>
+          <NSelect
+            v-model:value={exportFormat.value}
+            options={[
+              { label: 'Excel 工作簿 (.xlsx)', value: 'xlsx' },
+              { label: 'Excel 97-2003 (.xls)', value: 'xls' },
+              { label: 'CSV 文件 (.csv)', value: 'csv' }
+            ]}
+            style={{ marginBottom: '16px' }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <NButton onClick={() => { showExportModal.value = false }}>
+              {t('data_standard.cancel')}
+            </NButton>
+            <NButton type="primary" onClick={handleExport}>
+              导出
             </NButton>
           </div>
         </NModal>
