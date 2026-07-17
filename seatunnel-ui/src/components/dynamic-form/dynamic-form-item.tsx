@@ -54,6 +54,13 @@ const props = {
   }
 }
 
+const descriptionTranslations: Record<string, string> = {
+  'The encoding of the file, e.g. UTF-8, ISO-8859-1....': '文件的编码格式，例如 UTF-8、ISO-8859-1 等',
+  'The row delimiter of the file': '文件的行分隔符',
+  'The field delimiter of the file': '文件的字段分隔符',
+  'The schema of the data': '数据的结构定义',
+}
+
 const DynamicFormItem = defineComponent({
   name: 'DynamicFormItem',
   props,
@@ -93,6 +100,9 @@ const DynamicFormItem = defineComponent({
 
     const safeTranslate = (key: string) => {
       if (!key) return ''
+      if (locale.value === 'zh_CN' && descriptionTranslations[key]) {
+        return descriptionTranslations[key]
+      }
       if (/^i18n\./.test(key)) {
         const lang = locale.value as string
         const msgs = formLocales.value[lang]
@@ -110,7 +120,10 @@ const DynamicFormItem = defineComponent({
     }
 
     const getTranslation = (name: string, label: string, suffix: string) => {
-      const key = `transforms.${name.toLowerCase()}.${label}_${suffix}`
+      const normalizedName = name.indexOf('[') >= 0
+        ? name.split('[')[0].toLowerCase()
+        : name.toLowerCase()
+      const key = `transforms.${normalizedName}.${label}_${suffix}`
       return te(key) ? t(key) : ''
     }
 

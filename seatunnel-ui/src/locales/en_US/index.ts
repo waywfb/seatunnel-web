@@ -64,5 +64,10 @@ export default {
   port: 'Port',
   subscription_type: 'Subscription Type',
   subscription_interval_ms: 'Subscription Interval (ms)',
-  poll_interval_ms: 'Poll Interval (ms)'
+  poll_interval_ms: 'Poll Interval (ms)',
+  row_delimiter: 'Row Delimiter',
+  field_delimiter: 'Field Delimiter',
+  schema: 'Schema',
+  encoding: 'Encoding',
+  required: 'Required'
 }

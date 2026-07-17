@@ -64,5 +64,10 @@ export default {
   port: '端口',
   subscription_type: '订阅类型',
   subscription_interval_ms: '订阅间隔(毫秒)',
-  poll_interval_ms: '轮询间隔(毫秒)'
+  poll_interval_ms: '轮询间隔(毫秒)',
+  row_delimiter: '行分隔符',
+  field_delimiter: '字段分隔符',
+  schema: '数据结构',
+  encoding: '编码',
+  required: '必填'
 }
