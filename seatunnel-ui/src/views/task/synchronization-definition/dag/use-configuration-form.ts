@@ -32,6 +32,7 @@ import {
   findSink,
   fetchSourceDatasourceTypes
 } from '@/service/sync-task-definition'
+import { getDataStandardEnabledList } from '@/service/data-source'
 import { flattenJson } from '@/service/virtual-table'
 import { useSynchronizationDefinitionStore } from '@/store/synchronization-definition'
 import type { NodeType, TableOption, State } from './types'
@@ -334,8 +335,44 @@ export const useConfigurationForm = (
       state.formStructure = useFormStructure(
         res.apis ? useFormRequest(res.apis, res.forms) : res.forms
       ) as any
+
+      await transformDataStandardField()
     } finally {
       state.formLoading = false
+    }
+  }
+
+  const transformDataStandardField = async () => {
+    const hasDataStandardField = (state.formStructure as Array<any>).some(
+      (f: any) => f.field === 'data_standard_id'
+    )
+    if (!hasDataStandardField) return
+
+    try {
+      const standardListRes = await getDataStandardEnabledList()
+      const standardList = Array.isArray(standardListRes)
+        ? standardListRes
+        : (standardListRes?.data || [])
+      const standardOptions = standardList.map((item: any) => ({
+        label: item.name || item.dataStandardName || '',
+        value: String(item.id || item.dataStandardId || '')
+      }))
+
+      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
+        if (f.field === 'data_standard_id') {
+          return {
+            ...f,
+            type: 'select',
+            options: standardOptions,
+            required: true,
+            description: f.description || '数据标准',
+            placeholder: '请选择数据标准'
+          }
+        }
+        return f
+      })
+    } catch (err) {
+      console.error('Failed to load data standard list:', err)
     }
   }
 

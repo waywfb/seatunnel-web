@@ -253,3 +253,17 @@ export function deleteGroup(groupId: string): any {
     method: 'delete'
   })
 }
+
+export function getDataStandardEnabledList(): any {
+  return axios({
+    url: '/seatunnel/api/v1/data-standard/enabled-list',
+    method: 'get'
+  })
+}
+
+export function getDataStandardFormat(standardId: string): any {
+  return axios({
+    url: '/seatunnel/api/v1/data-standard/' + standardId + '/format',
+    method: 'get'
+  })
+}

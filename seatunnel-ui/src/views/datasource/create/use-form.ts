@@ -15,14 +15,18 @@
  * limitations under the License.
  */
 
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import {
   useFormStructuresStore,
   StructureItem
 } from '@/store/datasource'
-import { dynamicFormItems } from '@/service/data-source'
+import {
+  dynamicFormItems,
+  getDataStandardEnabledList,
+  getDataStandardFormat
+} from '@/service/data-source'
 import { useFormField } from '@/components/dynamic-form/use-form-field'
 import { useFormRequest } from '@/components/dynamic-form/use-form-request'
 import { useFormValidate } from '@/components/dynamic-form/use-form-validate'
@@ -84,7 +88,82 @@ export function useForm(type: string) {
       state.formStructure = useFormStructure(
         res.apis ? useFormRequest(res.apis, res.forms) : res.forms
       ) as any
+
+      await transformDataStandardField()
     } finally {}
+  }
+
+  const transformDataStandardField = async () => {
+    const hasDataStandardField = (state.formStructure as Array<any>).some(
+      (f: any) => f.field === 'data_standard_id'
+    )
+    if (!hasDataStandardField) return
+
+    try {
+      const standardListRes = await getDataStandardEnabledList()
+      const standardList = Array.isArray(standardListRes) ? standardListRes : (standardListRes?.data || [])
+      const standardOptions = standardList.map((item: any) => ({
+        label: item.name || item.dataStandardName || '',
+        value: String(item.id || item.dataStandardId || '')
+      }))
+
+      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
+        if (f.field === 'data_standard_id') {
+          return {
+            ...f,
+            type: 'select',
+            options: standardOptions,
+            required: true,
+            description: f.description || '数据标准',
+            placeholder: '请选择数据标准'
+          }
+        }
+        return f
+      })
+    } catch (err) {
+      console.error('Failed to load data standard list:', err)
+    }
+  }
+
+  const fillFormatFieldsFromStandard = async (standardId: string) => {
+    if (!standardId) return
+
+    try {
+      const formatRes = await getDataStandardFormat(standardId)
+      const formatList = Array.isArray(formatRes) ? formatRes : (formatRes?.data || [])
+      if (formatList.length > 0) {
+        const format = formatList[0]
+        if (format.formatType !== undefined && format.formatType !== null) {
+          state.detailForm.file_format_type = format.formatType
+        }
+        if (format.encoding !== undefined && format.encoding !== null) {
+          state.detailForm.encoding = format.encoding
+        }
+        if (format.recordSeparator !== undefined && format.recordSeparator !== null) {
+          state.detailForm.record_separator = format.recordSeparator
+        }
+        if (format.fieldSeparator !== undefined && format.fieldSeparator !== null) {
+          state.detailForm.field_separator = format.fieldSeparator
+        }
+        if (format.quoteChar !== undefined && format.quoteChar !== null) {
+          state.detailForm.quote = format.quoteChar
+        }
+        if (format.escapeChar !== undefined && format.escapeChar !== null) {
+          state.detailForm.escape = format.escapeChar
+        }
+        if (format.headerRows !== undefined && format.headerRows !== null) {
+          state.detailForm.header_rows = String(format.headerRows)
+        }
+        if (format.fileType !== undefined && format.fileType !== null) {
+          state.detailForm.file_type = format.fileType
+        }
+        if (format.fileTerminator !== undefined && format.fileTerminator !== null) {
+          state.detailForm.file_terminator = format.fileTerminator
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load format from data standard:', err)
+    }
   }
 
   const changeType = (value: string) => {
@@ -102,6 +181,15 @@ export function useForm(type: string) {
 
   const getFieldsValue = () => state.detailForm
 
+  watch(
+    () => state.detailForm.data_standard_id,
+    (newVal) => {
+      if (newVal) {
+        fillFormatFieldsFromStandard(newVal)
+      }
+    }
+  )
+
   onMounted(() => {
     if (type) {
       getFormItems(type)
@@ -114,6 +202,7 @@ export function useForm(type: string) {
     resetFieldsValue,
     getFieldsValue,
     setFieldsValue,
-    getFormItems
+    getFormItems,
+    fillFormatFieldsFromStandard
   }
 }

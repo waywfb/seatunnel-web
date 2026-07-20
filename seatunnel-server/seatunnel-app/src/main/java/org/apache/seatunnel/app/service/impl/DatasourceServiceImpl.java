@@ -30,6 +30,8 @@ import org.apache.seatunnel.app.domain.response.datasource.DatasourceDetailRes;
 import org.apache.seatunnel.app.domain.response.datasource.DatasourceRes;
 import org.apache.seatunnel.app.domain.response.datasource.VirtualTableFieldRes;
 import org.apache.seatunnel.app.domain.response.group.GroupResponse;
+import org.apache.seatunnel.app.dynamicforms.DynamicSelectOption;
+import org.apache.seatunnel.app.dynamicforms.FormOptionBuilder;
 import org.apache.seatunnel.app.dynamicforms.FormStructure;
 import org.apache.seatunnel.app.permission.constants.SeatunnelFuncPermissionKeyConstant;
 import org.apache.seatunnel.app.security.UserContextHolder;
@@ -279,6 +281,28 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
                         .orElse(pluginName);
         FormStructure testForm =
                 SeaTunnelOptionRuleWrapper.wrapper(optionRule, connectorForDatasourceName);
+
+        boolean hasDataStandardField =
+                testForm.getForms().stream().anyMatch(f -> "data_standard_id".equals(f.getField()));
+        if (!hasDataStandardField) {
+            DynamicSelectOption dataStandardSelect =
+                    FormOptionBuilder.builder()
+                            .withLabel("数据标准")
+                            .withField("data_standard_id")
+                            .dynamicSelectOptionBuilder()
+                            .withSelectApi("data_standard_id")
+                            .formDynamicSelectOption();
+            testForm.getForms().add(0, dataStandardSelect);
+
+            if (testForm.getApis() == null) {
+                testForm.setApis(new java.util.HashMap<>());
+            }
+            java.util.Map<String, String> apiConfig = new java.util.HashMap<>();
+            apiConfig.put("url", "/seatunnel/api/v1/data-standard/enabled-list");
+            apiConfig.put("method", "get");
+            testForm.getApis().put("data_standard_id", apiConfig);
+        }
+
         return JsonUtils.toJsonString(testForm);
     }
 
