@@ -129,6 +129,18 @@ public class DataStandardController extends BaseController {
         return Result.success(dataStandardService.copyDataStandard(id));
     }
 
+    @ApiOperation("获取已启用的数据标准简要列表（用于下拉选择）")
+    @GetMapping("/enabled-list")
+    Result<List<DataStandardRes>> getEnabledDataStandardList() {
+        return Result.success(dataStandardService.getEnabledDataStandardList());
+    }
+
+    @ApiOperation("根据数据标准ID获取格式配置")
+    @GetMapping("/{id}/format")
+    Result<List<DataStandardFormatRes>> getDataStandardFormat(@PathVariable("id") Long id) {
+        return Result.success(dataStandardFormatService.getFormatByStandardId(id));
+    }
+
     @ApiOperation("创建数据标准版本")
     @PostMapping("/{standardId}/version/create")
     Result<Long> createVersion(

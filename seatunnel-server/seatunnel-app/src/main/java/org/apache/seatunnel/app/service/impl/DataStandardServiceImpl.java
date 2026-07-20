@@ -279,6 +279,22 @@ public class DataStandardServiceImpl extends SeatunnelBaseServiceImpl
         return createDataStandard(req);
     }
 
+    @Override
+    public List<DataStandardRes> getEnabledDataStandardList() {
+        List<DataStandard> allStandards = dataStandardDao.selectAllEnabledDataStandard();
+        return allStandards.stream()
+                .map(
+                        ds ->
+                                DataStandardRes.builder()
+                                        .id(ds.getId())
+                                        .name(ds.getName())
+                                        .code(ds.getCode())
+                                        .type(ds.getType())
+                                        .description(ds.getDescription())
+                                        .build())
+                .collect(Collectors.toList());
+    }
+
     private Long generateId() {
         try {
             return CodeGenerateUtils.getInstance().genCode();

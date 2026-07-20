@@ -44,4 +44,6 @@ public interface IDataStandardDao {
     List<DataStandard> selectDataStandardByIds(List<Long> ids);
 
     boolean checkHasVirtualTableReference(Long standardId);
+
+    List<DataStandard> selectAllEnabledDataStandard();
 }

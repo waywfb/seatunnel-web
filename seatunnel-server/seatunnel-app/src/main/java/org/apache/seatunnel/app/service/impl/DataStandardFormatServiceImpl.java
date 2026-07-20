@@ -17,8 +17,10 @@
 
 package org.apache.seatunnel.app.service.impl;
 
+import org.apache.seatunnel.app.dal.dao.IDataStandardDao;
 import org.apache.seatunnel.app.dal.dao.IDataStandardFormatDao;
 import org.apache.seatunnel.app.dal.dao.IDataStandardVersionDao;
+import org.apache.seatunnel.app.dal.entity.DataStandard;
 import org.apache.seatunnel.app.dal.entity.DataStandardFormat;
 import org.apache.seatunnel.app.dal.entity.DataStandardVersion;
 import org.apache.seatunnel.app.domain.request.datastandard.DataStandardFormatReq;
@@ -51,6 +53,9 @@ public class DataStandardFormatServiceImpl extends SeatunnelBaseServiceImpl
     @Resource(name = "dataStandardVersionDaoImpl")
     private IDataStandardVersionDao dataStandardVersionDao;
 
+    @Resource(name = "dataStandardDaoImpl")
+    private IDataStandardDao dataStandardDao;
+
     @Override
     public List<DataStandardFormatRes> getFormatList(Long standardId, Long versionId) {
         DataStandardVersion version = dataStandardVersionDao.selectVersionById(versionId);
@@ -61,6 +66,23 @@ public class DataStandardFormatServiceImpl extends SeatunnelBaseServiceImpl
         List<DataStandardFormat> formats =
                 dataStandardFormatDao.selectFormatsByVersionId(versionId);
 
+        return formats.stream().map(this::toFormatRes).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DataStandardFormatRes> getFormatByStandardId(Long standardId) {
+        DataStandard dataStandard = dataStandardDao.selectDataStandardById(standardId);
+        if (dataStandard == null) {
+            throw new SeatunnelException(SeatunnelErrorEnum.DATA_STANDARD_NOT_FOUND);
+        }
+
+        Long versionId = dataStandard.getCurrentVersionId();
+        if (versionId == null) {
+            return new ArrayList<>();
+        }
+
+        List<DataStandardFormat> formats =
+                dataStandardFormatDao.selectFormatsByVersionId(versionId);
         return formats.stream().map(this::toFormatRes).collect(Collectors.toList());
     }
 

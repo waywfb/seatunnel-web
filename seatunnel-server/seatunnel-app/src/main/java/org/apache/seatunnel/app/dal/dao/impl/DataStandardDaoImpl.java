@@ -113,4 +113,13 @@ public class DataStandardDaoImpl implements IDataStandardDao {
         return dataStandardMapper.checkHasVirtualTableReference(standardId, getCurrentWorkspaceId())
                 > 0;
     }
+
+    @Override
+    public List<DataStandard> selectAllEnabledDataStandard() {
+        return dataStandardMapper.selectList(
+                new QueryWrapper<DataStandard>()
+                        .eq("workspace_id", getCurrentWorkspaceId())
+                        .eq("status", 1)
+                        .orderByDesc("create_time"));
+    }
 }

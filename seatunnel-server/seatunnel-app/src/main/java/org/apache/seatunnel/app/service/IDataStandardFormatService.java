@@ -28,4 +28,6 @@ public interface IDataStandardFormatService {
 
     List<DataStandardFormatRes> batchUpdateFormats(
             Long standardId, Long versionId, List<DataStandardFormatReq> formatReqs);
+
+    List<DataStandardFormatRes> getFormatByStandardId(Long standardId);
 }

@@ -22,6 +22,8 @@ import org.apache.seatunnel.app.domain.response.PageInfo;
 import org.apache.seatunnel.app.domain.response.datastandard.DataStandardDetailRes;
 import org.apache.seatunnel.app.domain.response.datastandard.DataStandardRes;
 
+import java.util.List;
+
 public interface IDataStandardService {
 
     Long createDataStandard(DataStandardReq req);
@@ -40,4 +42,6 @@ public interface IDataStandardService {
     boolean disableDataStandard(Long id);
 
     Long copyDataStandard(Long id);
+
+    List<DataStandardRes> getEnabledDataStandardList();
 }
