@@ -26,8 +26,7 @@ export default {
   select_workspace: 'Select Workspace',
   select_workspace_tips: 'Please select workspace',
   remember_device: 'Remember this device',
-  forgot_password: 'Forgot password?',
-  sso_divider: 'Single Sign-On',
+sso_divider: 'Single Sign-On',
   enterprise_account: 'Enterprise Account',
   saml_login: 'SAML Login',
   // Brand & Hero

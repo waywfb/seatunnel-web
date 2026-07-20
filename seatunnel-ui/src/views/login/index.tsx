@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, toRefs, withKeys, getCurrentInstance, h } from 'vue'
+import { defineComponent, toRefs, withKeys, getCurrentInstance, h, ref } from 'vue'
 import {
   NForm,
   NFormItem,
@@ -49,12 +49,14 @@ const Login = defineComponent({
     const { t } = useI18n()
     const { state, handleLogin } = useForm()
     const trim = getCurrentInstance()?.appContext.config.globalProperties.trim
+    const showPassword = ref(false)
 
     return {
       t,
       ...toRefs(state),
       trim,
-      handleLogin
+      handleLogin,
+      showPassword
     }
   },
   render() {
@@ -229,7 +231,7 @@ const Login = defineComponent({
                       <User size={20} />
                     </span>
                     {/* Visual Shell (Tailwind) + NInput core */}
-                    <div class='w-full pl-10 pr-4 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
+                    <div class='w-full pl-10 pr-4 py-2.5 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
                       <NInput
                         ref='usernameInput'
                         clearable
@@ -258,31 +260,23 @@ const Login = defineComponent({
 
                 {/* Password Field */}
                 <div class='space-y-2'>
-                  <div class='flex justify-between items-center'>
-                    <label
-                      class='block font-tide-label-md text-tide-label-md text-tide-on-surface-variant'
-                      for='password'
-                    >
-                      {this.t('login.password')}
-                    </label>
-                    <a
-                      class='font-tide-label-md text-tide-label-md text-primary hover:text-tide-primary-container transition-colors'
-                      href='#'
-                    >
-                      {this.t('login.forgot_password')}
-                    </a>
-                  </div>
+                  <label
+                    class='block font-tide-label-md text-tide-label-md text-tide-on-surface-variant'
+                    for='password'
+                  >
+                    {this.t('login.password')}
+                  </label>
                   <div class='relative'>
                     <span class='absolute left-3 top-1/2 -translate-y-1/2 text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
                       <Lock size={20} />
                     </span>
                     {/* Visual Shell (Tailwind) + NInput core */}
-                    <div class='w-full pl-10 pr-12 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
+                    <div class='w-full pl-10 pr-12 py-2.5 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
                       <NInput
                         ref='passwordInput'
                         clearable
                         allowInput={this.trim}
-                        type='password'
+                        type={this.showPassword ? 'text' : 'password'}
                         v-model={[this.loginForm.password, 'value']}
                         placeholder={this.t('login.password_tips')}
                         onKeydown={withKeys(this.handleLogin, ['enter'])}
@@ -303,13 +297,10 @@ const Login = defineComponent({
                         type='button'
                         class='absolute right-3 top-1/2 -translate-y-1/2 text-tide-outline-variant hover:text-tide-outline transition-colors'
                         onClick={() => {
-                          const input = this.passwordInput?.$el?.querySelector('input') as HTMLInputElement
-                          if (input) {
-                            input.type = input.type === 'password' ? 'text' : 'password'
-                          }
+                          this.showPassword = !this.showPassword
                         }}
                       >
-                        {this.loginForm.password ? <EyeOff size={20} /> : <Eye size={20} />}
+                        {this.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                       </button>
                     </div>
                   </div>
@@ -328,7 +319,7 @@ const Login = defineComponent({
                       <Folder size={20} />
                     </span>
                     {/* Visual Shell (Tailwind) + NSelect core */}
-                    <div class='w-full pl-10 pr-4 py-3 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
+                    <div class='w-full pl-10 pr-4 py-2.5 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
                       <NSelect
                         ref='workspaceSelect'
                         options={this.workspaces.map((workspace: string) => ({
