@@ -54,37 +54,37 @@ import type { FieldData } from '@/utils/file-parser'
 
 /** Color map for standard types */
 const TYPE_COLOR_MAP: Record<string, string> = {
-  GB: '#10b981',
-  HB: '#3b82f6',
-  DB: '#8b5cf6',
-  T: '#f59e0b',
-  Q: '#ef4444',
-  FG: '#6366f1',
+  GB: '#64748b',
+  HB: '#64748b',
+  DB: '#64748b',
+  T: '#64748b',
+  Q: '#64748b',
+  FG: '#64748b',
   CUSTOM: '#64748b'
 }
 
 /** Color map for field types */
 const FIELD_TYPE_COLOR: Record<string, string> = {
-  HEADER: '#f97316',
-  BODY: '#3b82f6'
+  HEADER: '#64748b',
+  BODY: '#64748b'
 }
 
 const DATA_TYPE_BADGE: Record<string, { bg: string; color: string; border: string }> = {
-  '字符': { bg: '#eff6ff', color: '#1d4ed8', border: '#dbeafe' },
-  'STRING': { bg: '#eff6ff', color: '#1d4ed8', border: '#dbeafe' },
-  'BINARY': { bg: '#eff6ff', color: '#1d4ed8', border: '#dbeafe' },
-  '数值': { bg: '#fffbeb', color: '#b45309', border: '#fef3c7' },
-  'INT': { bg: '#fffbeb', color: '#b45309', border: '#fef3c7' },
-  'BIGINT': { bg: '#fffbeb', color: '#b45309', border: '#fef3c7' },
-  'FLOAT': { bg: '#fffbeb', color: '#b45309', border: '#fef3c7' },
-  'DOUBLE': { bg: '#fffbeb', color: '#b45309', border: '#fef3c7' },
-  'DECIMAL': { bg: '#fffbeb', color: '#b45309', border: '#fef3c7' },
-  '日期': { bg: '#faf5ff', color: '#7e22ce', border: '#f3e8ff' },
-  'DATE': { bg: '#faf5ff', color: '#7e22ce', border: '#f3e8ff' },
-  'TIMESTAMP': { bg: '#faf5ff', color: '#7e22ce', border: '#f3e8ff' },
-  'BOOLEAN': { bg: '#f0fdfa', color: '#0f766e', border: '#ccfbf1' }
+  '字符': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'STRING': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'BINARY': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  '数值': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'INT': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'BIGINT': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'FLOAT': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'DOUBLE': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'DECIMAL': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  '日期': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'DATE': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'TIMESTAMP': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' },
+  'BOOLEAN': { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' }
 }
-const DEFAULT_DATA_TYPE_BADGE = { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' }
+const DEFAULT_DATA_TYPE_BADGE = { bg: '#f8fafc', color: '#475569', border: '#e2e8f0' }
 
 export default defineComponent({
   name: 'DataStandardDetail',
@@ -339,6 +339,13 @@ export default defineComponent({
 
     const handleSave = async () => {
       await saveStandard()
+      if (isEdit.value && currentVersionId.value) {
+        const promises = []
+        if (fields.value.length > 0) promises.push(saveFields())
+        if (formats.value.length > 0) promises.push(saveFormats())
+        if (mappings.value.length > 0) promises.push(saveMappings())
+        await Promise.allSettled(promises)
+      }
       if (!isEdit.value) return
       router.push({ name: 'data-standard-list' })
     }
@@ -432,11 +439,11 @@ export default defineComponent({
           </div>
           <div className="ds-header-actions">
             {isCurrentVersionDraft.value && (
-              <NButton type="primary" size="tiny" loading={saving.value} onClick={handleSave} style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}>
+              <NButton size="tiny" loading={saving.value} onClick={handleSave}>
                 {t('data_standard.save')}
               </NButton>
             )}
-            <NButton size="tiny" onClick={() => router.push({ name: 'data-standard-list' })}>
+            <NButton text size="tiny" onClick={() => router.push({ name: 'data-standard-list' })}>
               {t('data_standard.cancel')}
             </NButton>
           </div>
@@ -621,27 +628,37 @@ export default defineComponent({
             {/* Version selector (right side of tabs) */}
             {isEdit.value && (
               <div class="ds-version-bar">
-                <NButton size="tiny" onClick={() => { showVersionModal.value = true }} style={{ color: '#10b981', borderColor: '#10b981' }}>
-                  {t('data_standard.create_version')}
-                </NButton>
                 {isCurrentVersionDraft.value && currentVersionId.value && (
-                  <>
-                    <NPopconfirm onPositiveClick={() => handlePublishVersion(currentVersionId.value!)}>
-                      {{ trigger: () => <NButton size="tiny" style={{ backgroundColor: '#10b981', borderColor: '#10b981', color: '#fff' }}>{t('data_standard.publish')}</NButton>,
-                        default: () => t('data_standard.publish_confirm') }}
-                    </NPopconfirm>
-                    <NPopconfirm onPositiveClick={() => handleDeleteVersion(currentVersionId.value!)}>
-                      {{ trigger: () => <NButton size="tiny" type="error">{t('data_standard.delete_version')}</NButton>,
-                        default: () => t('data_standard.delete_confirm') }}
-                    </NPopconfirm>
-                  </>
-                )}
-                {currentVersion.value?.status === 'RELEASED' && currentVersionId.value && (
-                  <NPopconfirm onPositiveClick={() => handleArchiveVersion(currentVersionId.value!)}>
-                    {{ trigger: () => <NButton size="tiny">{t('data_standard.archive')}</NButton>,
-                      default: () => t('data_standard.archive_confirm') }}
+                  <NPopconfirm onPositiveClick={() => handlePublishVersion(currentVersionId.value!)}>
+                    {{ trigger: () => <NButton size="tiny" style={{ backgroundColor: '#10b981', borderColor: '#10b981', color: '#fff' }}>{t('data_standard.publish')}</NButton>,
+                      default: () => t('data_standard.publish_confirm') }}
                   </NPopconfirm>
                 )}
+                <NDropdown
+                  options={(() => {
+                    const items = [
+                      { key: 'create', label: '新建版本' }
+                    ]
+                    if (isCurrentVersionDraft.value) {
+                      items.push({ key: 'delete', label: '删除版本' })
+                    }
+                    if (currentVersion.value?.status === 'RELEASED') {
+                      items.push({ key: 'archive', label: '归档' })
+                    }
+                    return items
+                  })()}
+                  onSelect={(key: string) => {
+                    if (key === 'create') { showVersionModal.value = true }
+                    if (key === 'delete' && currentVersionId.value && window.confirm('确认删除此版本？')) {
+                      handleDeleteVersion(currentVersionId.value)
+                    }
+                    if (key === 'archive' && currentVersionId.value && window.confirm('确认归档此版本？')) {
+                      handleArchiveVersion(currentVersionId.value)
+                    }
+                  }}
+                >
+                  <NButton size="tiny" style={{ borderColor: '#e2e8f0' }}>版本管理 ˅</NButton>
+                </NDropdown>
               </div>
             )}
           </div>
@@ -665,28 +682,25 @@ export default defineComponent({
                       />
 
                     </div>
-                    {isCurrentVersionDraft.value && (
-                      <div class="ds-toolbar-right">
-                        {isCurrentVersionDraft.value && (
-                          <NButton size="tiny" onClick={() => { showImportModal.value = true; clearImportFile() }}>
-                            导入
-                          </NButton>
-                        )}
-                        <NButton size="tiny" onClick={() => { showExportModal.value = true }}>
-                          导出
+                    <div class="ds-toolbar-right">
+                      <NDropdown
+                        options={[
+                          { key: 'import', label: '导入' },
+                          { key: 'export', label: '导出' }
+                        ]}
+                        onSelect={(key: string) => {
+                          if (key === 'import') { showImportModal.value = true; clearImportFile() }
+                          if (key === 'export') showExportModal.value = true
+                        }}
+                      >
+                        <NButton size="tiny">数据工具 ˅</NButton>
+                      </NDropdown>
+                      {isCurrentVersionDraft.value && (
+                        <NButton size="tiny" onClick={handleAddFieldToGroup}>
+                          新增配置项
                         </NButton>
-                        {isCurrentVersionDraft.value && (
-                          <NButton size="tiny" onClick={saveFields}>
-                            {t('data_standard.save_fields')}
-                          </NButton>
-                        )}
-                        {isCurrentVersionDraft.value && (
-                          <NButton size="tiny" type="primary" onClick={handleAddFieldToGroup} style={{ backgroundColor: '#10b981', borderColor: '#10b981' }}>
-                            新增配置项
-                          </NButton>
-                        )}
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
 
                   {/* Field Cards */}
@@ -728,7 +742,7 @@ export default defineComponent({
                                     size="tiny"
                                     round
                                     bordered
-                                    style={{ backgroundColor: '#fff1f2', color: '#e11d48', borderColor: '#fecdd3' }}
+                                    style={{ backgroundColor: '#f8fafc', color: '#64748b', borderColor: '#e2e8f0' }}
                                   >
                                     {t('data_standard.field_required')}
                                   </NTag>
@@ -753,8 +767,7 @@ export default defineComponent({
                               style={{
                                 backgroundColor: (DATA_TYPE_BADGE[field.dataType] || DEFAULT_DATA_TYPE_BADGE).bg,
                                 color: (DATA_TYPE_BADGE[field.dataType] || DEFAULT_DATA_TYPE_BADGE).color,
-                                borderColor: (DATA_TYPE_BADGE[field.dataType] || DEFAULT_DATA_TYPE_BADGE).border,
-                                fontWeight: 700
+                                borderColor: (DATA_TYPE_BADGE[field.dataType] || DEFAULT_DATA_TYPE_BADGE).border
                               }}
                             >
                               {field.dataType || 'UNKNOWN'}
@@ -787,7 +800,7 @@ export default defineComponent({
                 </div>
 
                 {/* Right: Inspector */}
-                <div class="ds-inspector">
+                <div class={`ds-inspector ${!selectedField.value ? 'ds-inspector--collapsed' : ''}`}>
                   {selectedField.value ? (
                     <>
                       {/* Inspector Header */}
@@ -951,7 +964,6 @@ export default defineComponent({
                 {isCurrentVersionDraft.value && (
                   <div class="ds-tab-toolbar">
                     <NButton size="tiny" onClick={addFormat}>{t('data_standard.add_format')}</NButton>
-                    <NButton size="tiny" onClick={saveFormats} style={{ backgroundColor: '#10b981', borderColor: '#10b981', color: '#fff' }}>{t('data_standard.save_formats')}</NButton>
                   </div>
                 )}
                 <NDataTable
@@ -971,7 +983,6 @@ export default defineComponent({
                 {isCurrentVersionDraft.value && (
                   <div class="ds-tab-toolbar">
                     <NButton size="tiny" onClick={addMapping}>{t('data_standard.add_mapping')}</NButton>
-                    <NButton size="tiny" onClick={saveMappings} style={{ backgroundColor: '#10b981', borderColor: '#10b981', color: '#fff' }}>{t('data_standard.save_mappings')}</NButton>
                   </div>
                 )}
                 <NDataTable

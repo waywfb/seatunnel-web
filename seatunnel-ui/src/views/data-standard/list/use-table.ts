@@ -158,6 +158,8 @@ export function useTable() {
     onDisable,
     onCopy,
     onPageChange,
-    onPageSizeChange
+    onPageSizeChange,
+    getList,
+    getAllData
   }
 }

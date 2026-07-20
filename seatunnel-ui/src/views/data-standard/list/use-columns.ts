@@ -90,32 +90,37 @@ export function useColumns(
       useTableOperation({
         title: t('data_standard.operation'),
         key: 'operation',
-        width: 280,
+        width: 140,
         buttons: [
           {
             text: t('data_standard.edit'),
             icon: h(EditOutlined),
+            type: 'info',
             onClick: (rowData) => void onCallback(rowData.id, 'edit')
           },
           {
             text: t('data_standard.copy'),
             icon: h(CopyOutlined),
+            more: true,
             onClick: (rowData) => void onCallback(rowData.id, 'copy')
           },
           {
             text: t('data_standard.enable'),
             icon: h(CheckCircleOutlined),
+            more: true,
             show: (rowData: any) => rowData.status === 0,
             onClick: (rowData) => void onCallback(rowData.id, 'enable')
           },
           {
             text: t('data_standard.disable'),
             icon: h(PauseCircleOutlined),
+            more: true,
             show: (rowData: any) => rowData.status === 1,
             onClick: (rowData) => void onCallback(rowData.id, 'disable')
           },
           {
             isDelete: true,
+            more: true,
             text: t('data_standard.delete'),
             onPositiveClick: (rowData) => void onCallback(rowData.id, 'delete'),
             negativeText: t('data_standard.cancel'),

@@ -25,6 +25,7 @@ import {
   NPagination,
   NCard,
   NSelect,
+  NEmpty,
   useMessage
 } from 'naive-ui'
 import STabs from '@/components/tabs'
@@ -58,7 +59,9 @@ const DataStandardList = defineComponent({
       onDisable,
       onCopy,
       onPageChange,
-      onPageSizeChange
+      onPageSizeChange,
+      getList,
+      getAllData
     } = useTable()
 
     // 获取各类型统计数量
@@ -147,43 +150,60 @@ const DataStandardList = defineComponent({
           </button>
         </div>
 
-        {/* STabs */}
-        <STabs
-          value={tabValue.value}
-          onUpdate:value={handleTypeChange}
-          tabs={tabs.value}
-          style={{ marginBottom: '4px' }}
-        />
-
-        {/* Table with search toolbar */}
-        <NCard>
-          <NSpace justify='end' style={{ marginBottom: '16px' }}>
+        {/* Tab + Search 融合栏 */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+          <STabs
+            value={tabValue.value}
+            onUpdate:value={handleTypeChange}
+            tabs={tabs.value}
+            style={{ flex: '1 1 auto', minWidth: 0 }}
+          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             <NInput
               v-model:value={state.params.name}
               clearable
               placeholder={t('data_standard.search_name')}
               onKeyup={handleKeyup}
-              style={{ width: '200px' }}
+              style={{ width: '180px' }}
             />
             <NSelect
               v-model:value={state.params.status}
               clearable
               placeholder={t('data_standard.search_status')}
               options={STATUS_OPTIONS}
-              style={{ width: '120px' }}
+              style={{ width: '110px' }}
             />
             <NButton type='primary' onClick={onSearch}>
               <NIcon>
                 <SearchOutlined />
               </NIcon>
             </NButton>
-          </NSpace>
-          <NDataTable
-            columns={columns.value}
-            data={state.list}
-            loading={state.loading}
-            row-key={(row: any) => row.id}
-          />
+            <NButton onClick={() => {
+              state.params.name = null
+              state.params.status = null
+              state.page = 1
+              getList()
+              getAllData()
+            }}>
+              重置
+            </NButton>
+          </div>
+        </div>
+
+        {/* Table */}
+        <NCard style={{ marginTop: '8px' }}>
+          {state.list.length === 0 && !state.loading ? (
+            <div style={{ padding: '60px 0' }}>
+              <NEmpty description="暂无数据" />
+            </div>
+          ) : (
+            <NDataTable
+              columns={columns.value}
+              data={state.list}
+              loading={state.loading}
+              row-key={(row: any) => row.id}
+            />
+          )}
           <NSpace justify='center' style={{ marginTop: '16px' }}>
             <NPagination
               v-model:page={state.page}
