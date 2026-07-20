@@ -235,6 +235,7 @@ const ConfigurationForm = defineComponent({
                         state.formStructure = []
                         state.databaseOptions = []
                         state.tableOptions = []
+                        state.useDatabaseAndTable = true
                       }
                     }}
                   />
@@ -264,7 +265,7 @@ const ConfigurationForm = defineComponent({
                 </NFormItem>
               )}
 
-              {props.nodeType !== 'transform' && (
+              {props.nodeType !== 'transform' && state.useDatabaseAndTable && (
                 <NFormItem
                   label={t('project.synchronization_definition.database')}
                   path='database'
@@ -287,7 +288,8 @@ const ConfigurationForm = defineComponent({
               )}
             </div>
 
-            {dagStore.getDagInfo.jobType === 'DATA_INTEGRATION' &&
+            {state.useDatabaseAndTable &&
+              dagStore.getDagInfo.jobType === 'DATA_INTEGRATION' &&
               (props.nodeType === 'sink' || props.nodeType === 'source') && (
                 <NFormItem
                   label={t('project.synchronization_definition.table_name')}
@@ -312,7 +314,8 @@ const ConfigurationForm = defineComponent({
                 </NFormItem>
               )}
 
-            {state.model.sceneMode === 'MULTIPLE_TABLE' && (
+            {state.useDatabaseAndTable &&
+              state.model.sceneMode === 'MULTIPLE_TABLE' && (
               <NFormItem
                 label={t('project.synchronization_definition.table_name')}
                 path='tableName'

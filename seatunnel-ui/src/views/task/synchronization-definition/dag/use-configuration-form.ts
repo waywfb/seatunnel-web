@@ -83,6 +83,7 @@ export const useConfigurationForm = (
     allowedSceneModes: string[];
     predecessorDatasourceName: string;
     predecessorTableName: string;
+    useDatabaseAndTable: boolean;
   }>({
     model: cloneDeep(initialModel),
     loading: false,
@@ -102,6 +103,7 @@ export const useConfigurationForm = (
     allowedSceneModes: [],
     predecessorDatasourceName: predecessorDatasourceName || '',
     predecessorTableName: predecessorTableName || '',
+    useDatabaseAndTable: true,
     rules: {
       name: {
         required: true,
@@ -140,7 +142,7 @@ export const useConfigurationForm = (
         required: true,
         trigger: ['input', 'blur'],
         validator: (ignore: any, value: string) => {
-          if (!value) {
+          if (state.useDatabaseAndTable && !value) {
             return new Error(
               t('project.synchronization_definition.database_validate')
             )
@@ -151,7 +153,7 @@ export const useConfigurationForm = (
         required: true,
         trigger: ['input', 'blur'],
         validator: (ignore: any, value: string) => {
-          if (!value) {
+          if (state.useDatabaseAndTable && !value) {
             return new Error(
               t('project.synchronization_definition.table_name_validate')
             )
@@ -248,6 +250,7 @@ export const useConfigurationForm = (
           label: item,
           value: item
         }))
+        state.useDatabaseAndTable = result.length > 0
       }
       await getFormStructure(datasourceInstanceId)
     } finally {
