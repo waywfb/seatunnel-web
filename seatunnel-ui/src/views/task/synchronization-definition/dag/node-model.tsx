@@ -106,12 +106,25 @@ const NodeModeModal = defineComponent({
       })
     }
 
+    const getMergedInputData = () => {
+      const stdFields = getStandardFields()
+      return mergeStandardIntoTableData(state.inputTableData, stdFields)
+    }
+
     expose({
-      getOutputSchema: () => ({
-        allTableData: state.allTableData,
-        outputTableData: state.outputTableData,
-        inputTableData: state.inputTableData
-      }),
+      getOutputSchema: () => {
+        const merged = getMergedInputData()
+        const allTableData = state.allTableData.length > 0
+          ? state.allTableData
+          : merged.length > 0
+            ? [{ database: '', tableInfos: [{ tableName: state.currentTable || 'default', fields: merged }] }]
+            : []
+        return {
+          allTableData,
+          outputTableData: state.outputTableData,
+          inputTableData: merged
+        }
+      },
       getSelectFields: () => ({
         tableFields: state.selectedKeys,
         all: state.selectedKeys.length === state.inputTableData.length
@@ -127,9 +140,7 @@ const NodeModeModal = defineComponent({
       const isSplitMode = state.viewMode === 'split'
       const standardFields = getStandardFields()
       const hasStandardFields = standardFields.length > 0
-      const displayInputData = hasStandardFields
-        ? mergeStandardIntoTableData(state.inputTableData, standardFields)
-        : state.inputTableData
+      const displayInputData = getMergedInputData()
 
       const groupNameCol = { title: '分组', key: 'groupName', width: 100, ellipsis: { tooltip: true } }
       const inputCols = hasStandardFields
