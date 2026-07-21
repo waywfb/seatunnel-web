@@ -75,3 +75,5 @@ DESIGN-bak.md
 seatunnel-ui/.omo/*
 .zed/*
 .mimocode/*
+seatunnel-source
+playwright-browsers/*

@@ -53,12 +53,58 @@ const NodeModeModal = defineComponent({
     refForm: {
       type: Object,
       default: null
+    },
+    standardTableFields: {
+      type: Array,
+      default: () => []
     }
   },
   setup(props, { expose }) {
     const { t } = useI18n()
     const { state, onInit, onSwitchTable, onUpdatedCheckedRowKeys, onToggleViewMode } =
       useNodeModel(props.type, props.transformType, props.predecessorsNodeId, props.schemaError, props.currentNodeId, props.refForm)
+
+    const getStandardFields = () => {
+      const fromProps = (props.standardTableFields as any[]) || []
+      if (fromProps.length > 0) return fromProps
+      if (props.refForm?.value?.getStandardTableFields) {
+        return props.refForm.value.getStandardTableFields() || []
+      }
+      return []
+    }
+
+    const mergeStandardIntoTableData = (inputData: any[], stdFields: any[]) => {
+      if (!stdFields.length) return inputData
+      if (!inputData.length) {
+        return stdFields.map((f: any) => ({
+          name: f.name || f.code || '',
+          type: f.dataType || '',
+          nullable: !f.required,
+          primaryKey: false,
+          comment: f.description || '',
+          defaultValue: '',
+          groupName: f.groupName || ''
+        }))
+      }
+      const stdMap = new Map<string, any>()
+      stdFields.forEach((f: any) => {
+        const key = (f.code || f.name || '').toLowerCase()
+        if (key) stdMap.set(key, f)
+      })
+      if (stdMap.size === 0) return inputData
+      return inputData.map((row: any) => {
+        const matchKey = (row.name || '').toLowerCase()
+        const std = stdMap.get(matchKey)
+        if (!std) return row
+        return {
+          ...row,
+          type: row.type || std.dataType || '',
+          nullable: row.nullable !== undefined ? row.nullable : !std.required,
+          comment: row.comment || std.description || '',
+          groupName: std.groupName || ''
+        }
+      })
+    }
 
     expose({
       getOutputSchema: () => ({
@@ -79,6 +125,20 @@ const NodeModeModal = defineComponent({
 
     return () => {
       const isSplitMode = state.viewMode === 'split'
+      const standardFields = getStandardFields()
+      const hasStandardFields = standardFields.length > 0
+      const displayInputData = hasStandardFields
+        ? mergeStandardIntoTableData(state.inputTableData, standardFields)
+        : state.inputTableData
+
+      const groupNameCol = { title: '分组', key: 'groupName', width: 100, ellipsis: { tooltip: true } }
+      const inputCols = hasStandardFields
+        ? [...state.inputColumns, groupNameCol] as any[]
+        : state.inputColumns
+
+      const mergedCols = hasStandardFields
+        ? [...state.mergedColumns, groupNameCol] as any[]
+        : state.mergedColumns
 
       return (
         <div class={styles['model-content']}>
@@ -92,8 +152,8 @@ const NodeModeModal = defineComponent({
                   <NDataTable
                     size='small'
                     row-class-name={styles['adjust-th-height']}
-                    columns={state.inputColumns}
-                    data={state.inputTableData}
+                    columns={inputCols}
+                    data={displayInputData}
                     onUpdateCheckedRowKeys={onUpdatedCheckedRowKeys}
                     rowKey={(row) => row.name}
                     checkedRowKeys={state.selectedKeys}
@@ -133,8 +193,8 @@ const NodeModeModal = defineComponent({
               <NDataTable
                 size='small'
                 row-class-name={styles['adjust-th-height']}
-                columns={state.mergedColumns}
-                data={props.type === 'source' || props.type === 'sink' ? state.inputTableData : state.outputTableData}
+                columns={mergedCols}
+                data={displayInputData}
                 onUpdateCheckedRowKeys={(keys) => {
                   if (props.type === 'source' || props.type === 'sink') {
                     onUpdatedCheckedRowKeys(keys)

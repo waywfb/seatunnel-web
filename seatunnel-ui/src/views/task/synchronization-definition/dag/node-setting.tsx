@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { defineComponent, nextTick, watch } from 'vue'
+import { defineComponent, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NDrawer,
@@ -56,15 +56,19 @@ const NodeSetting = defineComponent({
       handleSmartParseConfirm
     } = useNodeSettingModal(props, ctx)
 
-    const cancelModal = () => {
-      ctx.emit('cancelModal', props.show)
+    const standardTableFields = ref<any[]>([])
+
+    const refreshStandardTableFields = async () => {
+      await nextTick()
+      if (configurationFormRef.value?.getStandardTableFields) {
+        standardTableFields.value = configurationFormRef.value.getStandardTableFields()
+      }
     }
 
     watch(
       () => props.show,
       async () => {
         await nextTick()
-
         if (props.show && configurationFormRef.value) {
           await configurationFormRef.value.setValues(props.nodeInfo)
         }
@@ -73,8 +77,13 @@ const NodeSetting = defineComponent({
             props.nodeInfo.selectTableFields?.tableFields || []
           )
         }
+        refreshStandardTableFields()
       }
     )
+
+    const cancelModal = () => {
+      ctx.emit('cancelModal', props.show)
+    }
 
     return () => (
       <NDrawer show={props.show} width='40%' zIndex={1000}>
@@ -105,6 +114,7 @@ const NodeSetting = defineComponent({
                     currentNodeId={props.nodeInfo.pluginId}
                     schemaError={props.nodeInfo.schemaError}
                     refForm={configurationFormRef}
+                    standardTableFields={standardTableFields.value}
                   />
                 </div>
               </div>

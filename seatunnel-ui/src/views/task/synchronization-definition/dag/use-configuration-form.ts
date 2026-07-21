@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 import _, { cloneDeep, find, omit } from 'lodash'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
@@ -33,6 +33,7 @@ import {
   fetchSourceDatasourceTypes
 } from '@/service/sync-task-definition'
 import { getDataStandardEnabledList } from '@/service/data-source'
+import { getDataStandardDetail, getFieldList } from '@/service/data-standard'
 import { flattenJson } from '@/service/virtual-table'
 import { useSynchronizationDefinitionStore } from '@/store/synchronization-definition'
 import type { NodeType, TableOption, State } from './types'
@@ -84,6 +85,8 @@ export const useConfigurationForm = (
     predecessorDatasourceName: string;
     predecessorTableName: string;
     useDatabaseAndTable: boolean;
+    standardFields: any[];
+    standardTableFields: any[];
   }>({
     model: cloneDeep(initialModel),
     loading: false,
@@ -103,7 +106,9 @@ export const useConfigurationForm = (
     allowedSceneModes: [],
     predecessorDatasourceName: predecessorDatasourceName || '',
     predecessorTableName: predecessorTableName || '',
-    useDatabaseAndTable: true,
+    useDatabaseAndTable: !/^(ftp|sftp|localfile)$/i.test(datasourceName || ''),
+    standardFields: [],
+    standardTableFields: [],
     rules: {
       name: {
         required: true,
@@ -250,7 +255,12 @@ export const useConfigurationForm = (
           label: item,
           value: item
         }))
-        state.useDatabaseAndTable = result.length > 0
+        // FTP / SFTP are file connectors — they expose file_path, not a
+        // database/table model. Hide the database & table name fields for them.
+  const isFileConnector = /^(ftp|sftp|localfile)$/i.test(
+    option?.datasourceName || ''
+  )
+        state.useDatabaseAndTable = !isFileConnector && result.length > 0
       }
       await getFormStructure(datasourceInstanceId)
     } finally {
@@ -345,11 +355,60 @@ export const useConfigurationForm = (
     }
   }
 
+  const fetchStandardGroups = async (standardId: string) => {
+    if (!standardId) {
+      state.standardFields = []
+      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
+        if (f.field === 'standard_group') {
+          return { ...f, options: [], placeholder: '请先选择数据标准' }
+        }
+        return f
+      })
+      return
+    }
+    try {
+      const detail = await getDataStandardDetail(Number(standardId))
+      const versionList = detail?.versions || []
+      const currentVersion =
+        versionList.find((v: any) => v.status === 'PUBLISHED' || v.isCurrent) ||
+        versionList.find((v: any) => v.id === detail?.currentVersionId) ||
+        versionList[0]
+      if (!currentVersion) return
+      const fields = await getFieldList(Number(standardId), currentVersion.id)
+      const fieldArray = Array.isArray(fields) ? fields : []
+      state.standardFields = fieldArray
+
+      const groupSet = new Set<string>()
+      fieldArray.forEach((item: any) => {
+        if (item.groupName) groupSet.add(item.groupName)
+      })
+      const groupOptions = Array.from(groupSet).map((g) => ({ label: g, value: g }))
+      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
+        if (f.field === 'standard_group') {
+          return { ...f, options: groupOptions, placeholder: groupOptions.length ? '请选择分组分类' : '暂无分组分类' }
+        }
+        return f
+      })
+    } catch (err) {
+      console.error('Failed to load standard groups:', err)
+    }
+  }
+
+  const updateStandardTableStructure = (groupName: string) => {
+    if (!groupName) {
+      state.standardTableFields = []
+      return
+    }
+    state.standardTableFields = state.standardFields.filter((item: any) => item.groupName === groupName)
+  }
+
   const transformDataStandardField = async () => {
     const hasDataStandardField = (state.formStructure as Array<any>).some(
       (f: any) => f.field === 'data_standard_id'
     )
     if (!hasDataStandardField) return
+
+    const isFileConnector = /^(ftp|sftp|localfile)$/i.test(datasourceName || '')
 
     try {
       const standardListRes = await getDataStandardEnabledList()
@@ -361,7 +420,10 @@ export const useConfigurationForm = (
         value: String(item.id || item.dataStandardId || '')
       }))
 
-      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
+      const fieldsArray = state.formStructure as Array<any>
+      const hasStandardGroup = fieldsArray.some((f: any) => f.field === 'standard_group')
+
+      state.formStructure = fieldsArray.map((f: any) => {
         if (f.field === 'data_standard_id') {
           return {
             ...f,
@@ -374,9 +436,66 @@ export const useConfigurationForm = (
         }
         return f
       })
+
+      if (isFileConnector && !hasStandardGroup) {
+        state.formStructure = [
+          ...state.formStructure,
+          {
+            field: 'standard_group',
+            type: 'select',
+            label: '分组分类',
+            options: [],
+            required: true,
+            placeholder: '请先选择数据标准',
+            description: '分组分类'
+          }
+        ]
+      }
+
+      if (isFileConnector && state.model.data_standard_id) {
+        await fetchStandardGroups(state.model.data_standard_id)
+      }
     } catch (err) {
       console.error('Failed to load data standard list:', err)
     }
+  }
+
+
+  if (/^(ftp|sftp|localfile)$/i.test(datasourceName || '')) {
+    state.formStructure = [
+      {
+        field: 'data_standard_id',
+        type: 'select',
+        label: '数据标准',
+        options: [],
+        required: true,
+        placeholder: '请选择数据标准',
+        description: '数据标准'
+      },
+      {
+        field: 'standard_group',
+        type: 'select',
+        label: '分组分类',
+        options: [],
+        required: true,
+        placeholder: '请先选择数据标准',
+        description: '分组分类'
+      }
+    ]
+    transformDataStandardField()
+
+    watch(
+      () => state.model.data_standard_id,
+      (val) => {
+        state.model.standard_group = null
+        fetchStandardGroups(val as string)
+      }
+    )
+
+    watch(
+      () => state.model.standard_group,
+      (val) => { updateStandardTableStructure(val as string) }
+    )
   }
 
   const getColumnSelectable = async (pluginName: string) => {

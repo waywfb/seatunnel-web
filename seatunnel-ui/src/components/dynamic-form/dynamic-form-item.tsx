@@ -129,7 +129,12 @@ const DynamicFormItem = defineComponent({
 
     const basicFields = computed(() => {
       if (!props.advancedLabel) return props.formStructure as Array<any>
-      return (props.formStructure as Array<any>).filter((f) => f.required)
+      // The data standard selector is a first-class field and must always
+      // stay in the basic (always-visible) area, never collapsed under
+      // "advanced options", regardless of how `required` is derived.
+      return (props.formStructure as Array<any>).filter(
+        (f) => f.required || f.field === 'data_standard_id'
+      )
     })
 
     const advancedFields = computed(() => {

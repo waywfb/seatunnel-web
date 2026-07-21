@@ -27,7 +27,9 @@ import {
   NCheckboxGroup,
   NCheckbox,
   NSpin,
-  NTransfer
+  NTransfer,
+  NDataTable,
+  NTag
 } from 'naive-ui'
 import { DynamicFormItem } from '@/components/dynamic-form/dynamic-form-item'
 import { KINDS } from './config'
@@ -181,7 +183,8 @@ const ConfigurationForm = defineComponent({
         }
       },
       getValues: () => state.model,
-      setValues: updateFormValues
+      setValues: updateFormValues,
+      getStandardTableFields: () => state.standardTableFields
     })
 
     return () => (
