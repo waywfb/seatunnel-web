@@ -18,9 +18,12 @@
 package org.apache.seatunnel.app.thirdparty.datasource.impl;
 
 import org.apache.seatunnel.api.configuration.Option;
+import org.apache.seatunnel.api.configuration.Options;
 import org.apache.seatunnel.api.configuration.util.OptionRule;
 import org.apache.seatunnel.api.configuration.util.RequiredOption;
 import org.apache.seatunnel.app.domain.request.connector.BusinessMode;
+import org.apache.seatunnel.app.dynamicforms.DynamicSelectOption;
+import org.apache.seatunnel.app.dynamicforms.FormOptionBuilder;
 import org.apache.seatunnel.app.dynamicforms.FormStructure;
 import org.apache.seatunnel.app.thirdparty.datasource.AbstractDataSourceConfigSwitcher;
 import org.apache.seatunnel.app.thirdparty.datasource.DataSourceConfigSwitcher;
@@ -36,6 +39,14 @@ import java.util.List;
 @Slf4j
 @AutoService(DataSourceConfigSwitcher.class)
 public class FtpDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitcher {
+
+    private static final String DATA_STANDARD_ID_KEY = "data_standard_id";
+
+    private static final Option<String> DATA_STANDARD_ID =
+            Options.key(DATA_STANDARD_ID_KEY)
+                    .stringType()
+                    .noDefaultValue()
+                    .withDescription("数据标准ID，选择后自动填充格式相关字段");
 
     private static final List<String> FORMAT_FIELD_KEYS =
             Arrays.asList(
@@ -86,15 +97,41 @@ public class FtpDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitche
 
         excludedKeys.addAll(FORMAT_FIELD_KEYS);
 
-        return super.filterOptionRule(
-                connectorName,
-                dataSourceOptionRule,
-                virtualTableOptionRule,
-                businessMode,
-                pluginType,
-                connectorOptionRule,
-                addRequiredOptions,
-                addOptionalOptions,
-                excludedKeys);
+        FormStructure formStructure =
+                super.filterOptionRule(
+                        connectorName,
+                        dataSourceOptionRule,
+                        virtualTableOptionRule,
+                        businessMode,
+                        pluginType,
+                        connectorOptionRule,
+                        addRequiredOptions,
+                        addOptionalOptions,
+                        excludedKeys);
+
+        DynamicSelectOption dataStandardSelect =
+                FormOptionBuilder.builder()
+                        .withLabel("数据标准")
+                        .withField(DATA_STANDARD_ID_KEY)
+                        .dynamicSelectOptionBuilder()
+                        .withSelectApi(DATA_STANDARD_ID_KEY)
+                        .formDynamicSelectOption();
+        formStructure.getForms().add(0, dataStandardSelect);
+
+        if (formStructure.getApis() == null) {
+            formStructure.setApis(new java.util.HashMap<>());
+        }
+        formStructure
+                .getApis()
+                .put(
+                        DATA_STANDARD_ID_KEY,
+                        new java.util.HashMap<String, String>() {
+                            {
+                                put("url", "/seatunnel/api/v1/data-standard/enabled-list");
+                                put("method", "get");
+                            }
+                        });
+
+        return formStructure;
     }
 }
