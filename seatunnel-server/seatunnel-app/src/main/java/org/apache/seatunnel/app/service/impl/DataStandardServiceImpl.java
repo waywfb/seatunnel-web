@@ -19,9 +19,11 @@ package org.apache.seatunnel.app.service.impl;
 
 import org.apache.seatunnel.app.dal.dao.IDataStandardDao;
 import org.apache.seatunnel.app.dal.dao.IDataStandardFieldDao;
+import org.apache.seatunnel.app.dal.dao.IDataStandardFormatDao;
 import org.apache.seatunnel.app.dal.dao.IDataStandardVersionDao;
 import org.apache.seatunnel.app.dal.entity.DataStandard;
 import org.apache.seatunnel.app.dal.entity.DataStandardField;
+import org.apache.seatunnel.app.dal.entity.DataStandardFormat;
 import org.apache.seatunnel.app.dal.entity.DataStandardVersion;
 import org.apache.seatunnel.app.domain.request.datastandard.DataStandardReq;
 import org.apache.seatunnel.app.domain.request.datastandard.DataStandardVersionReq;
@@ -64,6 +66,9 @@ public class DataStandardServiceImpl extends SeatunnelBaseServiceImpl
 
     @Resource(name = "dataStandardFieldDaoImpl")
     private IDataStandardFieldDao dataStandardFieldDao;
+
+    @Resource(name = "dataStandardFormatDaoImpl")
+    private IDataStandardFormatDao dataStandardFormatDao;
 
     @Resource(name = "dataStandardVersionDaoImpl")
     private IDataStandardVersionDao dataStandardVersionDao;
@@ -329,9 +334,59 @@ public class DataStandardServiceImpl extends SeatunnelBaseServiceImpl
             }
         }
 
+        List<DataStandardFormat> formats =
+                dataStandardFormatDao.selectFormatsByVersionId(currentVersion.getId());
+
         Map<String, Object> schema = new HashMap<>();
         schema.put("fields", schemaFields);
+
+        if (formats != null && !formats.isEmpty()) {
+            DataStandardFormat format = formats.get(0);
+            schema.put("file_format_type", mapFileTypeToSeaTunnelFormat(format.getFileType()));
+            schema.put("field_separator", format.getFieldSeparator());
+            schema.put("row_separator", format.getRecordSeparator());
+            schema.put("encoding", format.getEncoding());
+        }
+
         return schema;
+    }
+
+    private String mapFileTypeToSeaTunnelFormat(String fileType) {
+        if (fileType == null || fileType.isEmpty()) {
+            return "TEXT";
+        }
+        switch (fileType.toLowerCase()) {
+            case ".txt":
+            case "txt":
+                return "TEXT";
+            case ".csv":
+            case "csv":
+                return "CSV";
+            case ".json":
+            case "json":
+                return "JSON";
+            case ".xlsx":
+            case ".xls":
+            case "xlsx":
+            case "xls":
+                return "EXCEL";
+            case ".parquet":
+            case "parquet":
+                return "PARQUET";
+            case ".orc":
+            case "orc":
+                return "ORC";
+            case ".xml":
+            case "xml":
+                return "XML";
+            case ".md":
+            case ".markdown":
+            case "md":
+            case "markdown":
+                return "MARKDOWN";
+            default:
+                return "TEXT";
+        }
     }
 
     private String convertDataType(String dataType) {
