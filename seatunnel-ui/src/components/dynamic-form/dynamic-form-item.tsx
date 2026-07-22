@@ -31,6 +31,7 @@ import {
 } from 'naive-ui'
 import { QuestionCircleOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
+import { getDataStandardSchema } from '@/service/data-standard'
 import type { PropType } from 'vue'
 import type { SelectOption } from 'naive-ui'
 
@@ -84,6 +85,21 @@ const DynamicFormItem = defineComponent({
         mergeFormLocales(newLocales)
       },
       { deep: true }
+    )
+
+    watch(
+      () => (props.model as any)?.data_standard_id,
+      async (newVal) => {
+        if (!newVal) return
+        try {
+          const res = await getDataStandardSchema(Number(newVal))
+          if (res?.data?.fields) {
+            ;(props.model as any).schema = JSON.stringify(res.data.fields, null, 2)
+          }
+        } catch (e) {
+          console.error('Failed to fetch data standard schema:', e)
+        }
+      }
     )
 
     const formatClass = (name: string, modelField: string) => {

@@ -223,3 +223,12 @@ export function getRelationList(standardId: number): any {
     method: 'get'
   })
 }
+
+// ========== Schema ==========
+
+export function getDataStandardSchema(standardId: number): any {
+  return axios({
+    url: BASE_URL + '/' + standardId + '/schema',
+    method: 'get'
+  })
+}

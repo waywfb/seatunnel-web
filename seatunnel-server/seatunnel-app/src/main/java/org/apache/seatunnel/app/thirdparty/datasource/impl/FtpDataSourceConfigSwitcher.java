@@ -131,6 +131,18 @@ public class FtpDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitche
                                 put("method", "get");
                             }
                         });
+        formStructure
+                .getApis()
+                .put(
+                        "schema",
+                        new java.util.HashMap<String, String>() {
+                            {
+                                put(
+                                        "url",
+                                        "/seatunnel/api/v1/data-standard/{data_standard_id}/schema");
+                                put("method", "get");
+                            }
+                        });
 
         return formStructure;
     }

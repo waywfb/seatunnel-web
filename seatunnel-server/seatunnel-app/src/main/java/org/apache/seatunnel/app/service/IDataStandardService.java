@@ -23,6 +23,7 @@ import org.apache.seatunnel.app.domain.response.datastandard.DataStandardDetailR
 import org.apache.seatunnel.app.domain.response.datastandard.DataStandardRes;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IDataStandardService {
 
@@ -44,4 +45,6 @@ public interface IDataStandardService {
     Long copyDataStandard(Long id);
 
     List<DataStandardRes> getEnabledDataStandardList();
+
+    Map<String, Object> getSchemaById(Long id);
 }

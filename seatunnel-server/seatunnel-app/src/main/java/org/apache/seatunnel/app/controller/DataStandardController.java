@@ -141,6 +141,12 @@ public class DataStandardController extends BaseController {
         return Result.success(dataStandardFormatService.getFormatByStandardId(id));
     }
 
+    @ApiOperation("根据数据标准ID获取SeaTunnel Schema")
+    @GetMapping("/{id}/schema")
+    Result<java.util.Map<String, Object>> getDataStandardSchema(@PathVariable("id") Long id) {
+        return Result.success(dataStandardService.getSchemaById(id));
+    }
+
     @ApiOperation("创建数据标准版本")
     @PostMapping("/{standardId}/version/create")
     Result<Long> createVersion(

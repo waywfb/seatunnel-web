@@ -22,7 +22,7 @@ import path from 'path'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  
+
   return {
     base: process.env.NODE_ENV === 'production' ? '/ui/' : '/',
     plugins: [
@@ -37,6 +37,9 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
+      port: 5173,
+      host: '0.0.0.0',  // 允许外部访问
+      strictPort: true,  // 端口被占用时直接退出而非尝试下一个端口
       proxy: {
         '/seatunnel/api/v1': {
           target: env.VITE_APP_DEV_WEB_URL || 'http://127.0.0.1:8801',

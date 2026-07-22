@@ -18,8 +18,10 @@
 package org.apache.seatunnel.app.service.impl;
 
 import org.apache.seatunnel.app.dal.dao.IDataStandardDao;
+import org.apache.seatunnel.app.dal.dao.IDataStandardFieldDao;
 import org.apache.seatunnel.app.dal.dao.IDataStandardVersionDao;
 import org.apache.seatunnel.app.dal.entity.DataStandard;
+import org.apache.seatunnel.app.dal.entity.DataStandardField;
 import org.apache.seatunnel.app.dal.entity.DataStandardVersion;
 import org.apache.seatunnel.app.domain.request.datastandard.DataStandardReq;
 import org.apache.seatunnel.app.domain.request.datastandard.DataStandardVersionReq;
@@ -45,7 +47,9 @@ import javax.annotation.Resource;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.apache.seatunnel.app.utils.ServletUtils.getCurrentUserId;
@@ -57,6 +61,9 @@ public class DataStandardServiceImpl extends SeatunnelBaseServiceImpl
 
     @Resource(name = "dataStandardDaoImpl")
     private IDataStandardDao dataStandardDao;
+
+    @Resource(name = "dataStandardFieldDaoImpl")
+    private IDataStandardFieldDao dataStandardFieldDao;
 
     @Resource(name = "dataStandardVersionDaoImpl")
     private IDataStandardVersionDao dataStandardVersionDao;
@@ -293,6 +300,69 @@ public class DataStandardServiceImpl extends SeatunnelBaseServiceImpl
                                         .description(ds.getDescription())
                                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<String, Object> getSchemaById(Long id) {
+        DataStandard dataStandard = dataStandardDao.selectDataStandardById(id);
+        if (dataStandard == null) {
+            throw new SeatunnelException(SeatunnelErrorEnum.DATA_STANDARD_NOT_FOUND);
+        }
+
+        DataStandardVersion currentVersion = dataStandardVersionDao.selectCurrentVersion(id);
+        if (currentVersion == null) {
+            Map<String, Object> emptySchema = new HashMap<>();
+            emptySchema.put("fields", new ArrayList<>());
+            return emptySchema;
+        }
+
+        List<DataStandardField> fields =
+                dataStandardFieldDao.selectFieldsByVersionId(currentVersion.getId());
+
+        List<Map<String, String>> schemaFields = new ArrayList<>();
+        if (fields != null) {
+            for (DataStandardField field : fields) {
+                Map<String, String> schemaField = new HashMap<>();
+                schemaField.put("name", field.getCode());
+                schemaField.put("type", convertDataType(field.getDataType()));
+                schemaFields.add(schemaField);
+            }
+        }
+
+        Map<String, Object> schema = new HashMap<>();
+        schema.put("fields", schemaFields);
+        return schema;
+    }
+
+    private String convertDataType(String dataType) {
+        if (dataType == null) {
+            return "string";
+        }
+        switch (dataType) {
+            case "字符":
+            case "STRING":
+                return "string";
+            case "数值":
+                return "double";
+            case "日期":
+                return "timestamp";
+            case "INT":
+                return "int";
+            case "BIGINT":
+                return "bigint";
+            case "FLOAT":
+                return "float";
+            case "DOUBLE":
+                return "double";
+            case "DATE":
+                return "date";
+            case "TIMESTAMP":
+                return "timestamp";
+            case "BOOLEAN":
+                return "boolean";
+            default:
+                return "string";
+        }
     }
 
     private Long generateId() {
