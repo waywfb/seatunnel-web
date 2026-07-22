@@ -38,17 +38,27 @@ const SynchronizationDefinitionDag = defineComponent({
     const { state, detailInit, onDelete, onSave } = useDagDetail()
 
     const getNodeLabel = (type: string, name: string) => {
-      if (type === 'source') return getDatasourceDisplayName(name) || t('project.synchronization_instance.source')
+      if (type === 'source')
+        return (
+          getDatasourceDisplayName(name) ||
+          t('project.synchronization_instance.source')
+        )
       if (type === 'sink') return t('project.synchronization_instance.sink')
       if (type === 'transform') {
         const map: Record<string, string> = {
           Copy: t('project.synchronization_definition.transform_copy'),
-          FieldMapper: t('project.synchronization_definition.transform_field_mapper'),
-          FilterRowKind: t('project.synchronization_definition.transform_filter_row_kind'),
+          FieldMapper: t(
+            'project.synchronization_definition.transform_field_mapper'
+          ),
+          FilterRowKind: t(
+            'project.synchronization_definition.transform_filter_row_kind'
+          ),
           Replace: t('project.synchronization_definition.transform_replace'),
           Sql: t('project.synchronization_definition.transform_sql'),
           JsonPath: t('project.synchronization_definition.transform_json_path'),
-          MultiFieldSplit: t('project.synchronization_definition.transform_multi_field_split')
+          MultiFieldSplit: t(
+            'project.synchronization_definition.transform_multi_field_split'
+          )
         }
         return map[name] || name
       }
@@ -68,7 +78,10 @@ const SynchronizationDefinitionDag = defineComponent({
         y: e.offsetY,
         label: getNodeLabel(tempNode.type, tempNode.name),
         node: tempNode.type,
-        connectorType: tempNode.type === 'transform' || tempNode.type === 'source' ? tempNode.name : '',
+        connectorType:
+          tempNode.type === 'transform' || tempNode.type === 'source'
+            ? tempNode.name
+            : '',
         datasourceName: tempNode.datasourceName
       })
     }

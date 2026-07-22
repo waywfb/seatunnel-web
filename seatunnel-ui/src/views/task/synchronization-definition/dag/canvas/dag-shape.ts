@@ -40,8 +40,14 @@ export function addNode(graph: Graph, cell: Cell.Metadata) {
       isError: false,
       name: cell.label,
       pluginId: id,
-      connectorType: rawCell.connectorType !== undefined ? rawCell.connectorType : (cell.node === 'transform' ? cell.label : ''),
-      datasourceName: rawCell.datasourceName !== undefined ? rawCell.datasourceName : ''
+      connectorType:
+        rawCell.connectorType !== undefined
+          ? rawCell.connectorType
+          : cell.node === 'transform'
+          ? cell.label
+          : '',
+      datasourceName:
+        rawCell.datasourceName !== undefined ? rawCell.datasourceName : ''
     }
   } as Cell.Metadata
   ;(graph as Graph).addNode(nodeShape)
@@ -95,7 +101,7 @@ export function formatLayout(
   cols?: number,
   rows?: number
 ) {
-  let layoutFunc : any = null
+  let layoutFunc: any = null
   const layoutConfig: any = {
     nodesep: 50,
     padding: 50,

@@ -90,7 +90,9 @@ export function hanldleDelJob(id: number): any {
   })
 }
 
-export function queryJobMetricsHistory(params: { jobInstanceId: string | number }): any {
+export function queryJobMetricsHistory(params: {
+  jobInstanceId: string | number
+}): any {
   return axios({
     url: '/job/metrics/history',
     method: 'get',

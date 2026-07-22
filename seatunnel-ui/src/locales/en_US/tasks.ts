@@ -41,5 +41,5 @@ export default {
   operation: 'Operation',
   view_log: 'View Log',
   log: 'Log',
-  view: 'View',
+  view: 'View'
 }

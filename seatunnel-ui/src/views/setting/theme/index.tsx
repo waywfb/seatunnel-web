@@ -35,13 +35,13 @@ const Theme = defineComponent({
     }
 
     console.log(t('theme.light'), 'theme.light')
-    const themeOpts = computed(() =>[
+    const themeOpts = computed(() => [
       // { label: t('theme.dark_blue'), key: 'dark-blue' },
       { label: t('theme.light'), key: 'light', value: 'light' },
       { label: t('theme.dark'), key: 'dark', value: 'dark' }
     ])
 
-    let themeLabel = computed(() => themeStore.theme)
+    const themeLabel = computed(() => themeStore.theme)
     return {
       themeOpts,
       themeLabel,

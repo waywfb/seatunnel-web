@@ -56,10 +56,11 @@ const props = {
 }
 
 const descriptionTranslations: Record<string, string> = {
-  'The encoding of the file, e.g. UTF-8, ISO-8859-1....': '文件的编码格式，例如 UTF-8、ISO-8859-1 等',
+  'The encoding of the file, e.g. UTF-8, ISO-8859-1....':
+    '文件的编码格式，例如 UTF-8、ISO-8859-1 等',
   'The row delimiter of the file': '文件的行分隔符',
   'The field delimiter of the file': '文件的字段分隔符',
-  'The schema of the data': '数据的结构定义',
+  'The schema of the data': '数据的结构定义'
 }
 
 const DynamicFormItem = defineComponent({
@@ -93,8 +94,26 @@ const DynamicFormItem = defineComponent({
         if (!newVal) return
         try {
           const res = await getDataStandardSchema(Number(newVal))
-          if (res?.data?.fields) {
-            ;(props.model as any).schema = JSON.stringify(res.data.fields, null, 2)
+          if (res?.data) {
+            if (res.data.fields) {
+              ;(props.model as any).schema = JSON.stringify(
+                res.data.fields,
+                null,
+                2
+              )
+            }
+            if (res.data.file_format_type) {
+              ;(props.model as any).file_format_type = res.data.file_format_type
+            }
+            if (res.data.field_separator) {
+              ;(props.model as any).field_delimiter = res.data.field_separator
+            }
+            if (res.data.row_separator) {
+              ;(props.model as any).row_delimiter = res.data.row_separator
+            }
+            if (res.data.encoding) {
+              ;(props.model as any).encoding = res.data.encoding
+            }
           }
         } catch (e) {
           console.error('Failed to fetch data standard schema:', e)
@@ -136,9 +155,10 @@ const DynamicFormItem = defineComponent({
     }
 
     const getTranslation = (name: string, label: string, suffix: string) => {
-      const normalizedName = name.indexOf('[') >= 0
-        ? name.split('[')[0].toLowerCase()
-        : name.toLowerCase()
+      const normalizedName =
+        name.indexOf('[') >= 0
+          ? name.split('[')[0].toLowerCase()
+          : name.toLowerCase()
       const key = `transforms.${normalizedName}.${label}_${suffix}`
       return te(key) ? t(key) : ''
     }
@@ -164,7 +184,8 @@ const DynamicFormItem = defineComponent({
         : true
       if (!visible) return null
 
-      const labelText = getTranslation(props.name, f.label, 'value') || safeTranslate(f.label)
+      const labelText =
+        getTranslation(props.name, f.label, 'value') || safeTranslate(f.label)
       const helpText =
         getTranslation(props.name, f.label, 'description') ||
         safeTranslate(f.description || '') ||
@@ -227,8 +248,11 @@ const DynamicFormItem = defineComponent({
               v-model={[(props.model as any)[f.field], 'value']}
             >
               <NSpace vertical={f.vertical}>
-                  {(f.options || []).map((o: any) => (
-                  <NCheckbox label={safeTranslate(o.label as string)} value={o.value} />
+                {(f.options || []).map((o: any) => (
+                  <NCheckbox
+                    label={safeTranslate(o.label as string)}
+                    value={o.value}
+                  />
                 ))}
               </NSpace>
             </NCheckboxGroup>

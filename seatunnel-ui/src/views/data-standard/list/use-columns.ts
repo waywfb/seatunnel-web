@@ -27,7 +27,10 @@ import {
 } from '@vicons/antd'
 
 export function useColumns(
-  onCallback: (id: number, type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy') => void
+  onCallback: (
+    id: number,
+    type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy'
+  ) => void
 ) {
   const { t } = useI18n()
   const columns = ref<any[]>([])
@@ -60,7 +63,11 @@ export function useColumns(
             FG: t('data_standard.type_regulation'),
             CUSTOM: t('data_standard.type_custom')
           }
-          return h(NTag, { type: 'info', size: 'small' }, { default: () => typeMap[row.type] || row.type })
+          return h(
+            NTag,
+            { type: 'info', size: 'small' },
+            { default: () => typeMap[row.type] || row.type }
+          )
         }
       },
       {
@@ -72,7 +79,12 @@ export function useColumns(
           return h(
             NTag,
             { type: row.status === 1 ? 'success' : 'warning', size: 'small' },
-            { default: () => row.status === 1 ? t('data_standard.status_enabled') : t('data_standard.status_disabled') }
+            {
+              default: () =>
+                row.status === 1
+                  ? t('data_standard.status_enabled')
+                  : t('data_standard.status_disabled')
+            }
           )
         }
       },

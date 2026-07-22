@@ -16,9 +16,7 @@
  */
 
 export const CanvasDesignTokens = {
-
   colors: {
-
     nodes: {
       source: {
         primary: '#10B981',
@@ -50,7 +48,6 @@ export const CanvasDesignTokens = {
         warning: '#F59E0B'
       }
     },
-    
 
     connections: {
       default: '#6B7280',
@@ -60,7 +57,6 @@ export const CanvasDesignTokens = {
       gradient: 'linear-gradient(90deg, #6B7280 0%, #374151 100%)',
       animated: '#3B82F6'
     },
-    
 
     canvas: {
       light: {
@@ -76,7 +72,6 @@ export const CanvasDesignTokens = {
         guideLine: '#60A5FA'
       }
     },
-    
 
     minimap: {
       background: 'rgba(255, 255, 255, 0.95)',
@@ -87,7 +82,6 @@ export const CanvasDesignTokens = {
       viewportBorder: '#3B82F6'
     }
   },
-  
 
   shadows: {
     node: '0 4px 12px rgba(0, 0, 0, 0.08)',
@@ -97,7 +91,6 @@ export const CanvasDesignTokens = {
     minimap: '0 4px 16px rgba(0, 0, 0, 0.1)',
     tooltip: '0 2px 8px rgba(0, 0, 0, 0.1)'
   },
-  
 
   borderRadius: {
     node: '8px',
@@ -105,7 +98,6 @@ export const CanvasDesignTokens = {
     tooltip: '4px',
     button: '4px'
   },
-  
 
   spacing: {
     xs: '4px',
@@ -115,7 +107,6 @@ export const CanvasDesignTokens = {
     xl: '24px',
     xxl: '32px'
   },
-  
 
   typography: {
     node: {
@@ -134,24 +125,20 @@ export const CanvasDesignTokens = {
       lineHeight: '1.2'
     }
   },
-  
 
   animations: {
-
     duration: {
       fast: '150ms',
       normal: '250ms',
       slow: '350ms',
       slower: '500ms'
     },
-    
 
     easing: {
       default: 'cubic-bezier(0.4, 0, 0.2, 1)',
       bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
       smooth: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
     },
-    
 
     configs: {
       nodeEntrance: {
@@ -174,7 +161,6 @@ export const CanvasDesignTokens = {
       }
     }
   },
-  
 
   sizes: {
     node: {
@@ -195,7 +181,6 @@ export const CanvasDesignTokens = {
       arrowSize: 8
     }
   },
-  
 
   zIndex: {
     canvas: 1,
@@ -207,11 +192,9 @@ export const CanvasDesignTokens = {
   }
 } as const
 
-
 export type NodeType = 'source' | 'sink' | 'transform'
 export type NodeState = 'idle' | 'running' | 'success' | 'error' | 'warning'
 export type Theme = 'light' | 'dark'
-
 
 export const getNodeColors = (type: NodeType) => {
   return CanvasDesignTokens.colors.nodes[type]

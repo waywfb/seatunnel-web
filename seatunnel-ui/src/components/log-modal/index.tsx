@@ -119,7 +119,7 @@ export default defineComponent({
       screenfull.on('change', change)
     })
 
-    const headerLinks:any = ref([
+    const headerLinks: any = ref([
       {
         text: t('project.workflow.download_log'),
         show: props.showDownloadLog,

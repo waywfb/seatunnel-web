@@ -16,12 +16,7 @@
  */
 
 import { defineComponent } from 'vue'
-import {
-  NLayout,
-  NLayoutHeader,
-  NLayoutContent,
-  useMessage
-} from 'naive-ui'
+import { NLayout, NLayoutHeader, NLayoutContent, useMessage } from 'naive-ui'
 import Header from './header'
 import Sidebar from './sidebar'
 
@@ -34,7 +29,15 @@ const Dashboard = defineComponent({
     return (
       <NLayout has-sider>
         <Sidebar />
-        <div style={{ marginLeft: '256px', display: 'flex', flexDirection: 'column', height: '100vh', width: 'calc(100% - 256px)' }}>
+        <div
+          style={{
+            marginLeft: '256px',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100vh',
+            width: 'calc(100% - 256px)'
+          }}
+        >
           <NLayoutHeader bordered>
             <Header />
           </NLayoutHeader>
@@ -42,16 +45,17 @@ const Dashboard = defineComponent({
             native-scrollbar={false}
             style={{
               height: 'calc(100vh - 65px)',
-              padding: 'var(--spacing-page-y) var(--spacing-page-x) 0 var(--spacing-page-x)',
+              padding:
+                'var(--spacing-page-y) var(--spacing-page-x) 0 var(--spacing-page-x)'
             }}
             contentStyle={'height: 100%'}
           >
-          <div style='height: 100%;'>
-            <router-view key={this['$route'].fullPath} />
-          </div>
-        </NLayoutContent>
-      </div>
-    </NLayout>
+            <div style='height: 100%;'>
+              <router-view key={this['$route'].fullPath} />
+            </div>
+          </NLayoutContent>
+        </div>
+      </NLayout>
     )
   }
 })

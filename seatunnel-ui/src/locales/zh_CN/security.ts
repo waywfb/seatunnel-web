@@ -124,8 +124,7 @@ export default {
     edit_user: '编辑用户',
     delete_user: '删除用户',
     delete_confirm: '确定删除吗?',
-    delete_confirm_tip:
-      '删除用户属于高危操作，请谨慎执行',
+    delete_confirm_tip: '删除用户属于高危操作，请谨慎执行',
     project: '项目',
     resource: '资源',
     file_resource: '文件资源',

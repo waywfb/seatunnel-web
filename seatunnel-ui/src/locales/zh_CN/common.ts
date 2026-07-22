@@ -33,5 +33,5 @@ export default {
   schema_placeholder: '请输入数据结构',
   schema_description: '数据的结构定义',
   encoding_placeholder: '请选择编码',
-  encoding_description: '文件或数据的字符编码格式',
+  encoding_description: '文件或数据的字符编码格式'
 }

@@ -124,7 +124,7 @@ const ConfigurationForm = defineComponent({
 
             // If there are no results after searching, add user input as a custom value to the options
             const existingOption = state.tableOptions.find(
-                (option: TableOption) => option.value === tableName
+              (option: TableOption) => option.value === tableName
             )
 
             if (!existingOption) {
@@ -138,7 +138,7 @@ const ConfigurationForm = defineComponent({
         } catch (err) {
           // If the interface call fails, also use user input as a custom value
           const existingOption = state.tableOptions.find(
-              (option: TableOption) => option.value === tableName
+            (option: TableOption) => option.value === tableName
           )
 
           if (!existingOption) {
@@ -160,17 +160,18 @@ const ConfigurationForm = defineComponent({
 
     const onDatabaseChange = (v: any) => {
       nextTick(() => {
-      if(state.model.database) {
-        let size = state.model.sceneMode === 'MULTIPLE_TABLE' ? 9999999 : 100
+        if (state.model.database) {
+          const size =
+            state.model.sceneMode === 'MULTIPLE_TABLE' ? 9999999 : 100
           getTableOptions(state.model.database as any, '', size)
         }
       })
     }
-    
+
     // watchEffect(() => {
     //   // Track the src input of the transfer and refresh the table name list when the input value change
     //   let query = transfer?.value?.srcPattern
-    //   onTableSearch(query)      
+    //   onTableSearch(query)
     // })
 
     expose({
@@ -189,22 +190,37 @@ const ConfigurationForm = defineComponent({
 
     return () => (
       <NSpin show={state.loading}>
-        <div class="bg-white rounded-lg border border-[var(--color-border)] p-6">
-          <div class="mb-6">
-            <h3 class="text-base font-semibold text-[var(--color-foreground)] mb-1">
-              {props.nodeType === 'sink' ? '写入节点配置' : props.nodeType === 'source' ? '读取节点配置' : '转换节点配置'}
+        <div class='bg-white rounded-lg border border-[var(--color-border)] p-6'>
+          <div class='mb-6'>
+            <h3 class='text-base font-semibold text-[var(--color-foreground)] mb-1'>
+              {props.nodeType === 'sink'
+                ? '写入节点配置'
+                : props.nodeType === 'source'
+                ? '读取节点配置'
+                : '转换节点配置'}
             </h3>
-            <p class="text-sm text-[var(--color-muted-foreground)]">
-              配置数据{props.nodeType === 'sink' ? '写入' : props.nodeType === 'source' ? '读取' : '转换'}的目标和参数
+            <p class='text-sm text-[var(--color-muted-foreground)]'>
+              配置数据
+              {props.nodeType === 'sink'
+                ? '写入'
+                : props.nodeType === 'source'
+                ? '读取'
+                : '转换'}
+              的目标和参数
             </p>
           </div>
 
-          <NForm ref={formRef} model={state.model} rules={state.rules} labelPlacement="top">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <NForm
+            ref={formRef}
+            model={state.model}
+            rules={state.rules}
+            labelPlacement='top'
+          >
+            <div class='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <NFormItem
                 label={t('project.synchronization_definition.node_name')}
                 path='name'
-                class="mb-0"
+                class='mb-0'
               >
                 <NInput
                   clearable
@@ -219,7 +235,7 @@ const ConfigurationForm = defineComponent({
                 <NFormItem
                   label={t('project.synchronization_definition.scene_mode')}
                   path='sceneMode'
-                  class="mb-0"
+                  class='mb-0'
                 >
                   <NSelect
                     filterable
@@ -249,7 +265,7 @@ const ConfigurationForm = defineComponent({
                 <NFormItem
                   label={t('project.synchronization_definition.source_name')}
                   path='datasourceInstanceId'
-                  class="mb-0"
+                  class='mb-0'
                 >
                   <NSelect
                     filterable
@@ -272,7 +288,7 @@ const ConfigurationForm = defineComponent({
                 <NFormItem
                   label={t('project.synchronization_definition.database')}
                   path='database'
-                  class="mb-0"
+                  class='mb-0'
                 >
                   <NSelect
                     filterable
@@ -297,7 +313,7 @@ const ConfigurationForm = defineComponent({
                 <NFormItem
                   label={t('project.synchronization_definition.table_name')}
                   path='tableName'
-                  class="mt-4"
+                  class='mt-4'
                 >
                   <NSelect
                     filterable
@@ -312,36 +328,40 @@ const ConfigurationForm = defineComponent({
                     tag={props.nodeType === 'sink'}
                     showArrow={true}
                     allowInput={props.nodeType === 'sink'}
-                    placeholder={t('project.synchronization_definition.target_name_tips')}
+                    placeholder={t(
+                      'project.synchronization_definition.target_name_tips'
+                    )}
                   />
                 </NFormItem>
               )}
 
             {state.useDatabaseAndTable &&
               state.model.sceneMode === 'MULTIPLE_TABLE' && (
-              <NFormItem
-                label={t('project.synchronization_definition.table_name')}
-                path='tableName'
-                class="mt-4"
-              >
-                <NTransfer
-                  style={{ width: '100%' }}
-                  ref={transfer}
-                  filterable
-                  sourceTitle={t('project.synchronization_definition.table_sync')}
-                  targetTitle={t(
-                    'project.synchronization_definition.selected_table'
-                  )}
-                  options={state.tableOptions}
-                  v-model={[state.model.tableName, 'value']}
-                  onUpdateValue={onTableChange}
-                  virtualScroll
-                />
-              </NFormItem>
-            )}
+                <NFormItem
+                  label={t('project.synchronization_definition.table_name')}
+                  path='tableName'
+                  class='mt-4'
+                >
+                  <NTransfer
+                    style={{ width: '100%' }}
+                    ref={transfer}
+                    filterable
+                    sourceTitle={t(
+                      'project.synchronization_definition.table_sync'
+                    )}
+                    targetTitle={t(
+                      'project.synchronization_definition.selected_table'
+                    )}
+                    options={state.tableOptions}
+                    v-model={[state.model.tableName, 'value']}
+                    onUpdateValue={onTableChange}
+                    virtualScroll
+                  />
+                </NFormItem>
+              )}
 
             {props.transformType === 'FilterRowKind' && (
-              <div class="mt-4">
+              <div class='mt-4'>
                 <NFormItem
                   label={t('project.synchronization_definition.kind')}
                   path='kind'
@@ -376,13 +396,15 @@ const ConfigurationForm = defineComponent({
 
             {props.transformType === 'Sql' && (
               <NFormItem
-                label={t('project.synchronization_definition.sql_content_label')}
+                label={t(
+                  'project.synchronization_definition.sql_content_label'
+                )}
                 path='query'
-                class="mt-4"
+                class='mt-4'
               >
                 <NInput
                   v-model={[state.model.query, 'value']}
-                  type="textarea"
+                  type='textarea'
                   clearable
                   placeholder={t(
                     'project.synchronization_definition.sql_content_label_placeholder'
@@ -392,20 +414,24 @@ const ConfigurationForm = defineComponent({
             )}
 
             {state.formStructure.length > 0 && (
-              <div class="mt-4 pt-4 border-t border-[var(--color-border)]">
+              <div class='mt-4 pt-4 border-t border-[var(--color-border)]'>
                 <DynamicFormItem
                   model={state.model}
                   formStructure={state.formStructure}
                   name={state.formName}
                   locales={state.formLocales}
-                  advancedLabel={props.nodeType === 'source' || props.nodeType === 'sink' ? '高级设置' : ''}
+                  advancedLabel={
+                    props.nodeType === 'source' || props.nodeType === 'sink'
+                      ? '高级设置'
+                      : ''
+                  }
                 />
               </div>
             )}
 
             {props.transformType === 'JsonPath' && (
-              <div class="flex justify-center mt-6">
-                <NButton type="primary" onClick={onSmartParseOpen}>
+              <div class='flex justify-center mt-6'>
+                <NButton type='primary' onClick={onSmartParseOpen}>
                   {t('project.synchronization_definition.smart_parse_button')}
                 </NButton>
               </div>
@@ -415,9 +441,11 @@ const ConfigurationForm = defineComponent({
           <NModal
             show={smartParseState.showModal}
             title={t('project.synchronization_definition.smart_parse_title')}
-            preset="card"
+            preset='card'
             style={{ width: '720px' }}
-            onUpdateShow={(val: boolean) => { if (!val) onSmartParseCancel() }}
+            onUpdateShow={(val: boolean) => {
+              if (!val) onSmartParseCancel()
+            }}
           >
             <SmartParseModal
               fields={smartParseState.fields}
@@ -425,11 +453,11 @@ const ConfigurationForm = defineComponent({
               loading={smartParseState.loading}
               onUpdateStrategy={onSmartParseStrategyChange}
             />
-            <div class="flex justify-end gap-3 mt-4">
+            <div class='flex justify-end gap-3 mt-4'>
               <NButton onClick={onSmartParseCancel}>
                 {t('project.synchronization_definition.cancel')}
               </NButton>
-              <NButton type="primary" onClick={handleSmartParseConfirm}>
+              <NButton type='primary' onClick={handleSmartParseConfirm}>
                 {t('project.synchronization_definition.confirm')}
               </NButton>
             </div>

@@ -37,9 +37,7 @@ export default {
       meta: {
         title: 'virtual-tables-list',
         activeMenu: 'virtual-tables',
-        breadcrumb: [
-          { label: '数据模型', path: '/virtual-tables/list' }
-        ]
+        breadcrumb: [{ label: '数据模型', path: '/virtual-tables/list' }]
       }
     },
     {

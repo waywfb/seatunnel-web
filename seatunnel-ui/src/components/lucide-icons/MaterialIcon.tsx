@@ -337,7 +337,7 @@ import {
   HourglassIcon as HourglassIcon11,
   Sand as SandIcon11,
   HourglassIcon as HourglassIcon12,
-  Sand as SandIcon12,
+  Sand as SandIcon12
 } from 'lucide-vue-next'
 
 // Material Icons 到 Lucide 图标的映射
@@ -398,7 +398,7 @@ const ICON_MAP: Record<string, any> = {
   file_code: FileCode,
   save: Save,
   send: Send,
-  
+
   // 数据源相关
   precision_manufacturing: Settings,
   move_up: Upload,
@@ -408,20 +408,20 @@ const ICON_MAP: Record<string, any> = {
   travel_explore: Compass,
   folder_off: FolderOff,
   database_off: DatabaseOff,
-  
+
   // 导航相关
   account_tree: Network,
   hub: Network,
-  
+
   // AI相关
   smart_toy: Bot,
-  
+
   // 管理相关
   corporate_fare: Building2,
   key: KeyRound,
   verified_user: ShieldCheck,
   monitoring: Activity,
-  
+
   // 通讯相关
   email: Mail,
   phone: Phone,
@@ -430,14 +430,14 @@ const ICON_MAP: Record<string, any> = {
   notifications_active: Bell,
   notifications_off: BellOff,
   notifications_none: Bell,
-  
+
   // 时间相关
   event: Calendar,
   schedule: Clock,
-  
+
   // 位置相关
   place: MapPin,
-  
+
   // 收藏相关
   star: Star,
   favorite: Heart,
@@ -447,26 +447,26 @@ const ICON_MAP: Record<string, any> = {
   share: Share2,
   open_in_new: ExternalLink,
   link: Link,
-  
+
   // 安全相关
   lock: Lock,
   lock_open: Unlock,
   visibility: Eye,
   visibility_off: EyeOff,
-  
+
   // 排序相关
   filter_list: Filter,
   sort: ArrowUp,
   more_vert: MoreVertical,
   more_horiz: MoreHorizontal,
-  
+
   // 状态相关
   error: AlertCircle,
   circle: Circle,
   crop_square: Square,
   change_history: Triangle,
   hexagon: Hexagon,
-  
+
   // 自然相关
   local_fire_department: Flame,
   water_drop: Droplet,
@@ -476,14 +476,14 @@ const ICON_MAP: Record<string, any> = {
   bug_report: Bug,
   pets: Cat,
   magnet: Magnet,
-  
+
   // 工具相关
   auto_fix_high: Wand2,
   brush: Paintbrush,
   format_paint: Paintbrush,
   pen_tool: PenTool,
   edit_note: Pencil,
-  
+
   // 文本相关
   title: Type,
   format_bold: Bold,
@@ -499,13 +499,13 @@ const ICON_MAP: Record<string, any> = {
   format_list_numbered: ListOrdered,
   format_quote: Quote,
   terminal: Terminal,
-  
+
   // 版本控制相关
   git_branch: GitBranch,
   commit: GitCommit,
   merge_type: GitMerge,
   pull_request: GitPullRequest,
-  
+
   // 天气相关
   cloud: Cloud,
   cloud_queue: Cloud,
@@ -517,7 +517,7 @@ const ICON_MAP: Record<string, any> = {
   dark_mode: Sunset,
   nightlight: Moon,
   light_mode: Sun,
-  
+
   // 交通相关
   pin_drop: MapPin,
   navigation: Navigation,
@@ -532,7 +532,7 @@ const ICON_MAP: Record<string, any> = {
   directions_bus: Bus,
   local_gas_station: Fuel,
   local_parking: ParkingCircle,
-  
+
   // 餐饮相关
   local_cafe: Coffee,
   restaurant: Utensils,
@@ -540,7 +540,7 @@ const ICON_MAP: Record<string, any> = {
   local_bar: Beer,
   wine_bar: Wine,
   cake: Cake,
-  
+
   // 购物相关
   redeem: Gift,
   shopping_bag: ShoppingBag,
@@ -549,21 +549,21 @@ const ICON_MAP: Record<string, any> = {
   warehouse: Warehouse,
   factory: Factory,
   business: Building,
-  
+
   // 建筑相关
   account_balance: Landmark,
   castle: Landmark,
   church: Landmark,
   school: School,
   local_hospital: Hospital,
-  
+
   // 医疗相关
   local_pharmacy: Pill,
   immunization: Syringe,
   monitor_heart: Activity,
   psychology: Brain,
   hearing: Ear,
-  
+
   // 表情相关
   emoji_people: Smile,
   sentiment_satisfied: Smile,
@@ -575,7 +575,7 @@ const ICON_MAP: Record<string, any> = {
   mood_bad: Frown,
   sleeping: Sleep,
   dizzy: Dizzy,
-  
+
   // 食物相关
   local_drink: Coffee,
   emoji_food_beverage: Coffee,
@@ -586,7 +586,7 @@ const ICON_MAP: Record<string, any> = {
   dinner_dining: Utensils,
   takeout_dining: ShoppingBag,
   local_grocery_store: ShoppingBag,
-  
+
   // 支付相关
   credit_card: CreditCard,
   account_balance_wallet: Wallet,
@@ -597,7 +597,7 @@ const ICON_MAP: Record<string, any> = {
   percent: Percent,
   tag: Tag,
   label: Tag,
-  
+
   // 通知相关
   forward_to_inbox: Mail,
   mark_email_read: Mail,
@@ -606,7 +606,7 @@ const ICON_MAP: Record<string, any> = {
   assignment_turned_in: CheckCircle,
   assignment: ClipboardList,
   assignment_ind: ClipboardList,
-  
+
   // 安全相关
   shield: Shield,
   gpp_good: ShieldCheck,
@@ -617,12 +617,12 @@ const ICON_MAP: Record<string, any> = {
   no_encryption: Unlock,
   password: Lock,
   fingerprint: Fingerprint,
-  
+
   // 二维码相关
   qr_code_2: QrCode,
   qr_code_scanner: ScanLine,
   barcode_reader: Barcode,
-  
+
   // 媒体相关
   contactless: Wifi,
   tap_and_play: Wifi,
@@ -653,7 +653,7 @@ const ICON_MAP: Record<string, any> = {
   shuffle: Shuffle,
   repeat: Repeat,
   repeat_one: Repeat1,
-  
+
   // 箭头相关
   arrow_upward: ArrowUp,
   arrow_downward: ArrowDown,
@@ -664,7 +664,7 @@ const ICON_MAP: Record<string, any> = {
   arrow_circle_right: ArrowRightCircle,
   undo: RotateCcw,
   redo: RotateCw,
-  
+
   // 电源相关
   power_settings_new: Power,
   power_off: PowerOff,
@@ -672,7 +672,7 @@ const ICON_MAP: Record<string, any> = {
   flash_on: Zap,
   flash_off: ZapOff,
   electric_bolt: Zap,
-  
+
   // 电池相关
   battery_full: BatteryFull,
   battery_5_bar: BatteryMedium,
@@ -682,7 +682,7 @@ const ICON_MAP: Record<string, any> = {
   battery_1_bar: BatteryLow,
   battery_alert: BatteryWarning,
   battery_charging_full: BatteryCharging,
-  
+
   // 网络相关
   wifi: Wifi,
   wifi_off: WifiOff,
@@ -699,7 +699,7 @@ const ICON_MAP: Record<string, any> = {
   airplay: Cast,
   screen_share: Monitor,
   stop_screen_share: MonitorOff,
-  
+
   // 布局相关
   layers: Layers,
   dashboard: LayoutGrid,
@@ -707,14 +707,14 @@ const ICON_MAP: Record<string, any> = {
   view_quilt: LayoutGrid,
   widgets: LayoutGrid,
   category: LayoutGrid,
-  
+
   // 包相关
   inventory: Package,
   inventory_2: Package2,
   local_shipping: Truck,
   flight_takeoff: Plane,
   flight_land: Plane,
-  
+
   // 标记相关
   flag: Flag,
   markunread_mailbox: Mail,
@@ -722,7 +722,7 @@ const ICON_MAP: Record<string, any> = {
   archive: Archive,
   delete_sweep: Trash2,
   restore_from_trash: Trash2,
-  
+
   // 反馈相关
   report_problem: AlertTriangle,
   error_outline: AlertCircle,
@@ -730,7 +730,7 @@ const ICON_MAP: Record<string, any> = {
   contact_support: Headphones,
   live_help: HelpCircle,
   bug_report: Bug,
-  
+
   // 工具相关
   build: Wrench,
   construction: Wrench,
@@ -740,11 +740,11 @@ const ICON_MAP: Record<string, any> = {
   biotech: FlaskConical,
   psychology: Brain,
   psychiatry: Brain,
-  
+
   // 用户相关
   elderly: Users,
   child_care: Users,
-  
+
   // 运动相关
   fitness_center: Dumbbell,
   sports_gymnastics: Dumbbell,
@@ -764,7 +764,7 @@ const ICON_MAP: Record<string, any> = {
   emoji_events: Trophy,
   military_tech: Award,
   workspace_premium: Award,
-  
+
   // 图表相关
   show_chart: BarChart2,
   bar_chart: BarChart2,
@@ -774,14 +774,14 @@ const ICON_MAP: Record<string, any> = {
   equalizer: BarChart3,
   trending_up: TrendingUp,
   trending_down: TrendingDown,
-  
+
   // 格式相关
   format_list_bulleted: List,
   check_box: CheckSquare,
   radio_button_checked: CircleDot,
   toggle_on: ToggleRight,
   toggle_off: ToggleLeft,
-  
+
   // 主题相关
   brightness_7: Sun,
   brightness_4: Moon,
@@ -803,7 +803,7 @@ const ICON_MAP: Record<string, any> = {
   powershell: Terminal,
   git: GitBranch,
   github: Github,
-  
+
   // 文件相关
   folder_special: Star,
   folder_shared: Users,
@@ -820,13 +820,13 @@ const ICON_MAP: Record<string, any> = {
   assignment_returned: ClipboardCheck,
   assignment_late: Clock,
   add_to_drive: HardDrive,
-  
+
   // 刷新相关
   loop: Repeat,
   replay: Repeat,
   forward: SkipForward,
   rewind: Rewind,
-  
+
   // 数据模型相关
   table_chart: Table2,
   grid_on: Grid3X3,
@@ -837,7 +837,7 @@ const ICON_MAP: Record<string, any> = {
   view_week: Calendar,
   view_month: Calendar,
   view_timeline: Calendar,
-  
+
   // 数据标准相关
   policy: FileText,
   rule_folder: Folder,
@@ -847,15 +847,15 @@ const ICON_MAP: Record<string, any> = {
   trophy: Trophy,
   local_police: Shield,
   shield_moon: Moon,
-  
+
   // 设置相关
   tune: Sliders,
   equalizer: BarChart3,
-  
+
   // 测点管理相关
   create_new_folder: FolderPlus,
   restore: RotateCcw,
-  sync_problem: RefreshCw,
+  sync_problem: RefreshCw
 }
 
 export const getLucideIcon = (name: string) => {
@@ -872,7 +872,7 @@ export const Icon = defineComponent({
   },
   setup(props) {
     const iconComponent = computed(() => getLucideIcon(props.name))
-    
+
     return () => {
       if (!iconComponent.value) {
         return null

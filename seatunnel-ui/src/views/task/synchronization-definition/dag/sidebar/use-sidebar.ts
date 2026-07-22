@@ -16,7 +16,10 @@
  */
 
 import { reactive, ref } from 'vue'
-import { connectorTransformsTypeList, fetchSourceDatasourceTypes } from '@/service/sync-task-definition'
+import {
+  connectorTransformsTypeList,
+  fetchSourceDatasourceTypes
+} from '@/service/sync-task-definition'
 import { useRoute } from 'vue-router'
 
 const DATASOURCE_DISPLAY_NAMES: Record<string, string> = {
@@ -59,9 +62,11 @@ export function useSidebar() {
   })
 
   const getConnectorTransformsTypeList = () => {
-    connectorTransformsTypeList(route.params.jobDefinitionCode as string).then((res: any) => {
-      variables.transforms = res
-    })
+    connectorTransformsTypeList(route.params.jobDefinitionCode as string).then(
+      (res: any) => {
+        variables.transforms = res
+      }
+    )
   }
 
   const getSourceDatasourceTypes = () => {

@@ -18,7 +18,6 @@
 import { Graph } from '@antv/x6'
 import { useCanvasTheme } from './theme-manager'
 
-
 export interface CanvasOptions {
   enableGrid?: boolean
   enableMinimap?: boolean
@@ -43,32 +42,29 @@ export function useDagGraph(
   minimapContainer: HTMLElement,
   options: CanvasOptions = {}
 ) {
-
   const graphInstance = new Graph({
     container: dagContainer,
     autoResize: true,
-    
 
     grid: {
       size: 20,
       visible: true,
       type: 'dot'
     },
-    
 
     background: {
       color: '#FAFAFA'
     },
-    
 
-    minimap: minimapContainer ? {
-      enabled: true,
-      container: minimapContainer,
-      width: 200,
-      height: 120,
-      padding: 10
-    } : false,
-    
+    minimap: minimapContainer
+      ? {
+          enabled: true,
+          container: minimapContainer,
+          width: 200,
+          height: 120,
+          padding: 10
+        }
+      : false,
 
     selecting: {
       enabled: true,
@@ -76,7 +72,6 @@ export function useDagGraph(
       rubberband: true,
       movable: true
     },
-    
 
     connecting: {
       allowBlank: false,
@@ -86,31 +81,26 @@ export function useDagGraph(
       allowPort: true
     }
   })
-  
+
   console.log('Graph instance created:', graphInstance)
   console.log('Container element:', dagContainer)
-  
 
   const { canvasColors } = useCanvasTheme()
   const updateTheme = () => {
     const colors = canvasColors.value
-    
 
     graphInstance.drawBackground({
       color: colors.background
     })
   }
-  
 
   window.addEventListener('canvas-theme-change', updateTheme)
-  
 
   graphInstance.on('scale', ({ sx }: any) => {
     const container = dagContainer
     const gridElement = container.querySelector('.x6-graph-grid')
-    
-    if (gridElement) {
 
+    if (gridElement) {
       let opacity = 1
       if (sx < 0.5) {
         opacity = 0.3
@@ -122,40 +112,41 @@ export function useDagGraph(
         opacity = 0.4
         gridElement.classList.add('zoom-extra-large')
       } else {
-        gridElement.classList.remove('zoom-small', 'zoom-large', 'zoom-extra-large')
+        gridElement.classList.remove(
+          'zoom-small',
+          'zoom-large',
+          'zoom-extra-large'
+        )
       }
-      
+
       ;(gridElement as HTMLElement).style.opacity = opacity.toString()
     }
   })
-  
 
   let frameCount = 0
   let lastTime = performance.now()
-  
+
   const monitorPerformance = () => {
     frameCount++
     const currentTime = performance.now()
-    
+
     if (currentTime - lastTime >= 1000) {
       const fps = Math.round((frameCount * 1000) / (currentTime - lastTime))
-      
 
       if (fps < 30) {
         dagContainer.classList.add('canvas-performance-mode')
       } else {
         dagContainer.classList.remove('canvas-performance-mode')
       }
-      
+
       frameCount = 0
       lastTime = currentTime
     }
-    
+
     requestAnimationFrame(monitorPerformance)
   }
-  
 
   requestAnimationFrame(monitorPerformance)
-  
+
   return graphInstance
 }

@@ -17,16 +17,19 @@
 
 import '@antv/x6-vue-shape'
 import Node from './node'
-import { CanvasDesignTokens, getNodeColors, getNodeStateColor, NodeType, NodeState } from './design-tokens'
-
+import {
+  CanvasDesignTokens,
+  getNodeColors,
+  getNodeStateColor,
+  NodeType,
+  NodeState
+} from './design-tokens'
 
 export interface ModernNodeData {
-
   id: string
   name: string
   nodeType?: NodeType
   connectorType?: string
-  
 
   theme?: {
     primaryColor: string
@@ -36,18 +39,15 @@ export interface ModernNodeData {
     textColor: string
     iconColor?: string
   }
-  
 
   status?: NodeState
   progress?: number
   statusMessage?: string
-  
 
   isSelected?: boolean
   isHovered?: boolean
   isDragging?: boolean
   isDisabled?: boolean
-  
 
   animations?: {
     entrance?: boolean
@@ -55,7 +55,6 @@ export interface ModernNodeData {
     glow?: boolean
     shake?: boolean
   }
-  
 
   style?: {
     width?: number
@@ -65,7 +64,6 @@ export interface ModernNodeData {
     opacity?: number
     zIndex?: number
   }
-  
 
   metadata?: {
     vertexId?: string
@@ -77,7 +75,6 @@ export interface ModernNodeData {
     [key: string]: any
   }
 }
-
 
 export interface NodeOptions {
   width?: number
@@ -93,7 +90,6 @@ export interface NodeOptions {
   themeEnabled?: boolean
 }
 
-
 export function useDagNode(options: NodeOptions = {}) {
   const defaultOptions: NodeOptions = {
     width: CanvasDesignTokens.sizes.node.width,
@@ -108,23 +104,24 @@ export function useDagNode(options: NodeOptions = {}) {
     animationEnabled: true,
     themeEnabled: true
   }
-  
+
   const finalOptions = { ...defaultOptions, ...options }
-  
+
   return {
     inherit: 'vue-shape',
     width: finalOptions.width,
     height: finalOptions.height,
-    resizing: finalOptions.resizable ? {
-      enabled: true,
-      minWidth: finalOptions.minWidth,
-      maxWidth: finalOptions.maxWidth,
-      preserveAspectRatio: false
-    } : false,
+    resizing: finalOptions.resizable
+      ? {
+          enabled: true,
+          minWidth: finalOptions.minWidth,
+          maxWidth: finalOptions.maxWidth,
+          preserveAspectRatio: false
+        }
+      : false,
     rotating: finalOptions.rotatable,
     selecting: finalOptions.selectable,
     moving: finalOptions.movable,
-    
 
     attrs: {
       body: {
@@ -134,7 +131,6 @@ export function useDagNode(options: NodeOptions = {}) {
         ry: parseInt(CanvasDesignTokens.borderRadius.node)
       }
     },
-    
 
     ports: {
       groups: {
@@ -168,151 +164,135 @@ export function useDagNode(options: NodeOptions = {}) {
 
       items: []
     },
-    
 
     component: Node,
-    
 
     events: {
-
       'node:mouseenter': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
         if (data.isDisabled) return
-        
 
-        node.setData({ 
-          ...data, 
+        node.setData({
+          ...data,
           isHovered: true,
 
-          animations: finalOptions.animationEnabled ? {
-            ...data.animations,
-            glow: data.status === 'success' ? true : data.animations?.glow
-          } : data.animations
+          animations: finalOptions.animationEnabled
+            ? {
+                ...data.animations,
+                glow: data.status === 'success' ? true : data.animations?.glow
+              }
+            : data.animations
         })
-        
 
         if (finalOptions.portVisible) {
+          const ports = node.getPorts() || []
+          const hasInputPort = ports.some((port: any) => port.id === 'input')
+          const hasOutputPort = ports.some((port: any) => port.id === 'output')
 
-          const ports = node.getPorts() || [];
-          const hasInputPort = ports.some((port: any) => port.id === 'input');
-          const hasOutputPort = ports.some((port: any) => port.id === 'output');
-          
           if (hasInputPort) {
-            node.setPortProp('input', 'attrs/circle/opacity', 1);
-            node.setPortProp('input', 'attrs/circle/magnet', true);
+            node.setPortProp('input', 'attrs/circle/opacity', 1)
+            node.setPortProp('input', 'attrs/circle/magnet', true)
           }
           if (hasOutputPort) {
-            node.setPortProp('output', 'attrs/circle/opacity', 1);
-            node.setPortProp('output', 'attrs/circle/magnet', true);
+            node.setPortProp('output', 'attrs/circle/opacity', 1)
+            node.setPortProp('output', 'attrs/circle/magnet', true)
           }
         }
       },
-      
 
       'node:mouseleave': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
         if (data.isDisabled) return
-        
 
-        node.setData({ 
-          ...data, 
+        node.setData({
+          ...data,
           isHovered: false,
 
-          animations: finalOptions.animationEnabled ? {
-            ...data.animations,
-            glow: data.status === 'success'
-          } : data.animations
+          animations: finalOptions.animationEnabled
+            ? {
+                ...data.animations,
+                glow: data.status === 'success'
+              }
+            : data.animations
         })
-        
 
         if (finalOptions.portVisible && !data.isSelected) {
+          const ports = node.getPorts() || []
+          const hasInputPort = ports.some((port: any) => port.id === 'input')
+          const hasOutputPort = ports.some((port: any) => port.id === 'output')
 
-          const ports = node.getPorts() || [];
-          const hasInputPort = ports.some((port: any) => port.id === 'input');
-          const hasOutputPort = ports.some((port: any) => port.id === 'output');
-          
           if (hasInputPort) {
-            node.setPortProp('input', 'attrs/circle/opacity', 0);
+            node.setPortProp('input', 'attrs/circle/opacity', 0)
           }
           if (hasOutputPort) {
-            node.setPortProp('output', 'attrs/circle/opacity', 0);
+            node.setPortProp('output', 'attrs/circle/opacity', 0)
           }
         }
       },
-      
 
       'node:selected': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
         if (data.isDisabled) return
-        
 
         node.setData({ ...data, isSelected: true })
-        
 
         if (finalOptions.portVisible) {
+          const ports = node.getPorts() || []
+          const hasInputPort = ports.some((port: any) => port.id === 'input')
+          const hasOutputPort = ports.some((port: any) => port.id === 'output')
 
-          const ports = node.getPorts() || [];
-          const hasInputPort = ports.some((port: any) => port.id === 'input');
-          const hasOutputPort = ports.some((port: any) => port.id === 'output');
-          
           if (hasInputPort) {
-            node.setPortProp('input', 'attrs/circle/opacity', 1);
-            node.setPortProp('input', 'attrs/circle/magnet', true);
+            node.setPortProp('input', 'attrs/circle/opacity', 1)
+            node.setPortProp('input', 'attrs/circle/magnet', true)
           }
           if (hasOutputPort) {
-            node.setPortProp('output', 'attrs/circle/opacity', 1);
-            node.setPortProp('output', 'attrs/circle/magnet', true);
+            node.setPortProp('output', 'attrs/circle/opacity', 1)
+            node.setPortProp('output', 'attrs/circle/magnet', true)
           }
         }
       },
-      
 
       'node:unselected': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
-        
 
         node.setData({ ...data, isSelected: false })
-        
 
         if (finalOptions.portVisible && !data.isHovered) {
+          const ports = node.getPorts() || []
+          const hasInputPort = ports.some((port: any) => port.id === 'input')
+          const hasOutputPort = ports.some((port: any) => port.id === 'output')
 
-          const ports = node.getPorts() || [];
-          const hasInputPort = ports.some((port: any) => port.id === 'input');
-          const hasOutputPort = ports.some((port: any) => port.id === 'output');
-          
           if (hasInputPort) {
-            node.setPortProp('input', 'attrs/circle/opacity', 0);
+            node.setPortProp('input', 'attrs/circle/opacity', 0)
           }
           if (hasOutputPort) {
-            node.setPortProp('output', 'attrs/circle/opacity', 0);
+            node.setPortProp('output', 'attrs/circle/opacity', 0)
           }
         }
       },
-      
 
       'node:move': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
         if (data.isDisabled) return
-        
 
-        node.setData({ 
-          ...data, 
+        node.setData({
+          ...data,
           isDragging: true,
 
-          animations: finalOptions.animationEnabled ? {
-            ...data.animations,
-            entrance: false
-          } : data.animations
+          animations: finalOptions.animationEnabled
+            ? {
+                ...data.animations,
+                entrance: false
+              }
+            : data.animations
         })
       },
-      
 
       'node:moved': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
-        
 
-        node.setData({ 
-          ...data, 
+        node.setData({
+          ...data,
           isDragging: false,
 
           metadata: {
@@ -322,12 +302,10 @@ export function useDagNode(options: NodeOptions = {}) {
           }
         })
       },
-      
 
       'node:resize': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
         if (data.isDisabled) return
-        
 
         const size = node.getSize()
         node.setData({
@@ -339,11 +317,9 @@ export function useDagNode(options: NodeOptions = {}) {
           }
         })
       },
-      
 
       'node:added': ({ node }: any) => {
         const data = node.getData() as ModernNodeData
-        
 
         if (finalOptions.animationEnabled) {
           node.setData({
@@ -354,18 +330,16 @@ export function useDagNode(options: NodeOptions = {}) {
             }
           })
         }
-        
 
         if (finalOptions.themeEnabled && data.nodeType && !data.theme) {
           updateNodeTheme(node, data.nodeType)
         }
-        
 
-        const nodeType = data.nodeType || determineNodeType(undefined, data.connectorType, data.name);
-        
+        const nodeType =
+          data.nodeType ||
+          determineNodeType(undefined, data.connectorType, data.name)
 
-        node.removePorts();
-        
+        node.removePorts()
 
         if (nodeType !== 'sink') {
           node.addPort({
@@ -380,9 +354,9 @@ export function useDagNode(options: NodeOptions = {}) {
                 fill: '#fff'
               }
             }
-          });
+          })
         }
-        
+
         if (nodeType !== 'source') {
           node.addPort({
             id: 'input',
@@ -396,13 +370,12 @@ export function useDagNode(options: NodeOptions = {}) {
                 fill: '#fff'
               }
             }
-          });
+          })
         }
       }
     }
   }
 }
-
 
 export function generateNodeTheme(type: NodeType) {
   const colors = getNodeColors(type)
@@ -416,11 +389,9 @@ export function generateNodeTheme(type: NodeType) {
   }
 }
 
-
 export function getStatusColor(status: NodeState) {
   return getNodeStateColor(status)
 }
-
 
 export function determineNodeType(
   type?: string,
@@ -428,11 +399,11 @@ export function determineNodeType(
   nodeName?: string
 ): NodeType {
   if (type && ['source', 'sink', 'transform'].includes(type)) {
-    return type as NodeType;
+    return type as NodeType
   }
-  
-  const lowerText = [(connector || ''), (nodeName || '')].join(' ').toLowerCase()
-  
+
+  const lowerText = [connector || '', nodeName || ''].join(' ').toLowerCase()
+
   if (lowerText.includes('source') || lowerText.includes('input')) {
     return 'source'
   } else if (lowerText.includes('sink') || lowerText.includes('output')) {
@@ -448,9 +419,7 @@ export function createNodeData(
   type: NodeType,
   options: Partial<ModernNodeData> = {}
 ): ModernNodeData {
-
   const theme = generateNodeTheme(type)
-  
 
   const defaultStyle = {
     width: CanvasDesignTokens.sizes.node.width,
@@ -460,7 +429,7 @@ export function createNodeData(
     opacity: 1,
     zIndex: CanvasDesignTokens.zIndex.nodes
   }
-  
+
   return {
     id,
     name,
@@ -490,7 +459,6 @@ export function createNodeData(
   }
 }
 
-
 function getNodeTypeIcon(type: NodeType): string {
   switch (type) {
     case 'source':
@@ -512,7 +480,6 @@ export function updateNodeStatus(
 ) {
   const data = node.getData() as ModernNodeData
 
-
   const animations = {
     ...data.animations,
     pulse: status === 'running',
@@ -529,7 +496,6 @@ export function updateNodeStatus(
   })
 }
 
-
 export function updateNodeTheme(node: any, type: NodeType) {
   const data = node.getData() as ModernNodeData
   const theme = generateNodeTheme(type)
@@ -541,7 +507,10 @@ export function updateNodeTheme(node: any, type: NodeType) {
   })
 }
 
-export function updateNodeMetadata(node: any, metadata: Partial<ModernNodeData['metadata']>) {
+export function updateNodeMetadata(
+  node: any,
+  metadata: Partial<ModernNodeData['metadata']>
+) {
   const data = node.getData() as ModernNodeData
 
   node.setData({
@@ -554,8 +523,10 @@ export function updateNodeMetadata(node: any, metadata: Partial<ModernNodeData['
   })
 }
 
-
-export function updateNodeStyle(node: any, style: Partial<ModernNodeData['style']>) {
+export function updateNodeStyle(
+  node: any,
+  style: Partial<ModernNodeData['style']>
+) {
   const data = node.getData() as ModernNodeData
 
   node.setData({
@@ -566,4 +537,3 @@ export function updateNodeStyle(node: any, style: Partial<ModernNodeData['style'
     }
   })
 }
-

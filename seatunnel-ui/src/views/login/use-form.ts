@@ -61,23 +61,27 @@ export function useForm() {
   })
 
   onMounted(() => {
-    fetchWorkspaces().then((workspaces: string[]) => {
-      state.workspaces = workspaces
-      settingStore.setWorkspaces(workspaces)
-    }).catch((error: any) => {
-      console.error('Failed to fetch workspaces:', error)
-    })
+    fetchWorkspaces()
+      .then((workspaces: string[]) => {
+        state.workspaces = workspaces
+        settingStore.setWorkspaces(workspaces)
+      })
+      .catch((error: any) => {
+        console.error('Failed to fetch workspaces:', error)
+      })
   })
 
   const handleLogin = () => {
-    let { username, password, useLdap, selectedWorkspace } = state.loginForm
+    const { username, password, useLdap, selectedWorkspace } = state.loginForm
     const headers = useLdap ? { 'X-Seatunnel-Auth-Type': 'LDAP' } : {}
-    userLogin({ username, password, workspace: selectedWorkspace }, { headers }).then((res: any) => {
-      userStore.setUserInfo(res)
-      router.push({ path: '/tasks' })
-    }).catch((error: any) => {
-      console.error('Login failed:', error)
-    })
+    userLogin({ username, password, workspace: selectedWorkspace }, { headers })
+      .then((res: any) => {
+        userStore.setUserInfo(res)
+        router.push({ path: '/tasks' })
+      })
+      .catch((error: any) => {
+        console.error('Login failed:', error)
+      })
   }
 
   return {

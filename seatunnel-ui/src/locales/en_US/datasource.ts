@@ -80,7 +80,8 @@ export default {
   jdbc_format_tips: 'jdbc connection parameters is not a correct JSON format',
   all: 'All',
   warning: 'Warning',
-  close_confirm_tips: 'This operation will lose the source currently being created',
+  close_confirm_tips:
+    'This operation will lose the source currently being created',
   database: 'Database',
   file: 'File',
   no_structured: 'NoSQLs',
@@ -91,7 +92,8 @@ export default {
   choose: 'Choose',
   import_from_curl: 'Import from cURL',
   import_curl: 'Import cURL Command',
-  curl_placeholder: 'Paste a cURL command, e.g.:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',
+  curl_placeholder:
+    'Paste a cURL command, e.g.:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',
   curl_parse: 'Parse',
   curl_input_empty: 'Please enter a cURL command',
   curl_parse_failed: 'Failed to parse cURL command, please check the format',

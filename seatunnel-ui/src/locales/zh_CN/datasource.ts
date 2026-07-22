@@ -88,7 +88,8 @@ export default {
   choose: '选择',
   import_from_curl: '从 cURL 导入',
   import_curl: '导入 cURL 命令',
-  curl_placeholder: '请输入 cURL 命令，例如:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',
+  curl_placeholder:
+    '请输入 cURL 命令，例如:\ncurl -X POST "https://api.example.com/data" \\\n  -H "Content-Type: application/json" \\\n  -d \'{"key": "value"}\'',
   curl_parse: '解析',
   curl_input_empty: '请输入 cURL 命令',
   curl_parse_failed: 'cURL 命令解析失败，请检查格式',

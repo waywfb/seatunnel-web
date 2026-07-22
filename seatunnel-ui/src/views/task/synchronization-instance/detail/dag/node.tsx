@@ -43,12 +43,14 @@ const DISPLAY_NAMES: Record<string, string> = {
   Console: 'Console',
   StarRocks: 'StarRocks',
   'Jdbc-MultiTableSink': 'JDBC',
-  'FTP': 'FTP'
+  FTP: 'FTP'
 }
 
 function formatNodeName(raw: string): string {
   if (!raw) return ''
-  const cleaned = raw.replace(/^pipeline-\d+\s*\[(Source|Sink)\[\d+\]-/, '').replace(/\]$/, '')
+  const cleaned = raw
+    .replace(/^pipeline-\d+\s*\[(Source|Sink)\[\d+\]-/, '')
+    .replace(/\]$/, '')
   return DISPLAY_NAMES[cleaned] || cleaned || raw
 }
 
@@ -56,15 +58,16 @@ const Node = defineComponent({
   name: 'Node',
   setup() {
     const getNode = inject('getNode') as any
-    
+
     if (!getNode) {
       console.error('getNode function not found in inject')
-      return () => <div class={styles['dag-node']}>Error: Node data not available</div>
+      return () => (
+        <div class={styles['dag-node']}>Error: Node data not available</div>
+      )
     }
-    
+
     const node = getNode()
-    const nodeData = node?.getData() || {} as ModernNodeData
-    
+    const nodeData = node?.getData() || ({} as ModernNodeData)
 
     const {
       name = 'Unknown',
@@ -82,13 +85,10 @@ const Node = defineComponent({
       statusMessage,
       metadata = {}
     } = nodeData
-    
 
-    const actualNodeType = computed(() => 
+    const actualNodeType = computed(() =>
       determineNodeType(nodeType, connectorType, name)
     )
-    
-
 
     const nodeClass = computed(() => {
       return {
@@ -105,10 +105,8 @@ const Node = defineComponent({
         [styles['dag-node--shake']]: animations.shake
       }
     })
-    
 
     const getBorderStyle = () => {
-
       if (theme) {
         if (status === 'error') {
           return `4px solid ${getNodeStateColor('error')}`
@@ -118,7 +116,6 @@ const Node = defineComponent({
           return `4px solid ${theme.borderColor}`
         }
       }
-      
 
       if (status === 'error') {
         return '4px solid #F87171'
@@ -135,9 +132,7 @@ const Node = defineComponent({
       }
     }
 
-
     const getBackgroundStyle = () => {
-
       if (theme) {
         if (status === 'error') {
           return 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)'
@@ -147,7 +142,6 @@ const Node = defineComponent({
           return theme.gradient
         }
       }
-      
 
       if (status === 'error') {
         return 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)'
@@ -163,7 +157,6 @@ const Node = defineComponent({
         return 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)'
       }
     }
-    
 
     const getShadowStyle = () => {
       if (isSelected) {
@@ -176,53 +169,66 @@ const Node = defineComponent({
         return style.shadow || CanvasDesignTokens.shadows.node
       }
     }
-    
 
     const getStatusColor = () => {
       return getNodeStateColor(status)
     }
-    
 
     const nodeStyle = computed(() => ({
       borderLeft: getBorderStyle(),
       background: getBackgroundStyle(),
       boxShadow: getShadowStyle(),
       borderRadius: style.borderRadius || CanvasDesignTokens.borderRadius.node,
-      opacity: isDisabled ? 0.6 : (style.opacity || 1),
+      opacity: isDisabled ? 0.6 : style.opacity || 1,
       width: style.width ? `${style.width}px` : 'auto',
       height: style.height ? `${style.height}px` : 'auto',
       zIndex: style.zIndex || CanvasDesignTokens.zIndex.nodes
     }))
-    
 
     const getTextColor = () => {
       return theme?.textColor || '#374151'
     }
-    
+
     return () => (
-      <div
-        class={nodeClass.value}
-        style={nodeStyle.value}
-      >
+      <div class={nodeClass.value} style={nodeStyle.value}>
         {/* 节点图标 */}
-        
+
         {/* 节点标签 */}
         <NTooltip trigger='hover' placement='top'>
           {{
             trigger: () => (
-              <div class={styles['dag-node-label']} style={{ color: getTextColor() }}>
+              <div
+                class={styles['dag-node-label']}
+                style={{ color: getTextColor() }}
+              >
                 <span>{formatNodeName(name)}</span>
               </div>
             ),
             default: () => (
               <div>
-                <div><strong>{formatNodeName(name)}</strong></div>
+                <div>
+                  <strong>{formatNodeName(name)}</strong>
+                </div>
                 <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                  类型: {actualNodeType.value === 'source' ? '数据源' : actualNodeType.value === 'sink' ? '数据目标' : '数据转换'}
+                  类型:{' '}
+                  {actualNodeType.value === 'source'
+                    ? '数据源'
+                    : actualNodeType.value === 'sink'
+                    ? '数据目标'
+                    : '数据转换'}
                 </div>
                 {status !== 'idle' && (
                   <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                    状态: {status === 'running' ? '运行中' : status === 'success' ? '成功' : status === 'error' ? '错误' : status === 'warning' ? '警告' : status}
+                    状态:{' '}
+                    {status === 'running'
+                      ? '运行中'
+                      : status === 'success'
+                      ? '成功'
+                      : status === 'error'
+                      ? '错误'
+                      : status === 'warning'
+                      ? '警告'
+                      : status}
                   </div>
                 )}
                 {statusMessage && (
@@ -244,27 +250,25 @@ const Node = defineComponent({
             )
           }}
         </NTooltip>
-        
+
         {/* 状态指示器 */}
-        
+
         {/* 进度条 - 仅在运行状态显示 */}
         {status === 'running' && progress > 0 && (
           <div class={styles['dag-node-progress']}>
-            <NProgress 
-              type="line" 
-              percentage={progress} 
+            <NProgress
+              type='line'
+              percentage={progress}
               height={4}
               color={getNodeStateColor('running')}
-              railColor="rgba(100, 116, 139, 0.2)"
+              railColor='rgba(100, 116, 139, 0.2)'
             />
           </div>
         )}
-        
+
         {/* 发光效果 - 用于成功状态 */}
-        {animations.glow && (
-          <div class={styles['dag-node-glow']} />
-        )}
-        
+        {animations.glow && <div class={styles['dag-node-glow']} />}
+
         {/* 不再使用自定义连接点，改用X6原生连接点 */}
       </div>
     )

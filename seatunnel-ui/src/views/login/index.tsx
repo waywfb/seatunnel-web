@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-import { defineComponent, toRefs, withKeys, getCurrentInstance, h, ref } from 'vue'
+import {
+  defineComponent,
+  toRefs,
+  withKeys,
+  getCurrentInstance,
+  h,
+  ref
+} from 'vue'
 import {
   NForm,
   NFormItem,
@@ -69,8 +76,7 @@ const Login = defineComponent({
             <div
               class='w-full h-full bg-cover bg-center'
               style={{
-                backgroundImage:
-                  `url("${backgroundImage}")`
+                backgroundImage: `url("${backgroundImage}")`
               }}
             />
             <div class='absolute inset-0 login-brand-overlay' />
@@ -300,7 +306,11 @@ const Login = defineComponent({
                           this.showPassword = !this.showPassword
                         }}
                       >
-                        {this.showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        {this.showPassword ? (
+                          <EyeOff size={20} />
+                        ) : (
+                          <Eye size={20} />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -351,7 +361,9 @@ const Login = defineComponent({
                     <NCheckbox
                       ref='rememberCheckbox'
                       v-model={this.loginForm.remember}
-                      onUpdateChecked={(value: boolean) => (this.loginForm.remember = value)}
+                      onUpdateChecked={(value: boolean) =>
+                        (this.loginForm.remember = value)
+                      }
                     >
                       <span class='text-sm text-tide-on-secondary-container'>
                         {this.t('login.remember_device')}
@@ -361,7 +373,9 @@ const Login = defineComponent({
                   <div class='flex items-center'>
                     <NCheckbox
                       v-model={this.loginForm.useLdap}
-                      onUpdateChecked={(value: boolean) => (this.loginForm.useLdap = value)}
+                      onUpdateChecked={(value: boolean) =>
+                        (this.loginForm.useLdap = value)
+                      }
                     >
                       <span class='text-sm text-tide-on-secondary-container'>
                         {this.t('login.use_ldap')}

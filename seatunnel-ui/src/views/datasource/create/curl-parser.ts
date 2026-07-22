@@ -74,7 +74,10 @@ function tokenize(input: string): string[] {
   return tokens
 }
 
-function parseUrlParams(url: string): { baseUrl: string; params: Record<string, string> } {
+function parseUrlParams(url: string): {
+  baseUrl: string
+  params: Record<string, string>
+} {
   const qIndex = url.indexOf('?')
   if (qIndex === -1) {
     return { baseUrl: url, params: {} }
@@ -139,10 +142,17 @@ export function parseCurl(input: string): CurlParseResult {
       continue
     }
 
-    if (token === '-d' || token === '--data' || token === '-data' ||
-        token === '--data-raw' || token === '-data-raw' ||
-        token === '--data-binary' || token === '-data-binary' ||
-        token === '--data-ascii' || token === '-data-ascii') {
+    if (
+      token === '-d' ||
+      token === '--data' ||
+      token === '-data' ||
+      token === '--data-raw' ||
+      token === '-data-raw' ||
+      token === '--data-binary' ||
+      token === '-data-binary' ||
+      token === '--data-ascii' ||
+      token === '-data-ascii'
+    ) {
       if (i + 1 < tokens.length) {
         result.body = tokens[++i]
       }
@@ -156,7 +166,12 @@ export function parseCurl(input: string): CurlParseResult {
       continue
     }
 
-    if (!urlFound && (token.startsWith('http://') || token.startsWith('https://') || token.startsWith('ftp://'))) {
+    if (
+      !urlFound &&
+      (token.startsWith('http://') ||
+        token.startsWith('https://') ||
+        token.startsWith('ftp://'))
+    ) {
       result.url = token
       const { baseUrl, params } = parseUrlParams(token)
       result.url = baseUrl
@@ -172,7 +187,9 @@ export function parseCurl(input: string): CurlParseResult {
   return result
 }
 
-export function curlParseResultToFormValues(result: CurlParseResult): Record<string, string> {
+export function curlParseResultToFormValues(
+  result: CurlParseResult
+): Record<string, string> {
   const values: Record<string, string> = {}
 
   values.url = result.url

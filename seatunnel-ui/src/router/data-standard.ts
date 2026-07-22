@@ -37,9 +37,7 @@ export default {
       meta: {
         title: 'data-standard-list',
         activeMenu: 'data-standard',
-        breadcrumb: [
-          { label: '数据标准', path: '/data-standard/list' }
-        ]
+        breadcrumb: [{ label: '数据标准', path: '/data-standard/list' }]
       }
     },
     {

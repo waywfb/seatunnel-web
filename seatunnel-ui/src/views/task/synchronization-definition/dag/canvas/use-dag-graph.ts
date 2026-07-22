@@ -42,11 +42,17 @@ export function useDagGraph(
       validateConnection(data) {
         const { sourceCell, targetCell } = data
         if (targetCell?.getData().type === 'source') return false
-        
+
         if (targetCell?.getData().type === 'transform') {
           // The same 'Copy' transform node cannot be connected
-          const srcData = sourceCell?.getData(), tgtData = targetCell?.getData()
-          if (srcData.type === 'transform' && srcData.connectorType === 'Copy' && tgtData.connectorType === 'Copy') return false
+          const srcData = sourceCell?.getData(),
+            tgtData = targetCell?.getData()
+          if (
+            srcData.type === 'transform' &&
+            srcData.connectorType === 'Copy' &&
+            tgtData.connectorType === 'Copy'
+          )
+            return false
 
           // don't connect self
           const edges = graph.value?.getConnectedEdges(targetCell)

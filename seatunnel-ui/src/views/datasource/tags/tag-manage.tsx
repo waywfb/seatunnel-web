@@ -1,7 +1,13 @@
 import { defineComponent, ref, onMounted, watch, computed } from 'vue'
 import { useMessage, useDialog, NModal, NInput } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { getGroupTree, getTagList, deleteTag, createGroup, deleteGroup } from '@/service/data-source'
+import {
+  getGroupTree,
+  getTagList,
+  deleteTag,
+  createGroup,
+  deleteGroup
+} from '@/service/data-source'
 import { TagGroupTree } from './TagGroupTree'
 import type { GroupNode } from './TagGroupTree'
 import { TagManageTable } from './TagManageTable'
@@ -17,14 +23,14 @@ function flattenGroups(raw: any[], depth: number): GroupNode[] {
     path: g.path || '',
     count: 0,
     depth,
-    children: flattenGroups(g.children, depth + 1),
+    children: flattenGroups(g.children, depth + 1)
   }))
 }
 
 function countAll(groups: GroupNode[], tags: TagRow[], root?: boolean): number {
   let total = 0
   for (const g of groups) {
-    const direct = tags.filter(t => t.groupPath === g.path)
+    const direct = tags.filter((t) => t.groupPath === g.path)
     const childCount = countAll(g.children, tags)
     g.count = direct.length + childCount
     total += g.count
@@ -43,7 +49,7 @@ function collectPaths(groups: GroupNode[], result: string[] = []) {
 export default defineComponent({
   props: {
     datasourceId: { type: String, required: true },
-    pluginName: { type: String, default: '' },
+    pluginName: { type: String, default: '' }
   },
   setup(props) {
     const { t } = useI18n()
@@ -66,7 +72,7 @@ export default defineComponent({
       try {
         const [groupsRes, tagsRes] = await Promise.all([
           getGroupTree(props.datasourceId),
-          getTagList(props.datasourceId),
+          getTagList(props.datasourceId)
         ])
         const newGroups = flattenGroups(groupsRes || [], 0)
         const newTags = (tagsRes || []).map((t: any) => ({
@@ -78,9 +84,9 @@ export default defineComponent({
           status: t.status || 'ACTIVE',
           unit: t.unit,
           precision: t.precision,
-          dataType: t.dataType || (t.properties?.dataType) || '',
+          dataType: t.dataType || t.properties?.dataType || '',
           groupId: t.groupId != null ? String(t.groupId) : '',
-          groupPath: t.groupPath || '',
+          groupPath: t.groupPath || ''
         }))
         countAll(newGroups, newTags)
         groupTree.value = newGroups
@@ -97,36 +103,46 @@ export default defineComponent({
       }
     }
 
-    watch(() => props.datasourceId, val => { if (val) loadData() }, { immediate: true })
+    watch(
+      () => props.datasourceId,
+      (val) => {
+        if (val) loadData()
+      },
+      { immediate: true }
+    )
 
-function buildGroupPathMap(nodes: GroupNode[], map: Record<string, string> = {}): Record<string, string> {
-  for (const n of nodes) {
-    map[n.id] = n.path
-    buildGroupPathMap(n.children, map)
-  }
-  return map
-}
-
-const filteredTags = computed(() => {
-  if (!selectedPath.value) return allTags.value
-  function findNode(nodes: GroupNode[], target: string): GroupNode | null {
-    for (const n of nodes) {
-      if (n.path === target) return n
-      const found = findNode(n.children, target)
-      if (found) return found
+    function buildGroupPathMap(
+      nodes: GroupNode[],
+      map: Record<string, string> = {}
+    ): Record<string, string> {
+      for (const n of nodes) {
+        map[n.id] = n.path
+        buildGroupPathMap(n.children, map)
+      }
+      return map
     }
-    return null
-  }
-  const node = findNode(groupTree.value, selectedPath.value)
-  if (!node) return allTags.value
-  const paths = new Set(collectPaths([node]))
-  const idToPath = buildGroupPathMap([node])
-  return allTags.value.filter(t => {
-    if (t.groupPath && paths.has(t.groupPath)) return true
-    if (t.groupId && idToPath[t.groupId]) return paths.has(idToPath[t.groupId])
-    return false
-  })
-})
+
+    const filteredTags = computed(() => {
+      if (!selectedPath.value) return allTags.value
+      function findNode(nodes: GroupNode[], target: string): GroupNode | null {
+        for (const n of nodes) {
+          if (n.path === target) return n
+          const found = findNode(n.children, target)
+          if (found) return found
+        }
+        return null
+      }
+      const node = findNode(groupTree.value, selectedPath.value)
+      if (!node) return allTags.value
+      const paths = new Set(collectPaths([node]))
+      const idToPath = buildGroupPathMap([node])
+      return allTags.value.filter((t) => {
+        if (t.groupPath && paths.has(t.groupPath)) return true
+        if (t.groupId && idToPath[t.groupId])
+          return paths.has(idToPath[t.groupId])
+        return false
+      })
+    })
 
     const totalPages = computed(() =>
       Math.max(1, Math.ceil(filteredTags.value.length / pageSize))
@@ -167,7 +183,10 @@ const filteredTags = computed(() => {
       // Check duplicate name among siblings
       const parentPath = selectedPath.value
         ? (() => {
-            function findFullPath(nodes: GroupNode[], target: string): string | null {
+            function findFullPath(
+              nodes: GroupNode[],
+              target: string
+            ): string | null {
               for (const n of nodes) {
                 if (n.path === target) return n.path
                 const found = findFullPath(n.children, target)
@@ -178,20 +197,24 @@ const filteredTags = computed(() => {
             return findFullPath(groupTree.value, selectedPath.value!)
           })()
         : '/root'
-      const siblings = parentPath === '/root'
-        ? groupTree.value
-        : (() => {
-            function findParent(nodes: GroupNode[], target: string): GroupNode[] | null {
-              for (const n of nodes) {
-                if (n.path === target) return n.children
-                const found = findParent(n.children, target)
-                if (found) return found
+      const siblings =
+        parentPath === '/root'
+          ? groupTree.value
+          : (() => {
+              function findParent(
+                nodes: GroupNode[],
+                target: string
+              ): GroupNode[] | null {
+                for (const n of nodes) {
+                  if (n.path === target) return n.children
+                  const found = findParent(n.children, target)
+                  if (found) return found
+                }
+                return null
               }
-              return null
-            }
-            return findParent(groupTree.value, parentPath!) || []
-          })()
-      if (siblings.some(n => n.groupName === name)) {
+              return findParent(groupTree.value, parentPath!) || []
+            })()
+      if (siblings.some((n) => n.groupName === name)) {
         message.warning('同一层级下已存在同名节点')
         return
       }
@@ -199,7 +222,7 @@ const filteredTags = computed(() => {
       try {
         await createGroup(props.datasourceId, {
           parentPath: parentPath || '/root',
-          groupName: name,
+          groupName: name
         })
         message.success('节点创建成功')
         showCreateGroupModal.value = false
@@ -254,21 +277,26 @@ const filteredTags = computed(() => {
     const handleDeleteGroup = (node: GroupNode) => {
       dialog.warning({
         title: '确认删除',
-        content: `确定删除节点"${node.groupName}"吗？${node.count > 0 ? `（该节点下含 ${node.count} 个测点）` : ''}`,
+        content: `确定删除节点"${node.groupName}"吗？${
+          node.count > 0 ? `（该节点下含 ${node.count} 个测点）` : ''
+        }`,
         positiveText: '确定',
         negativeText: '取消',
         onPositiveClick: async () => {
           try {
             await deleteGroup(node.id)
             message.success('节点已删除')
-            if (selectedPath.value === node.path || selectedPath.value?.startsWith(node.path + '/')) {
+            if (
+              selectedPath.value === node.path ||
+              selectedPath.value?.startsWith(node.path + '/')
+            ) {
               selectedPath.value = null
             }
             await loadData()
           } catch (err: any) {
             message.error(err.message || '删除失败')
           }
-        },
+        }
       })
     }
 
@@ -276,16 +304,18 @@ const filteredTags = computed(() => {
       if (!isPlcType()) return null
 
       return (
-        <div class="flex flex-row gap-tide-gap-lg flex-1 min-h-0 overflow-hidden">
+        <div class='flex flex-row gap-tide-gap-lg flex-1 min-h-0 overflow-hidden'>
           {/* Left: Category tree */}
-          <div class="lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
-            <div class="p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center">
-              <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">设备层级</h3>
+          <div class='lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden'>
+            <div class='p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center'>
+              <h3 class='font-tide-label-md text-tide-label-md text-tide-on-surface'>
+                设备层级
+              </h3>
               <button
-                class="bg-tide-primary text-white px-2 py-1 rounded-tide hover:bg-tide-primary-container transition-colors font-tide-label-md text-tide-label-md flex items-center gap-1 text-xs shadow-none"
+                class='bg-tide-primary text-white px-2 py-1 rounded-tide hover:bg-tide-primary-container transition-colors font-tide-label-md text-tide-label-md flex items-center gap-1 text-xs shadow-none'
                 onClick={handleOpenCreateGroup}
               >
-                <span class="material-symbols-outlined text-[14px]">add</span>
+                <span class='material-symbols-outlined text-[14px]'>add</span>
                 新增
               </button>
             </div>
@@ -299,7 +329,7 @@ const filteredTags = computed(() => {
           </div>
 
           {/* Right: Tag table */}
-          <div class="lg:w-3/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
+          <div class='lg:w-3/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden'>
             <TagManageTable
               tags={pagedTags.value}
               loading={loading.value}
@@ -313,7 +343,9 @@ const filteredTags = computed(() => {
               }}
               onDelete={handleDelete}
               onAdd={handleAddTag}
-              onUpdate:page={(v: number) => { page.value = v }}
+              onUpdate:page={(v: number) => {
+                page.value = v
+              }}
             />
             <BrowseImportModal
               show={showBrowseModal.value}
@@ -325,32 +357,42 @@ const filteredTags = computed(() => {
             />
             <NModal
               show={showCreateGroupModal.value}
-              onUpdateShow={(v: boolean) => { showCreateGroupModal.value = v }}
-              preset="card"
-              title="新增设备层级节点"
+              onUpdateShow={(v: boolean) => {
+                showCreateGroupModal.value = v
+              }}
+              preset='card'
+              title='新增设备层级节点'
               style={{ maxWidth: '420px' }}
               bordered={false}
               closable={true}
             >
-              <div class="flex flex-col gap-3">
-                <div class="text-sm text-tide-on-surface-variant">
+              <div class='flex flex-col gap-3'>
+                <div class='text-sm text-tide-on-surface-variant'>
                   父路径：{selectedPath.value || '/root'}
                 </div>
                 <NInput
                   value={newGroupName.value}
-                  onUpdateValue={(v: string) => { newGroupName.value = v }}
-                  placeholder="请输入节点名称"
+                  onUpdateValue={(v: string) => {
+                    newGroupName.value = v
+                  }}
+                  placeholder='请输入节点名称'
                   maxlength={100}
                 />
-                <div class="flex justify-end gap-2 mt-2">
+                <div class='flex justify-end gap-2 mt-2'>
                   <button
-                    class="px-4 py-2 rounded-tide border border-tide-outline-variant text-sm text-tide-on-surface hover:bg-tide-surface-container transition-colors"
-                    onClick={() => { showCreateGroupModal.value = false }}
+                    class='px-4 py-2 rounded-tide border border-tide-outline-variant text-sm text-tide-on-surface hover:bg-tide-surface-container transition-colors'
+                    onClick={() => {
+                      showCreateGroupModal.value = false
+                    }}
                   >
                     取消
                   </button>
                   <button
-                    class={`px-4 py-2 rounded-tide text-sm text-white transition-colors ${creating.value ? 'bg-tide-primary/60 cursor-not-allowed' : 'bg-tide-primary hover:bg-tide-primary-container'}`}
+                    class={`px-4 py-2 rounded-tide text-sm text-white transition-colors ${
+                      creating.value
+                        ? 'bg-tide-primary/60 cursor-not-allowed'
+                        : 'bg-tide-primary hover:bg-tide-primary-container'
+                    }`}
                     disabled={creating.value}
                     onClick={handleCreateGroup}
                   >
@@ -363,5 +405,5 @@ const filteredTags = computed(() => {
         </div>
       )
     }
-  },
+  }
 })

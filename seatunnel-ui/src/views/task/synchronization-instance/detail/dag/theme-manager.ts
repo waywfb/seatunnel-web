@@ -18,142 +18,130 @@
 import { ref, computed, watch } from 'vue'
 import { CanvasDesignTokens, type Theme, type NodeType } from './design-tokens'
 
-
 export class CanvasThemeManager {
   private currentTheme = ref<Theme>('light')
-  
-  constructor() {
 
+  constructor() {
     this.initTheme()
-    
 
     watch(this.currentTheme, (newTheme) => {
       this.applyTheme(newTheme)
     })
   }
-  
 
   private initTheme() {
-
     const savedTheme = localStorage.getItem('canvas-theme') as Theme
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    
-    this.currentTheme.value = savedTheme || (systemPrefersDark ? 'dark' : 'light')
-    
+    const systemPrefersDark = window.matchMedia(
+      '(prefers-color-scheme: dark)'
+    ).matches
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (!localStorage.getItem('canvas-theme')) {
-        this.currentTheme.value = e.matches ? 'dark' : 'light'
-      }
-    })
+    this.currentTheme.value =
+      savedTheme || (systemPrefersDark ? 'dark' : 'light')
+
+    window
+      .matchMedia('(prefers-color-scheme: dark)')
+      .addEventListener('change', (e) => {
+        if (!localStorage.getItem('canvas-theme')) {
+          this.currentTheme.value = e.matches ? 'dark' : 'light'
+        }
+      })
   }
-  
 
   private applyTheme(theme: Theme) {
     const root = document.documentElement
-    
 
     root.setAttribute('data-theme', theme)
-    
 
     localStorage.setItem('canvas-theme', theme)
-    
 
-    window.dispatchEvent(new CustomEvent('canvas-theme-change', {
-      detail: { theme }
-    }))
+    window.dispatchEvent(
+      new CustomEvent('canvas-theme-change', {
+        detail: { theme }
+      })
+    )
   }
-  
 
   toggleTheme() {
-    this.currentTheme.value = this.currentTheme.value === 'light' ? 'dark' : 'light'
+    this.currentTheme.value =
+      this.currentTheme.value === 'light' ? 'dark' : 'light'
   }
-  
 
   setTheme(theme: Theme) {
     this.currentTheme.value = theme
   }
-  
 
   get theme() {
     return this.currentTheme.value
   }
-  
 
   get themeRef() {
     return this.currentTheme
   }
-  
 
   get canvasColors() {
-    return computed(() => CanvasDesignTokens.colors.canvas[this.currentTheme.value])
+    return computed(
+      () => CanvasDesignTokens.colors.canvas[this.currentTheme.value]
+    )
   }
-  
 
   getNodeColors(type: NodeType) {
     return CanvasDesignTokens.colors.nodes[type]
   }
-  
 
   get connectionColors() {
     return CanvasDesignTokens.colors.connections
   }
-  
 
   get minimapColors() {
     return computed(() => ({
-      background: this.currentTheme.value === 'light' 
-        ? CanvasDesignTokens.colors.minimap.background
-        : CanvasDesignTokens.colors.minimap.backgroundDark,
-      border: this.currentTheme.value === 'light'
-        ? CanvasDesignTokens.colors.minimap.border
-        : CanvasDesignTokens.colors.minimap.borderDark,
+      background:
+        this.currentTheme.value === 'light'
+          ? CanvasDesignTokens.colors.minimap.background
+          : CanvasDesignTokens.colors.minimap.backgroundDark,
+      border:
+        this.currentTheme.value === 'light'
+          ? CanvasDesignTokens.colors.minimap.border
+          : CanvasDesignTokens.colors.minimap.borderDark,
       viewport: CanvasDesignTokens.colors.minimap.viewport,
       viewportBorder: CanvasDesignTokens.colors.minimap.viewportBorder
     }))
   }
-  
 
   getCSSVariable(variableName: string): string {
     return getComputedStyle(document.documentElement)
       .getPropertyValue(`--canvas-${variableName}`)
       .trim()
   }
-  
 
   setCSSVariable(variableName: string, value: string) {
-    document.documentElement.style.setProperty(`--canvas-${variableName}`, value)
+    document.documentElement.style.setProperty(
+      `--canvas-${variableName}`,
+      value
+    )
   }
-  
 
   get animations() {
     return CanvasDesignTokens.animations
   }
-  
 
   get sizes() {
     return CanvasDesignTokens.sizes
   }
-  
 
   get spacing() {
     return CanvasDesignTokens.spacing
   }
-  
 
   get isDark() {
     return computed(() => this.currentTheme.value === 'dark')
   }
-  
 
   get isLight() {
     return computed(() => this.currentTheme.value === 'light')
   }
 }
 
-
 export const canvasThemeManager = new CanvasThemeManager()
-
 
 export function useCanvasTheme() {
   return {
@@ -170,6 +158,7 @@ export function useCanvasTheme() {
     setTheme: (theme: Theme) => canvasThemeManager.setTheme(theme),
     getNodeColors: (type: NodeType) => canvasThemeManager.getNodeColors(type),
     getCSSVariable: (name: string) => canvasThemeManager.getCSSVariable(name),
-    setCSSVariable: (name: string, value: string) => canvasThemeManager.setCSSVariable(name, value)
+    setCSSVariable: (name: string, value: string) =>
+      canvasThemeManager.setCSSVariable(name, value)
   }
 }

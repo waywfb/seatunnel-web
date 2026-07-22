@@ -37,9 +37,7 @@ export default {
       meta: {
         title: 'datasource-list',
         activeMenu: 'datasource',
-        breadcrumb: [
-          { label: '数据源', path: '/datasource/list' }
-        ]
+        breadcrumb: [{ label: '数据源', path: '/datasource/list' }]
       }
     },
     {
@@ -75,9 +73,7 @@ export default {
       meta: {
         title: 'datasource-tags',
         activeMenu: 'tag_manage',
-        breadcrumb: [
-          { label: '测点管理', path: '/datasource/tags' }
-        ]
+        breadcrumb: [{ label: '测点管理', path: '/datasource/tags' }]
       }
     }
   ]

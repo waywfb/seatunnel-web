@@ -18,10 +18,7 @@
 import { onMounted, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import {
-  useFormStructuresStore,
-  StructureItem
-} from '@/store/datasource'
+import { useFormStructuresStore, StructureItem } from '@/store/datasource'
 import {
   dynamicFormItems,
   getDataStandardEnabledList,
@@ -66,7 +63,9 @@ export function useForm(type: string) {
 
   const getFormItems = async (value: string) => {
     if (formStructuresStore.getItem(value)) {
-      state.formStructure = formStructuresStore.getItem(value) as StructureItem[]
+      state.formStructure = formStructuresStore.getItem(
+        value
+      ) as StructureItem[]
       if (localesCache.has(value)) {
         state.locales = localesCache.get(value)
       }
@@ -90,7 +89,8 @@ export function useForm(type: string) {
       ) as any
 
       await transformDataStandardField()
-    } finally {}
+    } finally {
+    }
   }
 
   const transformDataStandardField = async () => {
@@ -101,25 +101,29 @@ export function useForm(type: string) {
 
     try {
       const standardListRes = await getDataStandardEnabledList()
-      const standardList = Array.isArray(standardListRes) ? standardListRes : (standardListRes?.data || [])
+      const standardList = Array.isArray(standardListRes)
+        ? standardListRes
+        : standardListRes?.data || []
       const standardOptions = standardList.map((item: any) => ({
         label: item.name || item.dataStandardName || '',
         value: String(item.id || item.dataStandardId || '')
       }))
 
-      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
-        if (f.field === 'data_standard_id') {
-          return {
-            ...f,
-            type: 'select',
-            options: standardOptions,
-            required: true,
-            description: f.description || '数据标准',
-            placeholder: '请选择数据标准'
+      state.formStructure = (state.formStructure as Array<any>).map(
+        (f: any) => {
+          if (f.field === 'data_standard_id') {
+            return {
+              ...f,
+              type: 'select',
+              options: standardOptions,
+              required: true,
+              description: f.description || '数据标准',
+              placeholder: '请选择数据标准'
+            }
           }
+          return f
         }
-        return f
-      })
+      )
     } catch (err) {
       console.error('Failed to load data standard list:', err)
     }
@@ -130,7 +134,9 @@ export function useForm(type: string) {
 
     try {
       const formatRes = await getDataStandardFormat(standardId)
-      const formatList = Array.isArray(formatRes) ? formatRes : (formatRes?.data || [])
+      const formatList = Array.isArray(formatRes)
+        ? formatRes
+        : formatRes?.data || []
       if (formatList.length > 0) {
         const format = formatList[0]
         if (format.formatType !== undefined && format.formatType !== null) {
@@ -139,10 +145,16 @@ export function useForm(type: string) {
         if (format.encoding !== undefined && format.encoding !== null) {
           state.detailForm.encoding = format.encoding
         }
-        if (format.recordSeparator !== undefined && format.recordSeparator !== null) {
+        if (
+          format.recordSeparator !== undefined &&
+          format.recordSeparator !== null
+        ) {
           state.detailForm.record_separator = format.recordSeparator
         }
-        if (format.fieldSeparator !== undefined && format.fieldSeparator !== null) {
+        if (
+          format.fieldSeparator !== undefined &&
+          format.fieldSeparator !== null
+        ) {
           state.detailForm.field_separator = format.fieldSeparator
         }
         if (format.quoteChar !== undefined && format.quoteChar !== null) {
@@ -157,7 +169,10 @@ export function useForm(type: string) {
         if (format.fileType !== undefined && format.fileType !== null) {
           state.detailForm.file_type = format.fileType
         }
-        if (format.fileTerminator !== undefined && format.fileTerminator !== null) {
+        if (
+          format.fileTerminator !== undefined &&
+          format.fileTerminator !== null
+        ) {
           state.detailForm.file_terminator = format.fileTerminator
         }
       }

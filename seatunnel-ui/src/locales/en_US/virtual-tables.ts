@@ -61,7 +61,8 @@ export default {
   create: 'Create',
   search: 'Search',
   derive_schema: 'Auto Derive',
-  derive_schema_required_tips: 'Please select a datasource and enter table name first',
+  derive_schema_required_tips:
+    'Please select a datasource and enter table name first',
   derive_schema_empty_tips: 'No fields derived',
   derive_schema_success: 'Schema derived successfully',
   derive_schema_error: 'Schema derivation failed',
@@ -73,7 +74,8 @@ export default {
   preview_fetch_next: 'Fetch Next',
   preview_use: 'Use This Message',
   derive_schema_paste_title: 'Paste Response Data',
-  derive_schema_paste_placeholder: 'Paste HTTP response sample JSON to auto-derive field structure',
+  derive_schema_paste_placeholder:
+    'Paste HTTP response sample JSON to auto-derive field structure',
   derive_schema_paste_derive: 'Derive',
   derive_schema_paste_tips: 'Please paste JSON data first'
 }

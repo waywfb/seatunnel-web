@@ -21,17 +21,17 @@ import * as echarts from 'echarts'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { format, subDays, subHours, subMinutes } from 'date-fns'
-import { 
+import {
   queryJobMetricsHistory,
   querySyncTaskInstanceDag,
   querySyncTaskInstanceDetail,
-  queryRunningInstancePaging 
+  queryRunningInstancePaging
 } from '@/service/sync-task-instance'
 
 export function useTaskMetrics() {
   const route = useRoute()
   const { t } = useI18n()
-  
+
   const timeOptions = [
     {
       label: t('project.metrics.last_1_minute'),
@@ -92,7 +92,7 @@ export function useTaskMetrics() {
   }
 
   const formatTimeData = (data: any[]) => {
-    return data.map(item => {
+    return data.map((item) => {
       try {
         const date = new Date(item.createTime)
         return format(date, 'HH:mm:ss')
@@ -103,8 +103,12 @@ export function useTaskMetrics() {
     })
   }
 
-  const getChartOption = (title: string, data: any[], key: string): EChartsOption => ({
-    title: { 
+  const getChartOption = (
+    title: string,
+    data: any[],
+    key: string
+  ): EChartsOption => ({
+    title: {
       text: title,
       textStyle: {
         fontSize: 14,
@@ -112,7 +116,7 @@ export function useTaskMetrics() {
       },
       left: 'center'
     },
-    tooltip: { 
+    tooltip: {
       show: true,
       trigger: 'item',
       axisPointer: {
@@ -137,11 +141,13 @@ export function useTaskMetrics() {
         } else {
           value = Math.round(value)
         }
-        
+
         try {
-          const date = new Date(variables.metricsData[params.dataIndex].createTime)
+          const date = new Date(
+            variables.metricsData[params.dataIndex].createTime
+          )
           const fullDateTime = format(date, 'yyyy-MM-dd HH:mm:ss')
-          
+
           return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
             <div style="color: #8c8c8c; font-size: 12px; margin-bottom: 4px">
               ${fullDateTime}
@@ -183,7 +189,7 @@ export function useTaskMetrics() {
         }
       }
     },
-    yAxis: { 
+    yAxis: {
       type: 'value',
       splitLine: {
         lineStyle: {
@@ -210,57 +216,63 @@ export function useTaskMetrics() {
         }
       }
     },
-    series: [{
-      type: 'line',
-      data: data.map(item => item[key]),
-      smooth: true,
-      symbol: 'circle',
-      symbolSize: 4,
-      showSymbol: true,
-      triggerEvent: true,
-      emphasis: {
-        focus: 'series',
+    series: [
+      {
+        type: 'line',
+        data: data.map((item) => item[key]),
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 4,
+        showSymbol: true,
+        triggerEvent: true,
+        emphasis: {
+          focus: 'series',
+          itemStyle: {
+            color: '#1890FF',
+            borderWidth: 3,
+            borderColor: '#1890FF',
+            shadowBlur: 10,
+            shadowColor: 'rgba(0, 0, 0, 0.2)'
+          }
+        },
         itemStyle: {
           color: '#1890FF',
-          borderWidth: 3,
-          borderColor: '#1890FF',
-          shadowBlur: 10,
-          shadowColor: 'rgba(0, 0, 0, 0.2)'
+          borderWidth: 1,
+          borderColor: '#fff',
+          opacity: 0.3
+        },
+        lineStyle: {
+          width: 2
+        },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: 'rgba(24,144,255,0.3)'
+            },
+            {
+              offset: 1,
+              color: 'rgba(24,144,255,0.1)'
+            }
+          ])
         }
-      },
-      itemStyle: {
-        color: '#1890FF',
-        borderWidth: 1,
-        borderColor: '#fff',
-        opacity: 0.3
-      },
-      lineStyle: {
-        width: 2
-      },
-      areaStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          {
-            offset: 0,
-            color: 'rgba(24,144,255,0.3)'
-          },
-          {
-            offset: 1,
-            color: 'rgba(24,144,255,0.1)'
-          }
-        ])
-      }
-    } as LineSeriesOption],
+      } as LineSeriesOption
+    ]
   })
 
   const initCharts = () => {
     try {
       if (variables.readRowCountChartRef) {
         variables.readRowCountChart?.dispose()
-        variables.readRowCountChart = echarts.init(variables.readRowCountChartRef)
+        variables.readRowCountChart = echarts.init(
+          variables.readRowCountChartRef
+        )
       }
       if (variables.writeRowCountChartRef) {
         variables.writeRowCountChart?.dispose()
-        variables.writeRowCountChart = echarts.init(variables.writeRowCountChartRef)
+        variables.writeRowCountChart = echarts.init(
+          variables.writeRowCountChartRef
+        )
       }
       if (variables.readQpsChartRef) {
         variables.readQpsChart?.dispose()
@@ -288,7 +300,7 @@ export function useTaskMetrics() {
       const params: any = {
         jobInstanceId: route.query.jobInstanceId as string
       }
-      
+
       if (variables.dateRange) {
         params.startTime = format(variables.dateRange[0], 'yyyy-MM-dd HH:mm:ss')
         params.endTime = format(variables.dateRange[1], 'yyyy-MM-dd HH:mm:ss')
@@ -299,27 +311,47 @@ export function useTaskMetrics() {
 
       if (variables.readRowCountChart) {
         variables.readRowCountChart.setOption(
-          getChartOption(getChartTitle('read_row_count'), variables.metricsData, 'readRowCount')
+          getChartOption(
+            getChartTitle('read_row_count'),
+            variables.metricsData,
+            'readRowCount'
+          )
         )
       }
       if (variables.writeRowCountChart) {
         variables.writeRowCountChart.setOption(
-          getChartOption(getChartTitle('write_row_count'), variables.metricsData, 'writeRowCount')
+          getChartOption(
+            getChartTitle('write_row_count'),
+            variables.metricsData,
+            'writeRowCount'
+          )
         )
       }
       if (variables.readQpsChart) {
         variables.readQpsChart.setOption(
-          getChartOption(getChartTitle('read_qps'), variables.metricsData, 'readQps')
+          getChartOption(
+            getChartTitle('read_qps'),
+            variables.metricsData,
+            'readQps'
+          )
         )
       }
       if (variables.writeQpsChart) {
         variables.writeQpsChart.setOption(
-          getChartOption(getChartTitle('write_qps'), variables.metricsData, 'writeQps')
+          getChartOption(
+            getChartTitle('write_qps'),
+            variables.metricsData,
+            'writeQps'
+          )
         )
       }
       if (variables.delayChart) {
         variables.delayChart.setOption(
-          getChartOption(getChartTitle('record_delay'), variables.metricsData, 'recordDelay')
+          getChartOption(
+            getChartTitle('record_delay'),
+            variables.metricsData,
+            'recordDelay'
+          )
         )
       }
     } catch (err) {
@@ -329,14 +361,14 @@ export function useTaskMetrics() {
 
   const handleTimeOptionChange = (value: string) => {
     variables.selectedTimeOption = value
-    
+
     if (value === 'custom') {
       variables.showDatePicker = true
       return
     }
-    
+
     variables.showDatePicker = false
-    const option = timeOptions.find(opt => opt.value === value)
+    const option = timeOptions.find((opt) => opt.value === value)
     if (option && option.getTime) {
       const [start, end] = option.getTime()
       variables.dateRange = [start.getTime(), end.getTime()]
@@ -363,4 +395,4 @@ export function useTaskMetrics() {
     handleDateRangeChange,
     handleTimeOptionChange
   }
-} 
+}

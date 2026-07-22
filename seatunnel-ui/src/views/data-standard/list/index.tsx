@@ -71,7 +71,10 @@ const DataStandardList = defineComponent({
     }
 
     const { columns } = useColumns(
-      async (id: number, type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy') => {
+      async (
+        id: number,
+        type: 'edit' | 'delete' | 'enable' | 'disable' | 'copy'
+      ) => {
         switch (type) {
           case 'edit':
             router.push({ name: 'data-standard-edit', params: { id } })
@@ -104,28 +107,55 @@ const DataStandardList = defineComponent({
       onSearch()
     }
 
-    const tabOptions = [
-      ALL_TAB,
-      ...TYPE_OPTIONS
-    ]
+    const tabOptions = [ALL_TAB, ...TYPE_OPTIONS]
 
-    const tabs = computed(() => tabOptions.map(opt => ({
-      name: String(opt.value),
-      label: opt.label,
-      count: getTypeCount(opt.value)
-    })))
+    const tabs = computed(() =>
+      tabOptions.map((opt) => ({
+        name: String(opt.value),
+        label: opt.label,
+        count: getTypeCount(opt.value)
+      }))
+    )
 
-    const tabValue = computed(() => state.params.type == null ? '__all__' : String(state.params.type))
+    const tabValue = computed(() =>
+      state.params.type == null ? '__all__' : String(state.params.type)
+    )
 
     return () => (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          height: '100%'
+        }}
+      >
         {/* Page title with action button */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+            <h2
+              style={{
+                fontSize: '20px',
+                fontWeight: 600,
+                color: '#1e293b',
+                margin: 0
+              }}
+            >
               {t('data_standard.data_standard')}
             </h2>
-            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p
+              style={{
+                fontSize: '14px',
+                color: '#64748b',
+                margin: '4px 0 0 0'
+              }}
+            >
               管理国家、行业、企业等标准规范
             </p>
           </div>
@@ -151,14 +181,29 @@ const DataStandardList = defineComponent({
         </div>
 
         {/* Tab + Search 融合栏 */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            flexWrap: 'wrap'
+          }}
+        >
           <STabs
             value={tabValue.value}
             onUpdate:value={handleTypeChange}
             tabs={tabs.value}
             style={{ flex: '1 1 auto', minWidth: 0 }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0
+            }}
+          >
             <NInput
               v-model:value={state.params.name}
               clearable
@@ -178,13 +223,15 @@ const DataStandardList = defineComponent({
                 <SearchOutlined />
               </NIcon>
             </NButton>
-            <NButton onClick={() => {
-              state.params.name = null
-              state.params.status = null
-              state.page = 1
-              getList()
-              getAllData()
-            }}>
+            <NButton
+              onClick={() => {
+                state.params.name = null
+                state.params.status = null
+                state.page = 1
+                getList()
+                getAllData()
+              }}
+            >
               重置
             </NButton>
           </div>
@@ -194,7 +241,7 @@ const DataStandardList = defineComponent({
         <NCard style={{ marginTop: '8px' }}>
           {state.list.length === 0 && !state.loading ? (
             <div style={{ padding: '60px 0' }}>
-              <NEmpty description="暂无数据" />
+              <NEmpty description='暂无数据' />
             </div>
           ) : (
             <NDataTable

@@ -38,27 +38,27 @@ export function getLogNodes(jobId: string | number): Promise<any> {
 
 // Get log content
 export function getLogContent(logUrl: string): Promise<{ data: string }> {
-  console.log('Getting log content for URL:', logUrl);
-  
+  console.log('Getting log content for URL:', logUrl)
+
   // Handle external URLs
   if (logUrl.startsWith('http')) {
     try {
       // Extract path part from URL
-      const url = new URL(logUrl);
-      const pathName = url.pathname;
-      const search = url.search;
-      
+      const url = new URL(logUrl)
+      const pathName = url.pathname
+      const search = url.search
+
       // Request through proxy
-      return rawAxios.get(`/api${pathName}${search}`);
+      return rawAxios.get(`/api${pathName}${search}`)
     } catch (e) {
-      console.error('Error fetching log content:', e);
-      return Promise.reject(new Error('Failed to fetch log content'));
+      console.error('Error fetching log content:', e)
+      return Promise.reject(new Error('Failed to fetch log content'))
     }
   } else {
     // If not a complete URL, use the file name directly
-    const logFileName = logUrl.split('/').pop() || '';
-    
+    const logFileName = logUrl.split('/').pop() || ''
+
     // Directly request through raw axios, avoiding the addition of /seatunnel/api/v1 prefix
-    return rawAxios.get(`/api/logs/content/${logFileName}`);
+    return rawAxios.get(`/api/logs/content/${logFileName}`)
   }
 }

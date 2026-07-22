@@ -26,13 +26,14 @@ export default {
   select_workspace: 'Select Workspace',
   select_workspace_tips: 'Please select workspace',
   remember_device: 'Remember this device',
-sso_divider: 'Single Sign-On',
+  sso_divider: 'Single Sign-On',
   enterprise_account: 'Enterprise Account',
   saml_login: 'SAML Login',
   // Brand & Hero
   brand_subtitle: 'Industrial Data Fusion Platform',
   hero_title: 'Fuse Industrial Data · Drive Smart Future',
-  hero_description: 'Connect devices, integrate data, build pipelines, unlock data value',
+  hero_description:
+    'Connect devices, integrate data, build pipelines, unlock data value',
   // Feature Cards
   feature_multi_source: 'Multi-Source',
   feature_multi_source_desc: '50+ Connectors',

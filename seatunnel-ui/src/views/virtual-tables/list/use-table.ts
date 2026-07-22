@@ -41,7 +41,7 @@ export function useTable() {
       pageNo: state.page,
       pageSize: state.pageSize,
       pluginName: state.params.pluginName || '',
-      datasourceName: state.params.datasourceName || '',
+      datasourceName: state.params.datasourceName || ''
     })
     state.list = result?.data
     state.itemCount = result?.total

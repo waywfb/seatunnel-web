@@ -78,9 +78,18 @@ const SmartParseModal = defineComponent({
     ]
 
     const strategyOptions = [
-      { value: 'SMART', label: t('project.synchronization_definition.smart_parse_smart') },
-      { value: 'FLAT_ALL', label: t('project.synchronization_definition.smart_parse_flat_all') },
-      { value: 'KEEP_JSON', label: t('project.synchronization_definition.smart_parse_keep_json') }
+      {
+        value: 'SMART',
+        label: t('project.synchronization_definition.smart_parse_smart')
+      },
+      {
+        value: 'FLAT_ALL',
+        label: t('project.synchronization_definition.smart_parse_flat_all')
+      },
+      {
+        value: 'KEEP_JSON',
+        label: t('project.synchronization_definition.smart_parse_keep_json')
+      }
     ]
 
     return () => (
@@ -93,7 +102,7 @@ const SmartParseModal = defineComponent({
             onUpdateValue={onStrategyChange}
           >
             <NSpace vertical>
-              {strategyOptions.map(opt => (
+              {strategyOptions.map((opt) => (
                 <NRadio key={opt.value} value={opt.value}>
                   {opt.label}
                 </NRadio>
@@ -102,7 +111,7 @@ const SmartParseModal = defineComponent({
           </NRadioGroup>
         </NFormItem>
         {!props.hasMessage && !props.loading && (
-          <NAlert type="warning" closable={false}>
+          <NAlert type='warning' closable={false}>
             {t('project.synchronization_definition.smart_parse_no_cache')}
           </NAlert>
         )}
@@ -114,7 +123,7 @@ const SmartParseModal = defineComponent({
               columns={columns}
               data={props.fields}
               striped
-              size="small"
+              size='small'
               maxHeight={300}
             />
           </NFormItem>

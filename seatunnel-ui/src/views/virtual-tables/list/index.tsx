@@ -39,14 +39,48 @@ import { useSource } from '@/views/datasource/list/use-source'
 
 // 源类型分类配置
 const CATEGORIES = [
-  { key: 'db', label: '数据库', color: '#2E6BE0', icon: 'database',
-    pluginNames: ['JDBC-Mysql', 'JDBC-Postgres', 'JDBC-Oracle', 'JDBC-SQLServer', 'JDBC-ClickHouse', 'JDBC-TiDB', 'JDBC-Db2', 'JDBC-Hive', 'JDBC-StarRocks', 'JDBC-Redshift', 'MySQL-CDC', 'SqlServer-CDC', 'Postgres-CDC'] },
-  { key: 'mq', label: '消息队列', color: '#7B4FE0', icon: 'move_up',
-    pluginNames: ['Kafka'] },
-  { key: 'api', label: '接口服务', color: '#1DA7B4', icon: 'api',
-    pluginNames: ['Http', 'ElasticSearch'] },
-  { key: 'file', label: '文件', color: '#4C9A5B', icon: 'folder',
-    pluginNames: ['S3', 'FTP', 'SFTP'] },
+  {
+    key: 'db',
+    label: '数据库',
+    color: '#2E6BE0',
+    icon: 'database',
+    pluginNames: [
+      'JDBC-Mysql',
+      'JDBC-Postgres',
+      'JDBC-Oracle',
+      'JDBC-SQLServer',
+      'JDBC-ClickHouse',
+      'JDBC-TiDB',
+      'JDBC-Db2',
+      'JDBC-Hive',
+      'JDBC-StarRocks',
+      'JDBC-Redshift',
+      'MySQL-CDC',
+      'SqlServer-CDC',
+      'Postgres-CDC'
+    ]
+  },
+  {
+    key: 'mq',
+    label: '消息队列',
+    color: '#7B4FE0',
+    icon: 'move_up',
+    pluginNames: ['Kafka']
+  },
+  {
+    key: 'api',
+    label: '接口服务',
+    color: '#1DA7B4',
+    icon: 'api',
+    pluginNames: ['Http', 'ElasticSearch']
+  },
+  {
+    key: 'file',
+    label: '文件',
+    color: '#4C9A5B',
+    icon: 'folder',
+    pluginNames: ['S3', 'FTP', 'SFTP']
+  }
 ]
 
 const PLUGIN_CATEGORY: Record<string, string> = {}
@@ -62,22 +96,15 @@ const VirtualTablesList = defineComponent({
     const router = useRouter()
     const { state: sourceState } = useSource(true)
     const categoryTab = ref('all')
-    const { columns } = useColumns(
-      (id: string, type: 'edit' | 'delete') => {
-        if (type === 'edit') {
-          router.push({ name: 'virtual-tables-editor', params: { id: id } })
-        } else {
-          onDelete(id)
-        }
+    const { columns } = useColumns((id: string, type: 'edit' | 'delete') => {
+      if (type === 'edit') {
+        router.push({ name: 'virtual-tables-editor', params: { id: id } })
+      } else {
+        onDelete(id)
       }
-    )
-    const {
-      state,
-      onSearch,
-      onDelete,
-      onPageChange,
-      onPageSizeChange
-    } = useTable()
+    })
+    const { state, onSearch, onDelete, onPageChange, onPageSizeChange } =
+      useTable()
 
     const stats = computed(() => {
       const list = state.list || []
@@ -95,22 +122,24 @@ const VirtualTablesList = defineComponent({
     // 分类统计
     const categoryStats = computed(() => {
       const list = state.list || []
-      return CATEGORIES.map(cat => {
-        const items = cat.pluginNames.map(pn => ({
+      return CATEGORIES.map((cat) => {
+        const items = cat.pluginNames.map((pn) => ({
           pluginName: pn,
           count: stats.value.typeCounts[pn] || 0
         }))
         const total = items.reduce((sum, i) => sum + i.count, 0)
         return { ...cat, items, total }
-      }).filter(cat => cat.total > 0)
+      }).filter((cat) => cat.total > 0)
     })
 
     // 当前分类数据
     const filteredList = computed(() => {
       if (categoryTab.value === 'all') return state.list
-      const cat = CATEGORIES.find(c => c.key === categoryTab.value)
+      const cat = CATEGORIES.find((c) => c.key === categoryTab.value)
       if (!cat) return state.list
-      return (state.list || []).filter((item: any) => cat.pluginNames.includes(item.pluginName))
+      return (state.list || []).filter((item: any) =>
+        cat.pluginNames.includes(item.pluginName)
+      )
     })
 
     const handleKeyup = (event: KeyboardEvent) => {
@@ -126,7 +155,7 @@ const VirtualTablesList = defineComponent({
     // Tab配置
     const tabOptions = computed(() => {
       const allTab = { name: 'all', label: '全部', count: stats.value.total }
-      const catTabs = categoryStats.value.map(cat => ({
+      const catTabs = categoryStats.value.map((cat) => ({
         name: cat.key,
         label: cat.label,
         count: cat.total
@@ -136,14 +165,40 @@ const VirtualTablesList = defineComponent({
 
     return () => {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            height: '100%'
+          }}
+        >
           {/* Page title with action button */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
             <div>
-              <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+              <h2
+                style={{
+                  fontSize: '20px',
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  margin: 0
+                }}
+              >
                 {t('menu.virtual_tables')}
               </h2>
-              <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: '#64748b',
+                  margin: '4px 0 0 0'
+                }}
+              >
                 管理业务模型与结构映射
               </p>
             </div>
@@ -185,9 +240,9 @@ const VirtualTablesList = defineComponent({
                 clearable
                 placeholder={t('virtual_tables.source_type_tips')}
                 options={
-                 sourceState.types as Array<SelectGroupOption | SelectOption>
+                  sourceState.types as Array<SelectGroupOption | SelectOption>
                 }
-                style={{width: '180px'}}
+                style={{ width: '180px' }}
               />
               <NInput
                 v-model:value={state.params.datasourceName}

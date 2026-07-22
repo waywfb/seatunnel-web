@@ -37,12 +37,12 @@ export function useTagImport(datasourceId: () => string | null) {
 
     importing.value = true
     try {
-      const tags = Array.from(checkedNodes.values()).map(n => ({
+      const tags = Array.from(checkedNodes.values()).map((n) => ({
         nativeId: n.nodeId,
         tagAddress: n.address || n.nodeId,
         tagName: n.label,
         source: 'browse' as const,
-        groupPath: groupPath || '/root',
+        groupPath: groupPath || '/root'
       }))
       await importTags(id, { tags })
       checkedNodes.clear()
@@ -62,6 +62,6 @@ export function useTagImport(datasourceId: () => string | null) {
     uncheck,
     isChecked,
     clearChecks,
-    handleImport,
+    handleImport
   }
 }

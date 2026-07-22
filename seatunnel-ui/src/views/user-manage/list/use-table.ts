@@ -60,7 +60,9 @@ export function useTable() {
         key: 'operation',
         render: (row: UserDetail) => {
           const currentUser = userStore.getUserInfo as UserDetail
-          const isCurrentUser = Boolean(currentUser?.id && row?.id && currentUser.id === row.id)
+          const isCurrentUser = Boolean(
+            currentUser?.id && row?.id && currentUser.id === row.id
+          )
 
           return h(NSpace, null, {
             default: () => [

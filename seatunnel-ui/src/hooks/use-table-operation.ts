@@ -30,54 +30,53 @@ import { DeleteOutlined, EllipsisOutlined } from '@vicons/antd'
 import type { DropdownOption } from 'naive-ui'
 import { COLUMN_WIDTH_CONFIG } from '@/common/column-width-config'
 
-
-export const useTableOperation = (
-  params: {
-    title: string
-    key: string
-    preRender?: (rowData: any, buttonVnodes: VNode[], index: number) => any
-    width?: number
-    noPermission?: boolean
-    itemNum?: number
-    buttons: {
-      type?: 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
-      isDelete?: boolean
-      isAuth?: boolean
-      isSwitch?: boolean
-      isCustom?: boolean
-      isHidden?: (rowData: any) => boolean
-      more?: boolean
-      negativeText?: string
-      positiveText?: string
-      popTips?: string
-      text: string | ((rowData: any) => string)
-      icon?: VNode | ((rowData: any) => VNode)
-      auth?: any
-      // accessType?: accessTypeKey
-      disabled?: boolean | ((rowData: any) => boolean)
-      class?: string
-      value?: string | number | boolean | undefined
-      checkedValue?: string | boolean | number
-      uncheckedValue?: string | boolean | number
-      onPositiveClick?: (rowData: any, index: number) => void
-      onClick?: (rowData: any) => void
-      onUpdateValue?: (value: any, rowData: any) => void
-      customFunc?: (rowData: any) => VNode,
-      show?: any
-    }[]
-  },
-) => {
-
+export const useTableOperation = (params: {
+  title: string
+  key: string
+  preRender?: (rowData: any, buttonVnodes: VNode[], index: number) => any
+  width?: number
+  noPermission?: boolean
+  itemNum?: number
+  buttons: {
+    type?: 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
+    isDelete?: boolean
+    isAuth?: boolean
+    isSwitch?: boolean
+    isCustom?: boolean
+    isHidden?: (rowData: any) => boolean
+    more?: boolean
+    negativeText?: string
+    positiveText?: string
+    popTips?: string
+    text: string | ((rowData: any) => string)
+    icon?: VNode | ((rowData: any) => VNode)
+    auth?: any
+    // accessType?: accessTypeKey
+    disabled?: boolean | ((rowData: any) => boolean)
+    class?: string
+    value?: string | number | boolean | undefined
+    checkedValue?: string | boolean | number
+    uncheckedValue?: string | boolean | number
+    onPositiveClick?: (rowData: any, index: number) => void
+    onClick?: (rowData: any) => void
+    onUpdateValue?: (value: any, rowData: any) => void
+    customFunc?: (rowData: any) => VNode
+    show?: any
+  }[]
+}) => {
   const getButtonVnodes = (rowData: any, index: number) => {
     const visibleButtons = params.buttons.filter(
       (button) => !(button.isHidden && button.isHidden(rowData))
     )
 
-    const moreActions: { text: string; icon?: VNode; onClick: () => void }[] = []
+    const moreActions: { text: string; icon?: VNode; onClick: () => void }[] =
+      []
     const mainButtons = visibleButtons.filter((button) => {
       if (button.more) {
-        const btnText = typeof button.text === 'function' ? button.text(rowData) : button.text
-        const btnIcon = typeof button.icon === 'function' ? button.icon(rowData) : button.icon
+        const btnText =
+          typeof button.text === 'function' ? button.text(rowData) : button.text
+        const btnIcon =
+          typeof button.icon === 'function' ? button.icon(rowData) : button.icon
         moreActions.push({
           text: btnText,
           icon: btnIcon,
@@ -151,22 +150,22 @@ export const useTableOperation = (
       if (button.isAuth) {
         return h(button.auth, {
           ...commonProps,
-          row: rowData,
+          row: rowData
           // accessType: button.accessType
         })
       }
       if (button.isSwitch) {
         return h(NTooltip, null, {
           trigger: () =>
-          h(NSwitch, {
-            value: rowData.status,
-            checkedValue: button.checkedValue,
-            uncheckedValue: button.uncheckedValue,
-            onUpdateValue: (value) =>
-              button.onUpdateValue
-                ? void button.onUpdateValue(value, rowData)
-                : () => {}
-          }),
+            h(NSwitch, {
+              value: rowData.status,
+              checkedValue: button.checkedValue,
+              uncheckedValue: button.uncheckedValue,
+              onUpdateValue: (value) =>
+                button.onUpdateValue
+                  ? void button.onUpdateValue(value, rowData)
+                  : () => {}
+            }),
           default: () => buttonText
         })
       }
@@ -176,48 +175,70 @@ export const useTableOperation = (
       }
 
       // show btn
-      const show = typeof button.show === 'function' ? button.show.call(this, rowData) : button.show === undefined ? true : !!button.show
-      return show ? h(NTooltip, null, {
-        trigger: () =>
-        h(
-          NButton,
-          {
-            ...commonProps,
-            type: button.type || 'info',
-            onClick: () =>
-              button.onClick ? void button.onClick(rowData) : () => {}
-          },
-          {
-            default: () => h(NIcon, null, { default: () => buttonIcon })
-          }
-        ),
-        default: () => buttonText
-      }) : h('')
+      const show =
+        typeof button.show === 'function'
+          ? button.show.call(this, rowData)
+          : button.show === undefined
+          ? true
+          : !!button.show
+      return show
+        ? h(NTooltip, null, {
+            trigger: () =>
+              h(
+                NButton,
+                {
+                  ...commonProps,
+                  type: button.type || 'info',
+                  onClick: () =>
+                    button.onClick ? void button.onClick(rowData) : () => {}
+                },
+                {
+                  default: () => h(NIcon, null, { default: () => buttonIcon })
+                }
+              ),
+            default: () => buttonText
+          })
+        : h('')
     })
 
     if (moreActions.length > 0) {
-      const dropdownOptions: DropdownOption[] = moreActions.map((action, i) => ({
-        key: `more-${i}`,
-        label: action.text,
-        icon: action.icon ? () => h(NIcon, null, { default: () => action.icon }) : undefined
-      }))
+      const dropdownOptions: DropdownOption[] = moreActions.map(
+        (action, i) => ({
+          key: `more-${i}`,
+          label: action.text,
+          icon: action.icon
+            ? () => h(NIcon, null, { default: () => action.icon })
+            : undefined
+        })
+      )
 
       mainVnodes.push(
-        h(NDropdown, {
-          options: dropdownOptions,
-          onSelect: (key: string) => {
-            const idx = parseInt(key.replace('more-', ''), 10)
-            moreActions[idx]?.onClick()
+        h(
+          NDropdown,
+          {
+            options: dropdownOptions,
+            onSelect: (key: string) => {
+              const idx = parseInt(key.replace('more-', ''), 10)
+              moreActions[idx]?.onClick()
+            },
+            placement: 'bottom-end'
           },
-          placement: 'bottom-end'
-        }, {
-          default: () => h(NTooltip, null, {
-            trigger: () => h(NButton, { circle: true, size: 'small', type: 'default' }, {
-              default: () => h(NIcon, null, { default: () => h(EllipsisOutlined) })
-            }),
-            default: () => 'More'
-          })
-        })
+          {
+            default: () =>
+              h(NTooltip, null, {
+                trigger: () =>
+                  h(
+                    NButton,
+                    { circle: true, size: 'small', type: 'default' },
+                    {
+                      default: () =>
+                        h(NIcon, null, { default: () => h(EllipsisOutlined) })
+                    }
+                  ),
+                default: () => 'More'
+              })
+          }
+        )
       )
     }
 

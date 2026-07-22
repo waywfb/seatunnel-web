@@ -36,7 +36,11 @@ const DagSidebar = defineComponent({
   emits: ['dragstart'],
   setup(props, ctx) {
     const businessModel = ref('data-integration')
-    const { variables, getConnectorTransformsTypeList, getSourceDatasourceTypes } = useSidebar()
+    const {
+      variables,
+      getConnectorTransformsTypeList,
+      getSourceDatasourceTypes
+    } = useSidebar()
     const { t } = useI18n()
     const handleDragstart = (type: string, name?: string) => {
       ctx.emit('dragstart', type, name)
@@ -50,12 +54,18 @@ const DagSidebar = defineComponent({
     const getTransformDisplayName = (name: string) => {
       const map: Record<string, string> = {
         Copy: t('project.synchronization_definition.transform_copy'),
-        FieldMapper: t('project.synchronization_definition.transform_field_mapper'),
-        FilterRowKind: t('project.synchronization_definition.transform_filter_row_kind'),
+        FieldMapper: t(
+          'project.synchronization_definition.transform_field_mapper'
+        ),
+        FilterRowKind: t(
+          'project.synchronization_definition.transform_filter_row_kind'
+        ),
         Replace: t('project.synchronization_definition.transform_replace'),
         Sql: t('project.synchronization_definition.transform_sql'),
         JsonPath: t('project.synchronization_definition.transform_json_path'),
-        MultiFieldSplit: t('project.synchronization_definition.transform_multi_field_split')
+        MultiFieldSplit: t(
+          'project.synchronization_definition.transform_multi_field_split'
+        )
       }
       return map[name] || name
     }
@@ -81,17 +91,21 @@ const DagSidebar = defineComponent({
               <div
                 class={styles['task-item']}
                 draggable='true'
-                onDragstart={() => this.handleDragstart('source', st.datasourceName)}
+                onDragstart={() =>
+                  this.handleDragstart('source', st.datasourceName)
+                }
               >
                 <NSpace align='center'>
                   <img class={styles['task-image']} src={SourceImg} />
                   <span>{displayName}</span>
                 </NSpace>
                 <span
-                  class="task-item-info ml-auto inline-block"
+                  class='task-item-info ml-auto inline-block'
                   title={'拖拽组件到画布，双击配置参数'}
                 >
-                  <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
+                  <InfoCircleOutlined
+                    style={{ width: '17px', height: '17px' }}
+                  />
                 </span>
               </div>
             )
@@ -106,7 +120,7 @@ const DagSidebar = defineComponent({
               <span>{this.t('project.synchronization_instance.sink')}</span>
             </NSpace>
             <span
-              class="task-item-info ml-auto inline-block"
+              class='task-item-info ml-auto inline-block'
               title={'拖拽组件到画布，双击配置参数'}
             >
               <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
@@ -155,10 +169,12 @@ const DagSidebar = defineComponent({
                     <span>{item.displayName}</span>
                   </NSpace>
                   <span
-                    class="task-item-info ml-auto inline-block"
+                    class='task-item-info ml-auto inline-block'
                     title={'拖拽组件到画布，双击配置参数'}
                   >
-                    <InfoCircleOutlined style={{ width: '17px', height: '17px' }} />
+                    <InfoCircleOutlined
+                      style={{ width: '17px', height: '17px' }}
+                    />
                   </span>
                 </div>
               )

@@ -835,7 +835,7 @@ import {
   CamuCamu as CamuCamuIcon,
   Maqui as MaquiIcon,
   Jabuticaba as JabuticabaIcon,
-  Cupuacu as CupuacuIcon,
+  Cupuacu as CupuacuIcon
 } from 'lucide-vue-next'
 
 // Material Icons 到 Lucide 图标的映射
@@ -1407,7 +1407,7 @@ const ICON_MAP: Record<string, any> = {
   security: Shield,
   shield: Shield,
   shield_moon: Moon,
-  shield: Shield,
+  shield: Shield
 }
 
 export const getLucideIcon = (name: string) => {
@@ -1424,7 +1424,7 @@ export const Icon = defineComponent({
   },
   setup(props) {
     const iconComponent = computed(() => getLucideIcon(props.name))
-    
+
     return () => {
       if (!iconComponent.value) {
         return null

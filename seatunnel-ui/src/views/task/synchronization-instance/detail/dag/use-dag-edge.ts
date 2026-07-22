@@ -17,12 +17,10 @@
 
 import { CanvasDesignTokens } from './design-tokens'
 
-
 export interface ModernEdgeData {
   id: string
   source: string
   target: string
-  
 
   style?: {
     stroke?: string
@@ -30,30 +28,24 @@ export interface ModernEdgeData {
     strokeDasharray?: string
     animated?: boolean
   }
-  
 
   status?: 'normal' | 'active' | 'error' | 'warning' | 'success'
-  
 
   dataFlow?: {
     direction?: 'forward' | 'backward' | 'bidirectional'
     speed?: 'slow' | 'normal' | 'fast'
     volume?: number
   }
-  
 
   isSelected?: boolean
   isHovered?: boolean
-  
 
   label?: string
-  
 
   metadata?: {
     [key: string]: any
   }
 }
-
 
 export interface EdgeOptions {
   router?: 'normal' | 'smooth' | 'orthogonal'
@@ -71,12 +63,11 @@ export function useDagEdge(options: EdgeOptions = {}) {
     showArrow: true,
     interactive: true
   }
-  
+
   const finalOptions = { ...defaultOptions, ...options }
-  
+
   return {
     inherit: 'edge',
-    
 
     router: {
       name: 'orth'
@@ -92,14 +83,12 @@ export function useDagEdge(options: EdgeOptions = {}) {
         strokeLinejoin: 'round',
         fill: 'none',
         class: 'modern-edge',
-        
 
         ...(finalOptions.animated && {
           strokeDasharray: '8,4',
           class: 'modern-edge modern-edge-animated'
         })
       },
-      
 
       ...(finalOptions.showArrow && {
         targetMarker: {
@@ -111,7 +100,6 @@ export function useDagEdge(options: EdgeOptions = {}) {
           class: 'modern-edge-arrow'
         }
       }),
-      
 
       ...(finalOptions.interactive && {
         wrap: {
@@ -123,7 +111,6 @@ export function useDagEdge(options: EdgeOptions = {}) {
         }
       })
     },
-    
 
     defaultLabel: {
       markup: [
@@ -164,57 +151,69 @@ export function useDagEdge(options: EdgeOptions = {}) {
         offset: 0
       }
     },
-    
 
     events: {
       'edge:mouseenter': ({ edge }: any) => {
         const data = edge.getData() || {}
         edge.setData({ ...data, isHovered: true })
-        
 
         edge.attr('line/class', 'modern-edge modern-edge:hover')
         edge.attr('line/stroke', CanvasDesignTokens.colors.connections.hover)
-        edge.attr('line/strokeWidth', CanvasDesignTokens.sizes.connection.strokeWidthHover)
+        edge.attr(
+          'line/strokeWidth',
+          CanvasDesignTokens.sizes.connection.strokeWidthHover
+        )
       },
-      
+
       'edge:mouseleave': ({ edge }: any) => {
         const data = edge.getData() || {}
         edge.setData({ ...data, isHovered: false })
-        
 
         const isSelected = data.isSelected
-        edge.attr('line/class', isSelected ? 'modern-edge is-selected' : 'modern-edge')
-        edge.attr('line/stroke', isSelected 
-          ? CanvasDesignTokens.colors.connections.selected 
-          : CanvasDesignTokens.colors.connections.default)
-        edge.attr('line/strokeWidth', isSelected 
-          ? CanvasDesignTokens.sizes.connection.strokeWidthHover
-          : CanvasDesignTokens.sizes.connection.strokeWidth)
+        edge.attr(
+          'line/class',
+          isSelected ? 'modern-edge is-selected' : 'modern-edge'
+        )
+        edge.attr(
+          'line/stroke',
+          isSelected
+            ? CanvasDesignTokens.colors.connections.selected
+            : CanvasDesignTokens.colors.connections.default
+        )
+        edge.attr(
+          'line/strokeWidth',
+          isSelected
+            ? CanvasDesignTokens.sizes.connection.strokeWidthHover
+            : CanvasDesignTokens.sizes.connection.strokeWidth
+        )
       },
-      
+
       'edge:selected': ({ edge }: any) => {
         const data = edge.getData() || {}
         edge.setData({ ...data, isSelected: true })
-        
 
         edge.attr('line/class', 'modern-edge is-selected')
         edge.attr('line/stroke', CanvasDesignTokens.colors.connections.selected)
-        edge.attr('line/strokeWidth', CanvasDesignTokens.sizes.connection.strokeWidthHover)
+        edge.attr(
+          'line/strokeWidth',
+          CanvasDesignTokens.sizes.connection.strokeWidthHover
+        )
       },
-      
+
       'edge:unselected': ({ edge }: any) => {
         const data = edge.getData() || {}
         edge.setData({ ...data, isSelected: false })
-        
 
         edge.attr('line/class', 'modern-edge')
         edge.attr('line/stroke', CanvasDesignTokens.colors.connections.default)
-        edge.attr('line/strokeWidth', CanvasDesignTokens.sizes.connection.strokeWidth)
+        edge.attr(
+          'line/strokeWidth',
+          CanvasDesignTokens.sizes.connection.strokeWidth
+        )
       }
     }
   }
 }
-
 
 export function createEdgeData(
   id: string,
@@ -241,14 +240,12 @@ export function createEdgeData(
   }
 }
 
-
 export function updateEdgeStatus(
   edge: any,
   status: 'normal' | 'active' | 'error' | 'warning' | 'success'
 ) {
   const data = edge.getData() || {}
   edge.setData({ ...data, status })
-  
 
   const statusColors = {
     normal: CanvasDesignTokens.colors.connections.default,
@@ -257,7 +254,7 @@ export function updateEdgeStatus(
     warning: CanvasDesignTokens.colors.nodes.states.warning,
     success: CanvasDesignTokens.colors.nodes.states.success
   }
-  
+
   const statusClasses = {
     normal: 'modern-edge',
     active: 'modern-edge is-active',
@@ -265,10 +262,9 @@ export function updateEdgeStatus(
     warning: 'modern-edge is-warning',
     success: 'modern-edge is-success'
   }
-  
+
   edge.attr('line/stroke', statusColors[status])
   edge.attr('line/class', statusClasses[status])
-  
 
   if (status === 'error') {
     edge.attr('line/strokeDasharray', '5,5')
@@ -279,30 +275,29 @@ export function updateEdgeStatus(
   }
 }
 
-
 export function enableDataFlowAnimation(
   edge: any,
   speed: 'slow' | 'normal' | 'fast' = 'normal'
 ) {
   const data = edge.getData() || {}
-  edge.setData({ 
-    ...data, 
-    style: { 
-      ...data.style, 
-      animated: true 
+  edge.setData({
+    ...data,
+    style: {
+      ...data.style,
+      animated: true
     },
     dataFlow: {
       ...data.dataFlow,
       speed
     }
   })
-  
+
   const speedClasses = {
     slow: 'modern-edge modern-edge-animated flow-slow',
     normal: 'modern-edge modern-edge-animated',
     fast: 'modern-edge modern-edge-animated flow-fast'
   }
-  
+
   edge.attr('line/class', speedClasses[speed])
   edge.attr('line/strokeDasharray', '8,4')
 }

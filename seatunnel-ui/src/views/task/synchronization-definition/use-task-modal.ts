@@ -83,7 +83,7 @@ export function useTaskModal(
       ctx.emit('confirmModal', props.showModalRef)
 
       router.push({
-        path: `/task/synchronization-definition/${res}`,
+        path: `/task/synchronization-definition/${res}`
       })
     })
   }

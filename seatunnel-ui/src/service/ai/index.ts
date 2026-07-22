@@ -158,7 +158,7 @@ export async function actionStream(
           }
         }
 
-        let raw = dataLines.join('\n').trim()
+        const raw = dataLines.join('\n').trim()
 
         if (raw === '[DONE]') {
           onDone()

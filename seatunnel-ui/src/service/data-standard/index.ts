@@ -106,7 +106,10 @@ export function getVersionDetail(standardId: number, versionId: number): any {
   })
 }
 
-export function createVersion(standardId: number, data: DataStandardVersionReq): any {
+export function createVersion(
+  standardId: number,
+  data: DataStandardVersionReq
+): any {
   return axios({
     url: BASE_URL + '/' + standardId + '/version/create',
     method: 'post',
@@ -186,7 +189,8 @@ export function batchUpdateFormats(
   data: DataStandardFormatReq[]
 ): any {
   return axios({
-    url: BASE_URL + '/' + standardId + '/version/' + versionId + '/format/batch',
+    url:
+      BASE_URL + '/' + standardId + '/version/' + versionId + '/format/batch',
     method: 'post',
     headers: { 'Content-Type': 'application/json;charset=UTF-8' },
     transformRequest: () => JSON.stringify(data)
@@ -197,7 +201,8 @@ export function batchUpdateFormats(
 
 export function getMappingList(standardId: number, versionId: number): any {
   return axios({
-    url: BASE_URL + '/' + standardId + '/version/' + versionId + '/mapping/list',
+    url:
+      BASE_URL + '/' + standardId + '/version/' + versionId + '/mapping/list',
     method: 'get'
   })
 }
@@ -208,7 +213,8 @@ export function batchUpdateMappings(
   data: DataStandardFieldMappingReq[]
 ): any {
   return axios({
-    url: BASE_URL + '/' + standardId + '/version/' + versionId + '/mapping/batch',
+    url:
+      BASE_URL + '/' + standardId + '/version/' + versionId + '/mapping/batch',
     method: 'post',
     headers: { 'Content-Type': 'application/json;charset=UTF-8' },
     transformRequest: () => JSON.stringify(data)

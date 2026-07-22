@@ -16,10 +16,7 @@
  */
 
 import { reactive } from 'vue'
-import {
-  datasourceList,
-  datasourceDelete
-} from '@/service/data-source'
+import { datasourceList, datasourceDelete } from '@/service/data-source'
 import type { DatasourceList } from '@/service/data-source/types'
 import type { ResponseTable } from '@/service/types'
 

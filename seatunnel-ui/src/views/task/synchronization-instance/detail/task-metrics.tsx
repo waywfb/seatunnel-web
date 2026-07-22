@@ -24,7 +24,13 @@ import { useI18n } from 'vue-i18n'
 const TaskMetrics = defineComponent({
   name: 'TaskMetrics',
   setup() {
-    const { variables, initCharts, updateCharts, handleDateRangeChange, handleTimeOptionChange } = useTaskMetrics()
+    const {
+      variables,
+      initCharts,
+      updateCharts,
+      handleDateRangeChange,
+      handleTimeOptionChange
+    } = useTaskMetrics()
     let timer: ReturnType<typeof setInterval>
     const { t } = useI18n()
 
@@ -48,8 +54,8 @@ const TaskMetrics = defineComponent({
       variables.delayChart?.dispose()
     })
 
-    return { 
-      variables, 
+    return {
+      variables,
       handleDateRangeChange,
       handleTimeOptionChange,
       t
@@ -66,11 +72,15 @@ const TaskMetrics = defineComponent({
           >
             {{
               header: () => (
-                <NSpace justify="space-between" align="center" style="width: 100%">
-                  <span class="n-card-header__main">
+                <NSpace
+                  justify='space-between'
+                  align='center'
+                  style='width: 100%'
+                >
+                  <span class='n-card-header__main'>
                     {this.t('project.metrics.metrics_title')}
                   </span>
-                  <NSpace align="center">
+                  <NSpace align='center'>
                     <NSelect
                       value={this.variables.selectedTimeOption}
                       options={this.variables.timeOptions}
@@ -79,20 +89,20 @@ const TaskMetrics = defineComponent({
                     />
                     {this.variables.showDatePicker && (
                       <NDatePicker
-                        type="datetimerange"
+                        type='datetimerange'
                         value={this.variables.dateRange}
                         onUpdateValue={this.handleDateRangeChange}
                         clearable
                         defaultTime={['00:00:00', '23:59:59']}
-                        valueFormat="timestamp"
+                        valueFormat='timestamp'
                         actions={['clear', 'confirm']}
                         style={{ width: '320px' }}
                         placeholder={[
                           this.t('project.metrics.start_time'),
                           this.t('project.metrics.end_time')
                         ]}
-                        placement="bottom-end"
-                        size="small"
+                        placement='bottom-end'
+                        size='small'
                         to={false}
                       />
                     )}
@@ -112,7 +122,9 @@ const TaskMetrics = defineComponent({
                   <NGi>
                     <NCard>
                       <div
-                        ref={(el) => (this.variables.writeRowCountChartRef = el)}
+                        ref={(el) =>
+                          (this.variables.writeRowCountChartRef = el)
+                        }
                         class={styles.chart}
                       />
                     </NCard>
@@ -151,4 +163,4 @@ const TaskMetrics = defineComponent({
   }
 })
 
-export { TaskMetrics } 
+export { TaskMetrics }

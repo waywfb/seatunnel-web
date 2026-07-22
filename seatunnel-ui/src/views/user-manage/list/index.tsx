@@ -16,7 +16,15 @@
  */
 
 import { defineComponent, toRefs, onMounted, computed, ref } from 'vue'
-import { NSpace, NCard, NButton, NDataTable, NPagination, NInput, NIcon } from 'naive-ui'
+import {
+  NSpace,
+  NCard,
+  NButton,
+  NDataTable,
+  NPagination,
+  NInput,
+  NIcon
+} from 'naive-ui'
 import { SearchOutlined } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
 import { useTable } from './use-table'

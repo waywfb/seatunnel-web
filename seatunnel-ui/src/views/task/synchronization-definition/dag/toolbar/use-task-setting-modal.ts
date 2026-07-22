@@ -99,11 +99,11 @@ export function useTaskSettingModal(ctx: SetupContext<'cancelModal'[]>) {
             return f
           })
         : res.forms.map((item: any) => {
-          if(item.field === "job.mode") {
-            item.defaultValue = ''
-          }
-          return item
-        })
+            if (item.field === 'job.mode') {
+              item.defaultValue = ''
+            }
+            return item
+          })
       state.formName = res.name
       state.formLocales = res.locales || {}
       Object.assign(state.model, useFormField(forms))

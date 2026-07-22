@@ -27,10 +27,17 @@ const Header = defineComponent({
     return { route, router }
   },
   render() {
-    const breadcrumbItems = this.route.meta?.breadcrumb as Array<{ label: string; path?: string }> || []
+    const breadcrumbItems =
+      (this.route.meta?.breadcrumb as Array<{
+        label: string
+        path?: string
+      }>) || []
 
     return (
-      <div class='h-14 flex items-center justify-between px-6 border-b border-gray-100 bg-white' style='width: 100%;'>
+      <div
+        class='h-14 flex items-center justify-between px-6 border-b border-gray-100 bg-white'
+        style='width: 100%;'
+      >
         <NBreadcrumb>
           <NBreadcrumbItem onClick={() => this.router.push('/')}>
             首页

@@ -63,21 +63,21 @@ export type InputPlugin = {
 export type NodeInfo = { [key: string]: any }
 
 export interface TableOption {
-  label: string;
-  value: string;
+  label: string
+  value: string
 }
 
 export interface State {
-  model: any;
-  rules: any;
-  loading: boolean;
-  tableLoading: boolean;
-  databaseLoading: boolean;
-  datasourceLoading: boolean;
-  formStructure: any[];
-  formName: string;
-  formLocales: any;
-  datasourceOptions: SelectOption[];
-  databaseOptions: SelectOption[];
-  tableOptions: TableOption[];
+  model: any
+  rules: any
+  loading: boolean
+  tableLoading: boolean
+  databaseLoading: boolean
+  datasourceLoading: boolean
+  formStructure: any[]
+  formName: string
+  formLocales: any
+  datasourceOptions: SelectOption[]
+  databaseOptions: SelectOption[]
+  tableOptions: TableOption[]
 }

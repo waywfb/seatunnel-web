@@ -17,12 +17,7 @@
 
 import { defineComponent, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import {
-  NDrawer,
-  NDrawerContent,
-  NSpace,
-  NButton
-} from 'naive-ui'
+import { NDrawer, NDrawerContent, NSpace, NButton } from 'naive-ui'
 import { useNodeSettingModal } from './use-node-setting'
 import NodeModeModal from './node-model'
 import ConfigurationForm from './configuration-form'
@@ -61,7 +56,8 @@ const NodeSetting = defineComponent({
     const refreshStandardTableFields = async () => {
       await nextTick()
       if (configurationFormRef.value?.getStandardTableFields) {
-        standardTableFields.value = configurationFormRef.value.getStandardTableFields()
+        standardTableFields.value =
+          configurationFormRef.value.getStandardTableFields()
       }
     }
 
@@ -96,9 +92,17 @@ const NodeSetting = defineComponent({
                     nodeType={props.nodeInfo.type}
                     nodeId={props.nodeInfo.pluginId}
                     transformType={props.nodeInfo.connectorType}
-                    datasourceName={props.nodeInfo.datasourceName || props.nodeInfo.connectorType || ''}
-                    predecessorDatasourceName={props.nodeInfo.predecessorDatasourceName || ''}
-                    predecessorTableName={props.nodeInfo.predecessorTableName || ''}
+                    datasourceName={
+                      props.nodeInfo.datasourceName ||
+                      props.nodeInfo.connectorType ||
+                      ''
+                    }
+                    predecessorDatasourceName={
+                      props.nodeInfo.predecessorDatasourceName || ''
+                    }
+                    predecessorTableName={
+                      props.nodeInfo.predecessorTableName || ''
+                    }
                     ref={configurationFormRef}
                     onTableNameChange={handleChangeTable}
                     onSmartParseConfirm={handleSmartParseConfirm}

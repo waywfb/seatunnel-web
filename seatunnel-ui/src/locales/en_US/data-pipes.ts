@@ -38,7 +38,8 @@ export default {
   key: 'Key',
   value: 'Value',
   name_tips: 'Required field, digits, letters, 100 characters',
-  data_pipes_delete_tips: 'Are you sure to delete the data pipeline? This action cannot be undone.',
+  data_pipes_delete_tips:
+    'Are you sure to delete the data pipeline? This action cannot be undone.',
   data_pipes_publish_tips: 'Are you sure to publish the data pipeline?',
   model_validate_tips: 'Required field'
 }

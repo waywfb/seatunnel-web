@@ -30,8 +30,14 @@ const SynchronizationInstance = defineComponent({
     const syncTaskType = ref((route.query.syncTaskType as string) || 'BATCH')
 
     const tabs = [
-      { name: 'BATCH', label: t('project.synchronization_instance.offline_sync') },
-      { name: 'STREAMING', label: t('project.synchronization_instance.real_time_sync') }
+      {
+        name: 'BATCH',
+        label: t('project.synchronization_instance.offline_sync')
+      },
+      {
+        name: 'STREAMING',
+        label: t('project.synchronization_instance.real_time_sync')
+      }
     ]
 
     return () => (
@@ -40,7 +46,7 @@ const SynchronizationInstance = defineComponent({
           tabs: () => (
             <STabs
               value={syncTaskType.value}
-              onUpdate:value={(val: string) => syncTaskType.value = val}
+              onUpdate:value={(val: string) => (syncTaskType.value = val)}
               tabs={tabs}
             >
               {{

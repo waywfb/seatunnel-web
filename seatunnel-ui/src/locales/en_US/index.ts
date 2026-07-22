@@ -52,7 +52,8 @@ export default {
   transforms,
   data_standard,
   dag: {
-    nodeConfigHint: 'Double click to configure. After configure, Connect each node ends to another.'
+    nodeConfigHint:
+      'Double click to configure. After configure, Connect each node ends to another.'
   },
   cyclic: 'Cyclic',
   change_of_state: 'Change of State',

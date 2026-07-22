@@ -99,9 +99,12 @@ const DagCanvas = defineComponent({
               const sourceData = sourceNode?.getData()
               fields = sourceData.selectTableFields?.tableFields || []
               // datasourceName 不持久化，用 connectorType 兜底；connectorType 在保存时持久化
-              predecessorDatasourceName = sourceData?.connectorType || sourceData?.datasourceName || ''
+              predecessorDatasourceName =
+                sourceData?.connectorType || sourceData?.datasourceName || ''
               const tables = sourceData?.tableOption?.tables
-              predecessorTableName = Array.isArray(tables) ? (tables[0] || '') : (tables || '')
+              predecessorTableName = Array.isArray(tables)
+                ? tables[0] || ''
+                : tables || ''
             }
             state.nodeInfo = {
               ...cell.getData(),
@@ -109,7 +112,10 @@ const DagCanvas = defineComponent({
               sourceFields: fields,
               predecessorDatasourceName,
               predecessorTableName,
-              predecessorsNodeId: (graph.value?.getPredecessors(cell) as Cell[]).length > 0 ? graph.value?.getPredecessors(cell)[0].id : ''
+              predecessorsNodeId:
+                (graph.value?.getPredecessors(cell) as Cell[]).length > 0
+                  ? graph.value?.getPredecessors(cell)[0].id
+                  : ''
             }
             currentNodeId = cell.id
             state.show = true
@@ -126,7 +132,10 @@ const DagCanvas = defineComponent({
       state.show = false
       const node = graph.value?.getCellById(currentNodeId)
       // auto-show database type for sink nodes
-      if (values.type?.toLowerCase() === 'sink' && (values as any).datasourceName) {
+      if (
+        values.type?.toLowerCase() === 'sink' &&
+        (values as any).datasourceName
+      ) {
         values.name = getDatasourceDisplayName((values as any).datasourceName)
       }
       node?.replaceData({

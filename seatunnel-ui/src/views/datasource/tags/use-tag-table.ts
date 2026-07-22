@@ -12,15 +12,15 @@ export function useTagTable(datasourceId: () => string | null) {
     const q = searchQuery.value.toLowerCase()
     if (!q) return tagList.value
     return tagList.value.filter(
-      t =>
+      (t) =>
         (t.tagName || '').toLowerCase().includes(q) ||
         (t.tagAddress || '').toLowerCase().includes(q) ||
-        (t.nativeId || '').toLowerCase().includes(q),
+        (t.nativeId || '').toLowerCase().includes(q)
     )
   })
 
   const totalPages = computed(() =>
-    Math.max(1, Math.ceil(filteredTagList.value.length / pageSize)),
+    Math.max(1, Math.ceil(filteredTagList.value.length / pageSize))
   )
 
   const pagedTagList = computed(() => {
@@ -54,6 +54,6 @@ export function useTagTable(datasourceId: () => string | null) {
     totalPages,
     pagedTagList,
     loadTagList,
-    handleDeleteTag,
+    handleDeleteTag
   }
 }

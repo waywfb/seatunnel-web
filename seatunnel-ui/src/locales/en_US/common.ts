@@ -33,5 +33,5 @@ export default {
   schema_placeholder: 'Please enter schema',
   schema_description: 'Data structure definition',
   encoding_placeholder: 'Please select encoding',
-  encoding_description: 'Character encoding format for file or data',
+  encoding_description: 'Character encoding format for file or data'
 }

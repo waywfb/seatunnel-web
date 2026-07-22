@@ -16,7 +16,12 @@
  */
 
 import { axios } from '@/service/service'
-import type { UserList, UserLogin, SeatunnelHeader, UserDetail } from '@/service/user/types'
+import type {
+  UserList,
+  UserLogin,
+  SeatunnelHeader,
+  UserDetail
+} from '@/service/user/types'
 
 export function userList(params: UserList): any {
   return axios({

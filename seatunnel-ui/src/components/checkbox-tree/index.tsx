@@ -132,9 +132,7 @@ const CheckboxTree = defineComponent({
                         style={{ marginTop: '10px', marginBottom: '10px' }}
                       >
                         {t('resource.auth.public_resource')}
-                        <NSwitch
-                          v-model={[globalResource.value, 'value']}
-                        />
+                        <NSwitch v-model={[globalResource.value, 'value']} />
                       </NSpace>
                     )}
                   </div>

@@ -40,10 +40,10 @@ const ErrorMessageHighlight = defineComponent({
 })
 
 const syntaxHighlight = (message: string) => {
-   return h('div', {
-       class: styles.errorMessageContainer,
-       innerHTML: message
-   });
+  return h('div', {
+    class: styles.errorMessageContainer,
+    innerHTML: message
+  })
 }
 
 export default ErrorMessageHighlight

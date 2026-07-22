@@ -1108,7 +1108,8 @@ export default {
     smart_parse_button: '智能解析',
     smart_parse_title: 'JSON 智能解析',
     smart_parse_strategy: '解析策略',
-    smart_parse_smart: '智能模式 - Object递归展开，Array保持JSON字符串，Value推断类型（推荐）',
+    smart_parse_smart:
+      '智能模式 - Object递归展开，Array保持JSON字符串，Value推断类型（推荐）',
     smart_parse_flat_all: '全部展开 - 递归展开所有层级（含数组元素）',
     smart_parse_keep_json: '全部保存 JSON - 整条消息保留为单个 JSON 字符串字段',
     smart_parse_preview: '预览',

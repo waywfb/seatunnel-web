@@ -57,20 +57,19 @@ const Node = defineComponent({
       icon.value = JsonPathImg
     }
 
-
     const getBorderStyle = () => {
       if (isError) {
-        return `4px solid var(--color-error)`
+        return '4px solid var(--color-error)'
       } else if (unsaved) {
-        return `4px solid var(--color-dirty)`
+        return '4px solid var(--color-dirty)'
       } else if (type === 'source') {
-        return `4px solid var(--color-source)`
+        return '4px solid var(--color-source)'
       } else if (type === 'sink') {
-        return `4px solid var(--color-sink)`
+        return '4px solid var(--color-sink)'
       } else if (type === 'transform') {
-        return `4px solid var(--color-process)`
+        return '4px solid var(--color-process)'
       } else {
-        return `4px solid var(--color-sink)`
+        return '4px solid var(--color-sink)'
       }
     }
 
@@ -107,10 +106,16 @@ const Node = defineComponent({
         </NTooltip>
 
         {isError && (
-          <div class={styles['dag-node-status']} style={{ background: 'var(--color-error)' }} />
+          <div
+            class={styles['dag-node-status']}
+            style={{ background: 'var(--color-error)' }}
+          />
         )}
         {unsaved && !isError && (
-          <div class={styles['dag-node-status']} style={{ background: 'var(--color-dirty)' }} />
+          <div
+            class={styles['dag-node-status']}
+            style={{ background: 'var(--color-dirty)' }}
+          />
         )}
       </div>
     )

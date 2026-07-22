@@ -16,14 +16,21 @@ export default defineComponent({
     const router = useRouter()
 
     const datasources = ref<any[]>([])
-    const selectedId = ref(route.query.datasourceId as string || '')
+    const selectedId = ref((route.query.datasourceId as string) || '')
     const loadingList = ref(false)
     const loadDatasources = async () => {
       loadingList.value = true
       try {
-        const res = await datasourceList({ pageNo: 1, pageSize: 999, searchVal: '', pluginName: '' })
+        const res = await datasourceList({
+          pageNo: 1,
+          pageSize: 999,
+          searchVal: '',
+          pluginName: ''
+        })
         const all = res?.data || []
-        datasources.value = all.filter((d: any) => PLC_TYPES.includes(d.pluginName))
+        datasources.value = all.filter((d: any) =>
+          PLC_TYPES.includes(d.pluginName)
+        )
         if (!selectedId.value && datasources.value.length > 0) {
           selectedId.value = datasources.value[0].id
         }
@@ -54,17 +61,45 @@ export default defineComponent({
       }))
     )
 
-    onMounted(() => { loadDatasources() })
+    onMounted(() => {
+      loadDatasources()
+    })
 
     return () => (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          height: '100%'
+        }}
+      >
         {/* Page title with action button */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1e293b', margin: 0 }}>
+            <h2
+              style={{
+                fontSize: '20px',
+                fontWeight: 600,
+                color: '#1e293b',
+                margin: 0
+              }}
+            >
               {t('datasource.tag_manage')}
             </h2>
-            <p style={{ fontSize: '14px', color: '#64748b', margin: '4px 0 0 0' }}>
+            <p
+              style={{
+                fontSize: '14px',
+                color: '#64748b',
+                margin: '4px 0 0 0'
+              }}
+            >
               按系统/设备的实际层级组织测点，和现场台账结构保持一致
             </p>
           </div>
@@ -87,12 +122,23 @@ export default defineComponent({
               pluginName={selectedDs.value.pluginName}
             />
           ) : !loadingList.value ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#94a3b8', fontSize: '14px' }}>
-              {datasources.value.length === 0 ? '暂无 PLC 数据源' : '请选择采集网关'}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '200px',
+                color: '#94a3b8',
+                fontSize: '14px'
+              }}
+            >
+              {datasources.value.length === 0
+                ? '暂无 PLC 数据源'
+                : '请选择采集网关'}
             </div>
           ) : null}
         </div>
       </div>
     )
-  },
+  }
 })

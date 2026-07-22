@@ -70,12 +70,20 @@ export function useRunningInstance() {
         key: 'pipelineId',
         render: (row: any) => {
           if (row.pipelineId === undefined || row.pipelineId === null) return ''
-          return h(NTag, {
-            size: 'tiny',
-            color: { textColor: '#555', borderColor: '#d0d0d0', color: '#f5f5f5' },
-            bordered: false,
-            round: false
-          }, { default: () => `Pipeline #${row.pipelineId}` })
+          return h(
+            NTag,
+            {
+              size: 'tiny',
+              color: {
+                textColor: '#555',
+                borderColor: '#d0d0d0',
+                color: '#f5f5f5'
+              },
+              bordered: false,
+              round: false
+            },
+            { default: () => `Pipeline #${row.pipelineId}` }
+          )
         }
       },
       {
@@ -84,13 +92,25 @@ export function useRunningInstance() {
         render: (row: any) => {
           if (!row.sourceTableNames) return ''
           const labels = row.sourceTableNames.split(',').filter(Boolean)
-          return h('span', { style: { display: 'inline-flex', gap: '4px', flexWrap: 'wrap' } },
-            labels.map((l: string) => h(NTag, {
-              size: 'tiny',
-              color: { textColor: '#6172a0', borderColor: '#d2d9ed', color: '#eef1f8' },
-              bordered: false,
-              round: false
-            }, { default: () => formatPipelineName(l.trim()) }))
+          return h(
+            'span',
+            { style: { display: 'inline-flex', gap: '4px', flexWrap: 'wrap' } },
+            labels.map((l: string) =>
+              h(
+                NTag,
+                {
+                  size: 'tiny',
+                  color: {
+                    textColor: '#6172a0',
+                    borderColor: '#d2d9ed',
+                    color: '#eef1f8'
+                  },
+                  bordered: false,
+                  round: false
+                },
+                { default: () => formatPipelineName(l.trim()) }
+              )
+            )
           )
         }
       },
@@ -113,13 +133,25 @@ export function useRunningInstance() {
         render: (row: any) => {
           if (!row.sinkTableNames) return ''
           const labels = row.sinkTableNames.split(',').filter(Boolean)
-          return h('span', { style: { display: 'inline-flex', gap: '4px', flexWrap: 'wrap' } },
-            labels.map((l: string) => h(NTag, {
-              size: 'tiny',
-              color: { textColor: '#6172a0', borderColor: '#d2d9ed', color: '#eef1f8' },
-              bordered: false,
-              round: false
-            }, { default: () => formatPipelineName(l.trim()) }))
+          return h(
+            'span',
+            { style: { display: 'inline-flex', gap: '4px', flexWrap: 'wrap' } },
+            labels.map((l: string) =>
+              h(
+                NTag,
+                {
+                  size: 'tiny',
+                  color: {
+                    textColor: '#6172a0',
+                    borderColor: '#d2d9ed',
+                    color: '#eef1f8'
+                  },
+                  bordered: false,
+                  round: false
+                },
+                { default: () => formatPipelineName(l.trim()) }
+              )
+            )
           )
         }
       },

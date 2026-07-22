@@ -24,15 +24,11 @@ export default defineComponent({
 
         {/* Tabs slot */}
         {slots.tabs && (
-          <div style={{ marginBottom: '20px' }}>
-            {slots.tabs()}
-          </div>
+          <div style={{ marginBottom: '20px' }}>{slots.tabs()}</div>
         )}
 
         {/* Content slot */}
-        <div style={{ flex: 1, overflow: 'auto' }}>
-          {slots.default?.()}
-        </div>
+        <div style={{ flex: 1, overflow: 'auto' }}>{slots.default?.()}</div>
       </div>
     )
   }

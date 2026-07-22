@@ -52,7 +52,10 @@ function loadHistory(): string[] {
 
 function saveHistory(history: string[]) {
   try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-MAX_HISTORY)))
+    localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify(history.slice(-MAX_HISTORY))
+    )
   } catch {}
 }
 
@@ -65,7 +68,8 @@ const AiChat = defineComponent({
     const messages = ref<ChatMessage[]>([
       {
         role: 'assistant',
-        content: '你好！我是 SeaTunnel Web 智能助手。你可以告诉我你想连接什么数据源，例如："帮我接 MQTT"，我会帮你完成配置。'
+        content:
+          '你好！我是 SeaTunnel Web 智能助手。你可以告诉我你想连接什么数据源，例如："帮我接 MQTT"，我会帮你完成配置。'
       }
     ])
     const inputText = ref('')
@@ -105,8 +109,11 @@ const AiChat = defineComponent({
       currentAssistantMsg.value = assistantMsg
 
       const chatMessages = messages.value
-        .filter(m => m.role !== 'system')
-        .map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+        .filter((m) => m.role !== 'system')
+        .map((m) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content
+        }))
 
       await actionStream(
         chatMessages,
@@ -155,9 +162,10 @@ const AiChat = defineComponent({
       if (e.key === 'ArrowUp') {
         e.preventDefault()
         if (history.value.length === 0) return
-        const newIndex = historyIndex.value === -1
-          ? history.value.length - 1
-          : Math.max(0, historyIndex.value - 1)
+        const newIndex =
+          historyIndex.value === -1
+            ? history.value.length - 1
+            : Math.max(0, historyIndex.value - 1)
         historyIndex.value = newIndex
         inputText.value = history.value[newIndex]
         return
@@ -217,17 +225,30 @@ const AiChat = defineComponent({
   },
   render() {
     return (
-      <div class="h-full flex flex-col overflow-hidden">
+      <div class='h-full flex flex-col overflow-hidden'>
         <NCard
           title={this.t('menu.ai_assistant') || 'AI 助手'}
-          style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-          contentStyle={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', padding: '0' }}
+          style={{
+            flex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+          contentStyle={{
+            flex: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '0'
+          }}
           bordered={false}
         >
           <NScrollbar
-            ref={(el: any) => { scrollbarEl = el }}
+            ref={(el: any) => {
+              scrollbarEl = el
+            }}
             style={{ flex: 1, padding: '16px 20px' }}
-            trigger="none"
+            trigger='none'
           >
             <div style={{ maxWidth: 720, margin: '0 auto' }}>
               {this.messages.map((msg, index) => (
@@ -236,14 +257,18 @@ const AiChat = defineComponent({
                   style={{
                     display: 'flex',
                     marginBottom: '16px',
-                    justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
+                    justifyContent:
+                      msg.role === 'user' ? 'flex-end' : 'flex-start'
                   }}
                 >
                   <div
                     style={{
                       maxWidth: '80%',
                       padding: '10px 16px',
-                      borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                      borderRadius:
+                        msg.role === 'user'
+                          ? '16px 16px 4px 16px'
+                          : '16px 16px 16px 4px',
                       background: msg.role === 'user' ? '#2080f0' : '#f5f5f5',
                       color: msg.role === 'user' ? '#fff' : '#333',
                       fontSize: '14px',
@@ -252,10 +277,22 @@ const AiChat = defineComponent({
                     }}
                   >
                     {msg.loading && !msg.content ? (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ animation: 'pulse 1.2s infinite' }}>●</span>
-                        <span style={{ animation: 'pulse 1.2s infinite 0.2s' }}>●</span>
-                        <span style={{ animation: 'pulse 1.2s infinite 0.4s' }}>●</span>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <span style={{ animation: 'pulse 1.2s infinite' }}>
+                          ●
+                        </span>
+                        <span style={{ animation: 'pulse 1.2s infinite 0.2s' }}>
+                          ●
+                        </span>
+                        <span style={{ animation: 'pulse 1.2s infinite 0.4s' }}>
+                          ●
+                        </span>
                       </span>
                     ) : msg.role === 'assistant' ? (
                       <span innerHTML={this.renderMarkdown(msg.content)} />
@@ -263,7 +300,7 @@ const AiChat = defineComponent({
                       <span>{msg.content}</span>
                     )}
                     {msg.error && (
-                      <NTag type="error" size="small" style={{ marginTop: 8 }}>
+                      <NTag type='error' size='small' style={{ marginTop: 8 }}>
                         连接失败
                       </NTag>
                     )}
@@ -272,7 +309,7 @@ const AiChat = defineComponent({
               ))}
               {this.loading && (
                 <div style={{ textAlign: 'center', padding: '8px' }}>
-                  <NSpin size="small" />
+                  <NSpin size='small' />
                 </div>
               )}
             </div>
@@ -285,23 +322,34 @@ const AiChat = defineComponent({
               background: '#fff'
             }}
           >
-            <div style={{ display: 'flex', gap: '8px', maxWidth: 720, margin: '0 auto' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: '8px',
+                maxWidth: 720,
+                margin: '0 auto'
+              }}
+            >
               <NInput
                 value={this.inputText}
                 onUpdateValue={(val: string) => (this.inputText = val)}
-                placeholder="输入消息，例如「帮我接 MQTT」..."
+                placeholder='输入消息，例如「帮我接 MQTT」...'
                 onKeydown={this.handleKeydown}
                 disabled={this.loading}
                 autosize={{ minRows: 1, maxRows: 4 }}
-                type="textarea"
+                type='textarea'
                 style={{ flex: 1 }}
               />
               {this.loading ? (
-                <NButton onClick={this.stopGeneration} type="warning">
+                <NButton onClick={this.stopGeneration} type='warning'>
                   停止
                 </NButton>
               ) : (
-                <NButton onClick={this.sendMessage} type="primary" disabled={!this.inputText.trim()}>
+                <NButton
+                  onClick={this.sendMessage}
+                  type='primary'
+                  disabled={!this.inputText.trim()}
+                >
                   发送
                 </NButton>
               )}

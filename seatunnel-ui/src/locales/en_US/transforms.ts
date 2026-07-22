@@ -70,10 +70,12 @@ export default {
     remote_verification_enabled_value: 'Remote Verification',
     control_encoding_value: 'File Encoding',
     control_encoding_placeholder: 'Please select file encoding',
-    control_encoding_description: 'The encoding of the file, e.g. UTF-8, ISO-8859-1....',
+    control_encoding_description:
+      'The encoding of the file, e.g. UTF-8, ISO-8859-1....',
     encoding_value: 'Encoding',
     encoding_placeholder: 'Please select encoding',
-    encoding_description: 'The encoding of the file, e.g. UTF-8, ISO-8859-1....',
+    encoding_description:
+      'The encoding of the file, e.g. UTF-8, ISO-8859-1....',
     row_delimiter_value: 'Row Delimiter',
     row_delimiter_placeholder: 'Please enter row delimiter',
     row_delimiter_description: 'The row delimiter of the file',

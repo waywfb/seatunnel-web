@@ -148,23 +148,39 @@ export function useTable() {
 
           const pipelineNodes: string[] = []
           if (source) pipelineNodes.push(getDatasourceDisplayName(source))
-          else pipelineNodes.push(t('project.synchronization_definition.unconfigured'))
+          else
+            pipelineNodes.push(
+              t('project.synchronization_definition.unconfigured')
+            )
 
           if (sink) pipelineNodes.push(getDatasourceDisplayName(sink))
-          else pipelineNodes.push(t('project.synchronization_definition.unconfigured'))
+          else
+            pipelineNodes.push(
+              t('project.synchronization_definition.unconfigured')
+            )
 
           const bothEmpty = !source && !sink
           const pipelineContent = bothEmpty
             ? h(
                 'span',
-                { style: { color: '#999', fontStyle: 'italic', fontSize: '12px' } },
+                {
+                  style: {
+                    color: '#999',
+                    fontStyle: 'italic',
+                    fontSize: '12px'
+                  }
+                },
                 t('project.synchronization_definition.unconfigured_pipeline')
               )
             : h(
                 NTag,
                 {
                   size: 'tiny',
-                  color: { textColor: '#6b7280', borderColor: '#e5e7eb', color: '#f3f4f6' },
+                  color: {
+                    textColor: '#6b7280',
+                    borderColor: '#e5e7eb',
+                    color: '#f3f4f6'
+                  },
                   bordered: false,
                   round: false,
                   style: { fontSize: '11px', padding: '0 6px' }
@@ -172,22 +188,14 @@ export function useTable() {
                 { default: () => pipelineNodes.join(' → ') }
               )
 
-          return h(
-            'div',
-            { style: { lineHeight: '1.7' } },
-            [
-              h(
-                'div',
-                { style: { fontSize: '14px', color: '#1a1a1a' } },
-                row.name || '-'
-              ),
-              h(
-                'div',
-                { style: { marginTop: '2px' } },
-                pipelineContent
-              )
-            ]
-          )
+          return h('div', { style: { lineHeight: '1.7' } }, [
+            h(
+              'div',
+              { style: { fontSize: '14px', color: '#1a1a1a' } },
+              row.name || '-'
+            ),
+            h('div', { style: { marginTop: '2px' } }, pipelineContent)
+          ])
         }
       },
       {
@@ -209,8 +217,16 @@ export function useTable() {
               size: 'small',
               color:
                 row.jobMode === 'STREAMING'
-                  ? { textColor: '#7c3aed', borderColor: '#ddd6fe', color: '#f5f3ff' }
-                  : { textColor: '#1a5c8a', borderColor: '#b8dff5', color: '#e8f4fd' },
+                  ? {
+                      textColor: '#7c3aed',
+                      borderColor: '#ddd6fe',
+                      color: '#f5f3ff'
+                    }
+                  : {
+                      textColor: '#1a5c8a',
+                      borderColor: '#b8dff5',
+                      color: '#e8f4fd'
+                    },
               bordered: false,
               round: false
             },
@@ -234,7 +250,11 @@ export function useTable() {
             NTag,
             {
               size: 'small',
-              color: { textColor: '#555', borderColor: '#d0d0d0', color: '#f0f0f0' },
+              color: {
+                textColor: '#555',
+                borderColor: '#d0d0d0',
+                color: '#f0f0f0'
+              },
               bordered: false,
               round: false
             },
@@ -253,48 +273,36 @@ export function useTable() {
         key: 'creatorInfo',
         width: 180,
         render: (row: any) =>
-          h(
-            'div',
-            { style: { lineHeight: '1.6' } },
-            [
-              h(
-                'div',
-                { style: { fontSize: '13px', fontWeight: 500, color: '#333' } },
-                row.createUserName || '-'
-              ),
-              h(
-                'div',
-                { style: { fontSize: '12px', color: '#999' } },
-                row.createTime
-                  ? h(TimeAgo, { date: row.createTime })
-                  : '-'
-              )
-            ]
-          )
+          h('div', { style: { lineHeight: '1.6' } }, [
+            h(
+              'div',
+              { style: { fontSize: '13px', fontWeight: 500, color: '#333' } },
+              row.createUserName || '-'
+            ),
+            h(
+              'div',
+              { style: { fontSize: '12px', color: '#999' } },
+              row.createTime ? h(TimeAgo, { date: row.createTime }) : '-'
+            )
+          ])
       },
       {
         title: t('project.synchronization_definition.update_info'),
         key: 'updaterInfo',
         width: 180,
         render: (row: any) =>
-          h(
-            'div',
-            { style: { lineHeight: '1.6' } },
-            [
-              h(
-                'div',
-                { style: { fontSize: '13px', fontWeight: 500, color: '#333' } },
-                row.updateUserName || '-'
-              ),
-              h(
-                'div',
-                { style: { fontSize: '12px', color: '#999' } },
-                row.updateTime
-                  ? h(TimeAgo, { date: row.updateTime })
-                  : '-'
-              )
-            ]
-          )
+          h('div', { style: { lineHeight: '1.6' } }, [
+            h(
+              'div',
+              { style: { fontSize: '13px', fontWeight: 500, color: '#333' } },
+              row.updateUserName || '-'
+            ),
+            h(
+              'div',
+              { style: { fontSize: '12px', color: '#999' } },
+              row.updateTime ? h(TimeAgo, { date: row.updateTime }) : '-'
+            )
+          ])
       },
       useTableOperation({
         title: t('project.synchronization_definition.operation'),

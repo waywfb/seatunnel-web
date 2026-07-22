@@ -16,13 +16,7 @@
  */
 
 import { defineComponent } from 'vue'
-import {
-  NSpace,
-  NDataTable,
-  NGrid,
-  NGridItem,
-  NButton
-} from 'naive-ui'
+import { NSpace, NDataTable, NGrid, NGridItem, NButton } from 'naive-ui'
 import { useNodeModel } from './use-model'
 import { useI18n } from 'vue-i18n'
 import styles from './node-mode-model.module.scss'
@@ -61,8 +55,20 @@ const NodeModeModal = defineComponent({
   },
   setup(props, { expose }) {
     const { t } = useI18n()
-    const { state, onInit, onSwitchTable, onUpdatedCheckedRowKeys, onToggleViewMode } =
-      useNodeModel(props.type, props.transformType, props.predecessorsNodeId, props.schemaError, props.currentNodeId, props.refForm)
+    const {
+      state,
+      onInit,
+      onSwitchTable,
+      onUpdatedCheckedRowKeys,
+      onToggleViewMode
+    } = useNodeModel(
+      props.type,
+      props.transformType,
+      props.predecessorsNodeId,
+      props.schemaError,
+      props.currentNodeId,
+      props.refForm
+    )
 
     const getStandardFields = () => {
       const fromProps = (props.standardTableFields as any[]) || []
@@ -114,10 +120,21 @@ const NodeModeModal = defineComponent({
     expose({
       getOutputSchema: () => {
         const merged = getMergedInputData()
-        const allTableData = state.allTableData.length > 0
-          ? state.allTableData
-          : merged.length > 0
-            ? [{ database: '', tableInfos: [{ tableName: state.currentTable || 'default', fields: merged }] }]
+        const allTableData =
+          state.allTableData.length > 0
+            ? state.allTableData
+            : merged.length > 0
+            ? [
+                {
+                  database: '',
+                  tableInfos: [
+                    {
+                      tableName: state.currentTable || 'default',
+                      fields: merged
+                    }
+                  ]
+                }
+              ]
             : []
         return {
           allTableData,
@@ -142,13 +159,18 @@ const NodeModeModal = defineComponent({
       const hasStandardFields = standardFields.length > 0
       const displayInputData = getMergedInputData()
 
-      const groupNameCol = { title: '分组', key: 'groupName', width: 100, ellipsis: { tooltip: true } }
+      const groupNameCol = {
+        title: '分组',
+        key: 'groupName',
+        width: 100,
+        ellipsis: { tooltip: true }
+      }
       const inputCols = hasStandardFields
-        ? [...state.inputColumns, groupNameCol] as any[]
+        ? ([...state.inputColumns, groupNameCol] as any[])
         : state.inputColumns
 
       const mergedCols = hasStandardFields
-        ? [...state.mergedColumns, groupNameCol] as any[]
+        ? ([...state.mergedColumns, groupNameCol] as any[])
         : state.mergedColumns
 
       return (
@@ -158,7 +180,9 @@ const NodeModeModal = defineComponent({
               <NGridItem span={props.type === 'sink' ? 24 : 12}>
                 <NSpace vertical>
                   <h3>
-                    {t('project.synchronization_definition.input_table_structure')}
+                    {t(
+                      'project.synchronization_definition.input_table_structure'
+                    )}
                   </h3>
                   <NDataTable
                     size='small'
@@ -176,7 +200,9 @@ const NodeModeModal = defineComponent({
                 <NGridItem span={12}>
                   <NSpace vertical>
                     <h3>
-                      {t('project.synchronization_definition.output_table_structure')}
+                      {t(
+                        'project.synchronization_definition.output_table_structure'
+                      )}
                     </h3>
                     <NDataTable
                       size='small'
@@ -193,7 +219,9 @@ const NodeModeModal = defineComponent({
             <NSpace vertical>
               <div class={styles['merged-header']}>
                 <h3>
-                  {t('project.synchronization_definition.input_table_structure')}
+                  {t(
+                    'project.synchronization_definition.input_table_structure'
+                  )}
                 </h3>
                 <NButton text size='tiny' onClick={onToggleViewMode}>
                   {isSplitMode
@@ -212,7 +240,11 @@ const NodeModeModal = defineComponent({
                   }
                 }}
                 rowKey={(row) => row.name}
-                checkedRowKeys={props.type === 'source' || props.type === 'sink' ? state.selectedKeys : undefined}
+                checkedRowKeys={
+                  props.type === 'source' || props.type === 'sink'
+                    ? state.selectedKeys
+                    : undefined
+                }
                 scrollX={state.mergedTableWidth}
               />
             </NSpace>

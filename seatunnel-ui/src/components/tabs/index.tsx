@@ -13,8 +13,22 @@ export default defineComponent({
   props: {
     value: { type: String, default: undefined },
     tabs: { type: Array as PropType<TabItem[]>, required: true },
-    type: { type: String as PropType<'line' | 'segment' | 'bar' | 'card' | 'border-card' | 'button-card' | 'button'>, default: 'line' },
-    size: { type: String as PropType<'small' | 'medium' | 'large'>, default: 'small' },
+    type: {
+      type: String as PropType<
+        | 'line'
+        | 'segment'
+        | 'bar'
+        | 'card'
+        | 'border-card'
+        | 'button-card'
+        | 'button'
+      >,
+      default: 'line'
+    },
+    size: {
+      type: String as PropType<'small' | 'medium' | 'large'>,
+      default: 'small'
+    },
     animated: { type: Boolean, default: false },
     contentStyle: { type: [String, Object], default: undefined }
   },
@@ -39,26 +53,27 @@ export default defineComponent({
             <NTabPane key={tab.name} name={tab.name} disabled={tab.disabled}>
               {{
                 default: () => slots[`pane:${tab.name}`]?.(),
-                tab: () => slots[`tab:${tab.name}`]?.(tab) ?? (
-                  <span>
-                    {tab.label}
-                    {tab.count != null && (
-                      <span
-                        style={{
-                          fontSize: '10px',
-                          background: '#e2e8f0',
-                          color: '#475569',
-                          padding: '1px 6px',
-                          borderRadius: '10px',
-                          fontWeight: 600,
-                          marginLeft: '4px'
-                        }}
-                      >
-                        {tab.count}
-                      </span>
-                    )}
-                  </span>
-                )
+                tab: () =>
+                  slots[`tab:${tab.name}`]?.(tab) ?? (
+                    <span>
+                      {tab.label}
+                      {tab.count != null && (
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            background: '#e2e8f0',
+                            color: '#475569',
+                            padding: '1px 6px',
+                            borderRadius: '10px',
+                            fontWeight: 600,
+                            marginLeft: '4px'
+                          }}
+                        >
+                          {tab.count}
+                        </span>
+                      )}
+                    </span>
+                  )
               }}
             </NTabPane>
           ))}

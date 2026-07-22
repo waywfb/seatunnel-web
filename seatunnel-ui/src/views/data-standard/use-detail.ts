@@ -38,7 +38,11 @@ import type {
   FormatForm,
   MappingForm
 } from './types'
-import { DEFAULT_FIELD_FORM, DEFAULT_FORMAT_FORM, DEFAULT_MAPPING_FORM } from './types'
+import {
+  DEFAULT_FIELD_FORM,
+  DEFAULT_FORMAT_FORM,
+  DEFAULT_MAPPING_FORM
+} from './types'
 
 export function useDetail() {
   const route = useRoute()
@@ -141,13 +145,19 @@ export function useDetail() {
       if (isEdit.value && id.value) {
         await updateDataStandard(id.value, form)
         // Persist groups to localStorage (backend doesn't store them)
-        localStorage.setItem(`ds_groups_${id.value}`, JSON.stringify(form.groups || []))
+        localStorage.setItem(
+          `ds_groups_${id.value}`,
+          JSON.stringify(form.groups || [])
+        )
         message.success('更新成功')
       } else {
         const result = await createDataStandard(form)
         const newId = (result as any)?.id || (result as any)?.data?.id
         if (newId && form.groups?.length) {
-          localStorage.setItem(`ds_groups_${newId}`, JSON.stringify(form.groups))
+          localStorage.setItem(
+            `ds_groups_${newId}`,
+            JSON.stringify(form.groups)
+          )
         }
         message.success('创建成功')
         router.push({ name: 'data-standard-list' })

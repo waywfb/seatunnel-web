@@ -90,7 +90,10 @@ export function getDynamicFormItems(pluginName: string): any {
   })
 }
 
-export function getDatasourceTablesById(datasourceId: string, database: string): any {
+export function getDatasourceTablesById(
+  datasourceId: string,
+  database: string
+): any {
   return axios({
     url: `/data-quality/tables/${datasourceId}`,
     method: 'get',
@@ -176,7 +179,12 @@ export function datasourceDelete(id: string): any {
 
 const PLC_BASE_URL = '/datasource'
 
-export function discoverTags(data: { connectionId: string; parentNodeId?: string; limit?: number; offset?: number }): any {
+export function discoverTags(data: {
+  connectionId: string
+  parentNodeId?: string
+  limit?: number
+  offset?: number
+}): any {
   return axios({
     url: PLC_BASE_URL + '/tags/discover',
     method: 'post',
@@ -238,7 +246,16 @@ export function getGroupTree(datasourceId: string): any {
   })
 }
 
-export function createGroup(datasourceId: string, data: { parentPath: string; groupName: string; description?: string; sortOrder?: number; enabled?: boolean }): any {
+export function createGroup(
+  datasourceId: string,
+  data: {
+    parentPath: string
+    groupName: string
+    description?: string
+    sortOrder?: number
+    enabled?: boolean
+  }
+): any {
   return axios({
     url: PLC_BASE_URL + '/groups',
     method: 'post',

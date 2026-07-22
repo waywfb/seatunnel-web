@@ -19,7 +19,7 @@ import { h, ref, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EditOutlined } from '@vicons/antd'
 import { NButton, NSpace } from 'naive-ui'
-import {useTableOperation} from "@/hooks";
+import { useTableOperation } from '@/hooks'
 import { datasourceIconSvg } from '@/views/datasource/datasource-icons'
 //import type { TableColumns, VirtualTableRecord } from '../types'
 
@@ -53,17 +53,25 @@ export function useColumns(onCallback: Function) {
         key: 'pluginName',
         render: (row: any) => {
           const svg = datasourceIconSvg(row.pluginName)
-          return h(NSpace, { align: 'center', size: [8, 0] }, {
-            default: () => [
-              h('img', {
-                src: svg,
-                width: 24,
-                height: 24,
-                style: { verticalAlign: 'middle', display: 'block' }
-              }),
-              h('span', { style: { verticalAlign: 'middle' } }, row.pluginName)
-            ]
-          })
+          return h(
+            NSpace,
+            { align: 'center', size: [8, 0] },
+            {
+              default: () => [
+                h('img', {
+                  src: svg,
+                  width: 24,
+                  height: 24,
+                  style: { verticalAlign: 'middle', display: 'block' }
+                }),
+                h(
+                  'span',
+                  { style: { verticalAlign: 'middle' } },
+                  row.pluginName
+                )
+              ]
+            }
+          )
         }
       },
       {
@@ -98,7 +106,8 @@ export function useColumns(onCallback: Function) {
           {
             isDelete: true,
             text: t('datasource.delete'),
-            onPositiveClick: (rowData) => void onCallback(rowData.tableId, 'delete'),
+            onPositiveClick: (rowData) =>
+              void onCallback(rowData.tableId, 'delete'),
             negativeText: t('datasource.cancel'),
             positiveText: t('datasource.confirm'),
             popTips: t('datasource.delete_confirm')

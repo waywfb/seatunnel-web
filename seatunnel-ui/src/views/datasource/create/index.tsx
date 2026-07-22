@@ -36,7 +36,6 @@ import SourceModal from '../components/source-modal'
 import { CurlImportModal } from './curl-import-modal'
 import { datasourceIconSvg, getDatasourceIconColor } from '../datasource-icons'
 
-
 const DatasourceCreate = defineComponent({
   setup() {
     const { t } = useI18n()
@@ -76,7 +75,9 @@ const DatasourceCreate = defineComponent({
         if (database) url += `/${database}`
         if (dbType === 'mysql') {
           const tz = serverTimeZone || 'Asia/Shanghai'
-          url += `?useSSL=false&serverTimezone=${encodeURIComponent(tz)}&useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true`
+          url += `?useSSL=false&serverTimezone=${encodeURIComponent(
+            tz
+          )}&useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true`
         }
 
         state.detailForm['url'] = url
@@ -102,22 +103,34 @@ const DatasourceCreate = defineComponent({
       <NSpace vertical>
         <NCard>
           {{
-            header: () => t(
-              route.params.id
-                ? 'datasource.edit_datasource'
-                : 'datasource.create_datasource'
-            ),
-            'header-extra': () => <NSpace>
-              <NButton secondary type='primary' onClick={testConnect} loading={status.testing}>
-                {t('datasource.test_connect')}
-              </NButton>
-              <NButton secondary onClick={onClose}>
-                {t('datasource.cancel')}
-              </NButton>
-              <NButton type='success' onClick={createOrUpdate} loading={status.saving}>
-                {t('datasource.confirm')}
-              </NButton>
-            </NSpace>
+            header: () =>
+              t(
+                route.params.id
+                  ? 'datasource.edit_datasource'
+                  : 'datasource.create_datasource'
+              ),
+            'header-extra': () => (
+              <NSpace>
+                <NButton
+                  secondary
+                  type='primary'
+                  onClick={testConnect}
+                  loading={status.testing}
+                >
+                  {t('datasource.test_connect')}
+                </NButton>
+                <NButton secondary onClick={onClose}>
+                  {t('datasource.cancel')}
+                </NButton>
+                <NButton
+                  type='success'
+                  onClick={createOrUpdate}
+                  loading={status.saving}
+                >
+                  {t('datasource.confirm')}
+                </NButton>
+              </NSpace>
+            )
           }}
         </NCard>
         <NCard>
@@ -144,16 +157,25 @@ const DatasourceCreate = defineComponent({
                     <>
                       <img
                         src={datasourceIconSvg(state.detailForm.pluginName)}
-                        width="28"
-                        height="28"
+                        width='28'
+                        height='28'
                         style={{ display: 'block' }}
                       />
-                      <div style={{ fontWeight: 600, color: getDatasourceIconColor(state.detailForm.pluginName) }}>
+                      <div
+                        style={{
+                          fontWeight: 600,
+                          color: getDatasourceIconColor(
+                            state.detailForm.pluginName
+                          )
+                        }}
+                      >
                         {state.detailForm.pluginName}
                       </div>
                     </>
                   ) : (
-                    <div style={{ color: 'var(--color-text-muted)' }}>{t('datasource.choose_datasource_type')}</div>
+                    <div style={{ color: 'var(--color-text-muted)' }}>
+                      {t('datasource.choose_datasource_type')}
+                    </div>
                   )}
                   {!route.params.id && (
                     <NButton

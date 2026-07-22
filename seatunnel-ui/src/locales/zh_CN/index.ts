@@ -52,7 +52,8 @@ export default {
   transforms,
   data_standard,
   dag: {
-    nodeConfigHint: '双击节点进行配置。配置完成后，连接每个节点的端点到其他节点。'
+    nodeConfigHint:
+      '双击节点进行配置。配置完成后，连接每个节点的端点到其他节点。'
   },
   cyclic: '周期轮询',
   change_of_state: '状态变更',

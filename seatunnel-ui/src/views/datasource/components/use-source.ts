@@ -20,14 +20,22 @@ import { useI18n } from 'vue-i18n'
 import type { SelectOption } from 'naive-ui'
 import type { ResponseBasic } from '@/service/types'
 import type { DatasourceTypeList } from '@/service/data-source/types'
-import { getDatasourceIcon, getDatasourceIconColor, datasourceIconSvg } from '../datasource-icons'
+import {
+  getDatasourceIcon,
+  getDatasourceIconColor,
+  datasourceIconSvg
+} from '../datasource-icons'
 
 type Key = '1' | '2' | '3' | '4' | '5'
 type IType = {
   type: string
   label: string
   key: string
-  children: (SelectOption & { icon: string; iconColor: string; iconSvg: string })[]
+  children: (SelectOption & {
+    icon: string
+    iconColor: string
+    iconSvg: string
+  })[]
 }
 
 export const useSource = (showVirtualDataSource = false) => {

@@ -26,7 +26,7 @@ export default {
   select_workspace: '选择工作空间',
   select_workspace_tips: '请选择工作空间',
   remember_device: '记住此设备',
-sso_divider: '单点登录',
+  sso_divider: '单点登录',
   enterprise_account: '企业账号',
   saml_login: 'SAML 登录',
   // Brand & Hero

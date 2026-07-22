@@ -102,19 +102,25 @@ const VirtualTablesDetail = defineComponent({
           tabs: () => (
             <STabs
               value={activeTab.value}
-              onUpdate:value={(val: string) => activeTab.value = val}
+              onUpdate:value={(val: string) => (activeTab.value = val)}
               tabs={tabConfig.value}
             />
           ),
           default: () => (
             <>
               <div class={styles['detail-content']}>
-                <div class={styles['width-100']} v-show={activeTab.value === 'configure'}>
+                <div
+                  class={styles['width-100']}
+                  v-show={activeTab.value === 'configure'}
+                >
                   <NSpace justify='center'>
                     <StepOneForm params={state.stepOne} ref={stepOneFormRef} />
                   </NSpace>
                 </div>
-                <div class={styles['detail-step-two']} v-show={activeTab.value === 'model'}>
+                <div
+                  class={styles['detail-step-two']}
+                  v-show={activeTab.value === 'model'}
+                >
                   <StepTwoForm ref={stepTwoFormRef} />
                   <div class={styles['detail-table-header']}>
                     <NText class={styles['detail-table-title']}>
@@ -185,7 +191,9 @@ const VirtualTablesDetail = defineComponent({
                 </div>
               </div>
               <NSpace justify='end'>
-                <NButton onClick={onClose}>{t('virtual_tables.cancel')}</NButton>
+                <NButton onClick={onClose}>
+                  {t('virtual_tables.cancel')}
+                </NButton>
                 <NButton
                   onClick={createOrUpdate}
                   loading={state.saving}
@@ -195,94 +203,95 @@ const VirtualTablesDetail = defineComponent({
                 </NButton>
               </NSpace>
               <NModal
-          show={state.previewModal.show}
-          preset='card'
-          title={
-            state.previewModal.mode === 'paste'
-              ? t('virtual_tables.derive_schema_paste_title')
-              : t('virtual_tables.preview_message_title')
-          }
-          style={{ width: '640px' }}
-          loading={state.previewModal.deriving}
-          onUpdateShow={(val: boolean) => {
-            if (!val) onPreviewClose()
-          }}
-        >
-          {state.previewModal.mode === 'paste' ? (
-            <NSpace vertical>
-              <NInput
-                type='textarea'
-                rows={10}
-                placeholder={t(
-                  'virtual_tables.derive_schema_paste_placeholder'
+                show={state.previewModal.show}
+                preset='card'
+                title={
+                  state.previewModal.mode === 'paste'
+                    ? t('virtual_tables.derive_schema_paste_title')
+                    : t('virtual_tables.preview_message_title')
+                }
+                style={{ width: '640px' }}
+                loading={state.previewModal.deriving}
+                onUpdateShow={(val: boolean) => {
+                  if (!val) onPreviewClose()
+                }}
+              >
+                {state.previewModal.mode === 'paste' ? (
+                  <NSpace vertical>
+                    <NInput
+                      type='textarea'
+                      rows={10}
+                      placeholder={t(
+                        'virtual_tables.derive_schema_paste_placeholder'
+                      )}
+                      value={state.previewModal.value}
+                      onUpdateValue={(val: string) => {
+                        state.previewModal.value = val
+                      }}
+                      style={{
+                        maxHeight: '360px',
+                        overflowY: 'auto'
+                      }}
+                    />
+                    <NSpace justify='end'>
+                      <NButton
+                        type='primary'
+                        onClick={onPasteDerive}
+                        loading={state.previewModal.deriving}
+                        disabled={!state.previewModal.value}
+                      >
+                        {t('virtual_tables.derive_schema_paste_derive')}
+                      </NButton>
+                    </NSpace>
+                  </NSpace>
+                ) : (
+                  <NSpace vertical>
+                    <NText depth='3'>
+                      {t('virtual_tables.preview_message_offset', {
+                        offset: state.previewModal.offset
+                      })}
+                    </NText>
+                    <NText>
+                      <pre
+                        style={{
+                          background: 'var(--color-surface)',
+                          padding: 'var(--spacing-md)',
+                          borderRadius: 'var(--radius-sm)',
+                          overflow: 'auto',
+                          maxHeight: '320px',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-all'
+                        }}
+                      >
+                        {state.previewModal.loading
+                          ? t('virtual_tables.preview_message_loading')
+                          : state.previewModal.value ||
+                            t('virtual_tables.preview_message_empty')}
+                      </pre>
+                    </NText>
+                    <NSpace justify='end'>
+                      <NButton
+                        onClick={onPreviewFetchNext}
+                        loading={state.previewModal.loading}
+                        disabled={state.previewModal.deriving}
+                      >
+                        {t('virtual_tables.preview_fetch_next')}
+                      </NButton>
+                      <NButton
+                        type='primary'
+                        onClick={onPreviewUse}
+                        loading={state.previewModal.deriving}
+                        disabled={
+                          state.previewModal.loading ||
+                          !state.previewModal.value
+                        }
+                      >
+                        {t('virtual_tables.preview_use')}
+                      </NButton>
+                    </NSpace>
+                  </NSpace>
                 )}
-                value={state.previewModal.value}
-                onUpdateValue={(val: string) => {
-                  state.previewModal.value = val
-                }}
-                style={{
-                  maxHeight: '360px',
-                  overflowY: 'auto'
-                }}
-              />
-              <NSpace justify='end'>
-                <NButton
-                  type='primary'
-                  onClick={onPasteDerive}
-                  loading={state.previewModal.deriving}
-                  disabled={!state.previewModal.value}
-                >
-                  {t('virtual_tables.derive_schema_paste_derive')}
-                </NButton>
-              </NSpace>
-            </NSpace>
-          ) : (
-            <NSpace vertical>
-              <NText depth='3'>
-                {t('virtual_tables.preview_message_offset', {
-                  offset: state.previewModal.offset
-                })}
-              </NText>
-              <NText>
-                <pre
-                  style={{
-                    background: 'var(--color-surface)',
-                    padding: 'var(--spacing-md)',
-                    borderRadius: 'var(--radius-sm)',
-                    overflow: 'auto',
-                    maxHeight: '320px',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-all'
-                  }}
-                >
-                  {state.previewModal.loading
-                    ? t('virtual_tables.preview_message_loading')
-                    : state.previewModal.value ||
-                      t('virtual_tables.preview_message_empty')}
-                </pre>
-              </NText>
-              <NSpace justify='end'>
-                <NButton
-                  onClick={onPreviewFetchNext}
-                  loading={state.previewModal.loading}
-                  disabled={state.previewModal.deriving}
-                >
-                  {t('virtual_tables.preview_fetch_next')}
-                </NButton>
-                <NButton
-                  type='primary'
-                  onClick={onPreviewUse}
-                  loading={state.previewModal.deriving}
-                  disabled={
-                    state.previewModal.loading || !state.previewModal.value
-                  }
-                >
-                  {t('virtual_tables.preview_use')}
-                </NButton>
-              </NSpace>
-            </NSpace>
-          )}
-        </NModal>
+              </NModal>
             </>
           )
         }}

@@ -24,14 +24,14 @@ import type { ITheme } from '@/store/theme/types'
 export function useTheme() {
   const { t } = useI18n()
   const themeStore = useThemeStore()
-  
+
   const getThemes = () => [
     // { label: t('theme.dark_blue'), key: 'dark-blue' },
     { label: t('theme.light'), key: 'light', value: 'light' },
     { label: t('theme.dark'), key: 'dark', value: 'dark' }
   ]
 
-  let themeLabel = computed(() => themeStore.theme)
+  const themeLabel = computed(() => themeStore.theme)
   const themes = ref(getThemes())
   // const currentThemeLabel = ref(getThemeLabel())
 

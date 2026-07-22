@@ -82,7 +82,8 @@ const StatCard = defineComponent({
                   >
                     <path d={trendIcon()} />
                   </svg>
-                  {props.trend === 'up' ? '+' : ''}{props.trendText || ''}
+                  {props.trend === 'up' ? '+' : ''}
+                  {props.trendText || ''}
                 </span>
               )}
               {props.trendText && (

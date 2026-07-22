@@ -21,12 +21,12 @@ function buildNode(raw: RawBrowseNode, parentId: string | null): BrowseNode {
     children: [],
     loadedOnce: false,
     loading: false,
-    hasMore: false,
+    hasMore: false
   }
   nodeMap.set(nodeId, node)
 
   if (raw.children && raw.children.length > 0) {
-    node.children = raw.children.map(c => buildNode(c, nodeId).nodeId)
+    node.children = raw.children.map((c) => buildNode(c, nodeId).nodeId)
     node.loadedOnce = true
   }
 
@@ -67,7 +67,11 @@ export function useBrowseStore() {
     if (node.loadedOnce) return
     node.loading = true
     try {
-      const res = await discoverTags({ connectionId: connId.value, parentNodeId: nodeId, limit: 200 })
+      const res = await discoverTags({
+        connectionId: connId.value,
+        parentNodeId: nodeId,
+        limit: 200
+      })
       const raws: RawBrowseNode[] = res?.nodes || []
       for (const raw of raws) {
         const child = buildNode(raw, nodeId)
@@ -91,7 +95,7 @@ export function useBrowseStore() {
     const node = nodeMap.get(nodeId)
     if (!node) return []
     return node.children
-      .map(id => nodeMap.get(id))
+      .map((id) => nodeMap.get(id))
       .filter((n): n is BrowseNode => n !== undefined && n.leaf)
   }
 
@@ -99,7 +103,7 @@ export function useBrowseStore() {
     const node = nodeMap.get(nodeId)
     if (!node) return []
     return node.children
-      .map(id => nodeMap.get(id))
+      .map((id) => nodeMap.get(id))
       .filter((n): n is BrowseNode => n !== undefined)
   }
 
@@ -117,6 +121,6 @@ export function useBrowseStore() {
     getNode,
     getLeafChildren,
     getAllChildren,
-    clear,
+    clear
   }
 }

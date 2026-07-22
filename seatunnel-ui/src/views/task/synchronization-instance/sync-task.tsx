@@ -187,13 +187,13 @@ const SyncTask = defineComponent({
       router.replace({
         query: !isEmpty(query)
           ? {
-            ...route.query,
-            ...query,
-            syncTaskType: props.syncTaskType,
+              ...route.query,
+              ...query,
+              syncTaskType: props.syncTaskType
             }
           : {
               ...route.query,
-              syncTaskType: props.syncTaskType,
+              syncTaskType: props.syncTaskType
             }
       })
       requestData()
@@ -358,7 +358,11 @@ const SyncTask = defineComponent({
       <div class='h-full flex flex-col overflow-hidden'>
         {renderSearchBar()}
         {renderStatCards()}
-        <NCard title={t('project.synchronizing_task_instance')} style='flex: 1; overflow: hidden; display: flex; flex-direction: column;' contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
+        <NCard
+          title={t('project.synchronizing_task_instance')}
+          style='flex: 1; overflow: hidden; display: flex; flex-direction: column;'
+          contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'
+        >
           {{
             'header-extra': () => (
               <NSpace justify='space-between'>
@@ -409,7 +413,7 @@ const SyncTask = defineComponent({
           show={this.showLogViewerModal}
           jobId={this.currentJobId}
           jobName={this.currentJobName}
-          onUpdateShow={(v: boolean) => this.showLogViewerModal = v}
+          onUpdateShow={(v: boolean) => (this.showLogViewerModal = v)}
         />
       </div>
     )

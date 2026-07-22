@@ -12,7 +12,7 @@ export const BrowseImportModal = defineComponent({
     show: { type: Boolean, default: false },
     datasourceId: { type: String, required: true },
     pluginName: { type: String, default: '' },
-    groupPath: { type: String, default: '/root' },
+    groupPath: { type: String, default: '/root' }
   },
   emits: ['close', 'imported'],
   setup(props, { emit }) {
@@ -40,7 +40,9 @@ export const BrowseImportModal = defineComponent({
       selectedFolderId.value = null
       try {
         const port = dsPort.value || '49320'
-        const connId = `${props.pluginName.toLowerCase()}://${dsHost.value}:${port}`
+        const connId = `${props.pluginName.toLowerCase()}://${
+          dsHost.value
+        }:${port}`
         await browse.loadRoots(connId)
       } catch (err: any) {
         message.error(err.message || 'Discover failed')
@@ -93,86 +95,103 @@ export const BrowseImportModal = defineComponent({
       await handleDiscover()
     }
 
-    watch(() => props.show, async (val) => {
-      if (val) await autoDiscover()
-    }, { immediate: true })
+    watch(
+      () => props.show,
+      async (val) => {
+        if (val) await autoDiscover()
+      },
+      { immediate: true }
+    )
 
     return () => {
       if (!props.show) return null
 
       return (
-        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div class="bg-white rounded-tide-2xl shadow-2xl w-[90vw] h-[85vh] flex flex-col overflow-hidden">
+        <div class='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+          <div class='bg-white rounded-tide-2xl shadow-2xl w-[90vw] h-[85vh] flex flex-col overflow-hidden'>
             {/* Modal header */}
-            <div class="flex items-center justify-between px-tide-gap-md py-tide-gap-sm border-b border-tide-outline-variant bg-tide-surface flex-shrink-0">
-              <div class="flex items-center gap-2">
-                <Compass size={20} class="text-tide-primary" />
-                <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">浏览节点导入测点</h3>
+            <div class='flex items-center justify-between px-tide-gap-md py-tide-gap-sm border-b border-tide-outline-variant bg-tide-surface flex-shrink-0'>
+              <div class='flex items-center gap-2'>
+                <Compass size={20} class='text-tide-primary' />
+                <h3 class='font-tide-label-md text-tide-label-md text-tide-on-surface'>
+                  浏览节点导入测点
+                </h3>
               </div>
-              <div class="flex items-center gap-2">
+              <div class='flex items-center gap-2'>
                 <button
-                  class="p-1.5 rounded-tide text-tide-outline hover:bg-tide-surface-container transition-colors"
-                  onClick={() => { browse.clear(); tagImport.clearChecks(); emit('close') }}
+                  class='p-1.5 rounded-tide text-tide-outline hover:bg-tide-surface-container transition-colors'
+                  onClick={() => {
+                    browse.clear()
+                    tagImport.clearChecks()
+                    emit('close')
+                  }}
                 >
                   <X size={18} />
                 </button>
               </div>
             </div>
 
-            <div class="flex-1 min-h-0 p-tide-gap-md">
-            {/* Loading state */}
-            {browseLoading.value ? (
-              <div class="flex-1 h-full flex items-center justify-center text-tide-outline gap-2">
-                <RefreshCw size={24} class="animate-spin" />
-                <span class="font-tide-body-sm">加载设备层级...</span>
-              </div>
-            ) : (
-              <div class="flex flex-row gap-tide-gap-lg flex-1 h-full overflow-hidden">
-                {/* Left: folders */}
-                <div class="lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden flex-shrink-0">
-                  <div class="p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center">
-                    <h3 class="font-tide-label-md text-tide-label-md text-tide-on-surface">设备层级</h3>
+            <div class='flex-1 min-h-0 p-tide-gap-md'>
+              {/* Loading state */}
+              {browseLoading.value ? (
+                <div class='flex-1 h-full flex items-center justify-center text-tide-outline gap-2'>
+                  <RefreshCw size={24} class='animate-spin' />
+                  <span class='font-tide-body-sm'>加载设备层级...</span>
+                </div>
+              ) : (
+                <div class='flex flex-row gap-tide-gap-lg flex-1 h-full overflow-hidden'>
+                  {/* Left: folders */}
+                  <div class='lg:w-1/4 w-full bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden flex-shrink-0'>
+                    <div class='p-tide-gap-md border-b border-tide-outline-variant bg-tide-surface flex justify-between items-center'>
+                      <h3 class='font-tide-label-md text-tide-label-md text-tide-on-surface'>
+                        设备层级
+                      </h3>
+                    </div>
+                    <FolderList
+                      folders={browse.folderList.value}
+                      selectedId={selectedFolderId.value}
+                      loading={browseLoading.value}
+                      onSelect={handleSelectFolder}
+                    />
                   </div>
-                  <FolderList
-                    folders={browse.folderList.value}
-                    selectedId={selectedFolderId.value}
-                    loading={browseLoading.value}
-                    onSelect={handleSelectFolder}
-                  />
-                </div>
 
-                {/* Right: always show BrowseTable */}
-                <div class="lg:w-3/4 w-full min-w-0 bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden">
-                  <BrowseTable
-                    nodes={isBrowsing.value ? leafChildren.value : []}
-                    checkedIds={Array.from(tagImport.checkedNodes.keys())}
-                    loading={browseChildrenLoading.value}
-                    selectedLabel={browseNode.value?.label || ''}
-                    selectedNodeId={browseNode.value?.nodeId || ''}
-                    showEmpty={!isBrowsing.value}
-                    onCheck={(nodeId: string) => {
-                      const node = browse.getNode(nodeId)
-                      if (node) tagImport.toggleCheck(node)
-                    }}
-                    onCheckAll={(checked: boolean, nodeIds: string[]) => {
-                      for (const id of nodeIds) {
-                        const node = browse.getNode(id)
-                        if (node) {
-                          if (checked) tagImport.check(node)
-                          else tagImport.uncheck(node)
+                  {/* Right: always show BrowseTable */}
+                  <div class='lg:w-3/4 w-full min-w-0 bg-tide-surface-container-lowest rounded-tide-xl border border-tide-outline-variant flex flex-col overflow-hidden'>
+                    <BrowseTable
+                      nodes={isBrowsing.value ? leafChildren.value : []}
+                      checkedIds={Array.from(tagImport.checkedNodes.keys())}
+                      loading={browseChildrenLoading.value}
+                      selectedLabel={browseNode.value?.label || ''}
+                      selectedNodeId={browseNode.value?.nodeId || ''}
+                      showEmpty={!isBrowsing.value}
+                      onCheck={(nodeId: string) => {
+                        const node = browse.getNode(nodeId)
+                        if (node) tagImport.toggleCheck(node)
+                      }}
+                      onCheckAll={(checked: boolean, nodeIds: string[]) => {
+                        for (const id of nodeIds) {
+                          const node = browse.getNode(id)
+                          if (node) {
+                            if (checked) tagImport.check(node)
+                            else tagImport.uncheck(node)
+                          }
                         }
+                      }}
+                      onImport={() =>
+                        tagImport.handleImport(
+                          handleImportSuccess,
+                          props.groupPath
+                        )
                       }
-                    }}
-                    onImport={() => tagImport.handleImport(handleImportSuccess, props.groupPath)}
-                    onBack={handleBack}
-                  />
+                      onBack={handleBack}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             </div>
           </div>
         </div>
       )
     }
-  },
+  }
 })

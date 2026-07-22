@@ -86,7 +86,9 @@ export function useDagAddShape(
           },
           {
             tagName: 'text',
-            textContent: `状态: ${statusLabels[nodes[i].status.toUpperCase()] || nodes[i].status}`,
+            textContent: `状态: ${
+              statusLabels[nodes[i].status.toUpperCase()] || nodes[i].status
+            }`,
             attrs: {
               fill: '#868686',
               'font-size': 12,
@@ -96,12 +98,13 @@ export function useDagAddShape(
           },
           {
             tagName: 'text',
-            textContent: `${t('project.synchronization_instance.read')} ${nodes[i].readRowCount
-              }${t('project.synchronization_instance.line')}/${t(
-                'project.synchronization_instance.write'
-              )} ${nodes[i].writeRowCount}${t(
-                'project.synchronization_instance.line'
-              )}`,
+            textContent: `${t('project.synchronization_instance.read')} ${
+              nodes[i].readRowCount
+            }${t('project.synchronization_instance.line')}/${t(
+              'project.synchronization_instance.write'
+            )} ${nodes[i].writeRowCount}${t(
+              'project.synchronization_instance.line'
+            )}`,
             attrs: {
               fill: '#868686',
               'font-size': 12,
@@ -117,14 +120,15 @@ export function useDagAddShape(
     })
 
     nodes[i].child.forEach((n: any) => {
+      const nodeType =
+        (n.nodeType && n.nodeType.toLowerCase()) ||
+        (n.label.toLowerCase().includes('source')
+          ? 'source'
+          : n.label.toLowerCase().includes('sink')
+          ? 'sink'
+          : 'transform')
 
-      const nodeType = (n.nodeType && n.nodeType.toLowerCase()) ||
-        (n.label.toLowerCase().includes('source') ? 'source' :
-          n.label.toLowerCase().includes('sink') ? 'sink' : 'transform');
-
-
-      const portItems = [];
-
+      const portItems = []
 
       group.addChild(
         graph.addNode({

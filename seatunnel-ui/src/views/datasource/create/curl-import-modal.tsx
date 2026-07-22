@@ -16,14 +16,7 @@
  */
 
 import { defineComponent, ref, watch } from 'vue'
-import {
-  NModal,
-  NCard,
-  NSpace,
-  NInput,
-  NButton,
-  NAlert
-} from 'naive-ui'
+import { NModal, NCard, NSpace, NInput, NButton, NAlert } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { parseCurl, curlParseResultToFormValues } from './curl-parser'
 import type { CurlParseResult } from './curl-parser'
@@ -81,7 +74,12 @@ const CurlImportModal = defineComponent({
     )
 
     return () => (
-      <NModal show={props.show} onUpdateShow={(val: boolean) => { if (!val) handleClose() }}>
+      <NModal
+        show={props.show}
+        onUpdateShow={(val: boolean) => {
+          if (!val) handleClose()
+        }}
+      >
         <NCard
           title={t('datasource.import_curl')}
           style={{ width: '640px' }}

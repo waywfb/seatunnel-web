@@ -191,9 +191,7 @@ const SynchronizationDefinition = defineComponent({
           <NInput
             clearable
             v-model={[this.searchName, 'value']}
-            placeholder={this.t(
-              I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME
-            )}
+            placeholder={this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME)}
             onKeyup={this.handleKeyup}
             style={{ width: '260px' }}
           />
@@ -282,7 +280,10 @@ const SynchronizationDefinition = defineComponent({
     )
 
     const renderTableView = () => (
-      <NCard style='height: 100%; overflow: hidden; display: flex; flex-direction: column;' contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
+      <NCard
+        style='height: 100%; overflow: hidden; display: flex; flex-direction: column;'
+        contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'
+      >
         <div style='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
           <div style='flex: 1; overflow: auto;'>
             <NDataTable

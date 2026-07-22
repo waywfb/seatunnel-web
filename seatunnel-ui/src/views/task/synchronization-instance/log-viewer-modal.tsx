@@ -15,7 +15,16 @@
  * limitations under the License.
  */
 
-import { defineComponent, PropType, ref, watch, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import {
+  defineComponent,
+  PropType,
+  ref,
+  watch,
+  onMounted,
+  onUnmounted,
+  nextTick,
+  computed
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   NModal,
@@ -84,12 +93,13 @@ const LogViewerModal = defineComponent({
         return lines
       }
       const q = searchQuery.value.toLowerCase()
-      return lines.filter(l => l.toLowerCase().includes(q))
+      return lines.filter((l) => l.toLowerCase().includes(q))
     })
 
     function countLogLevels(content: string) {
       const lines = content.split('\n')
-      let err = 0, warn = 0
+      let err = 0,
+        warn = 0
       for (const l of lines) {
         if (/\bERROR\b/.test(l)) err++
         else if (/\bWARN\b/.test(l)) warn++
@@ -123,7 +133,8 @@ const LogViewerModal = defineComponent({
           logContent.value = ''
         }
       } catch (err: any) {
-        error.value = err.message || t('project.synchronization_instance.fetch_logs_error')
+        error.value =
+          err.message || t('project.synchronization_instance.fetch_logs_error')
         loading.value = false
       }
     }
@@ -162,7 +173,9 @@ const LogViewerModal = defineComponent({
         loading.value = false
         loadingLogs.value = false
       } catch (err: any) {
-        error.value = err.message || t('project.synchronization_instance.fetch_log_content_error')
+        error.value =
+          err.message ||
+          t('project.synchronization_instance.fetch_log_content_error')
         loading.value = false
         loadingLogs.value = false
       }
@@ -199,36 +212,48 @@ const LogViewerModal = defineComponent({
 
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement
-      const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 10
+      const isAtBottom =
+        target.scrollHeight - target.scrollTop - target.clientHeight < 10
       userScrolled.value = !isAtBottom
     }
 
     const handleCopy = async () => {
       try {
         await navigator.clipboard.writeText(logContent.value)
-        window.$message.success(t('project.synchronization_instance.copy_success'))
+        window.$message.success(
+          t('project.synchronization_instance.copy_success')
+        )
       } catch {
         window.$message.error(t('project.synchronization_instance.copy_failed'))
       }
     }
 
-    watch(() => selectedLogNode.value, () => {
-      logContent.value = ''
-      fetchLogContent()
-    })
-
-    watch(() => refreshInterval.value, () => {
-      setupRefreshInterval()
-    })
-
-    watch(() => props.show, (newVal) => {
-      if (newVal) {
-        fetchLogNodes()
-        setupRefreshInterval()
-      } else {
-        clearRefreshTimer()
+    watch(
+      () => selectedLogNode.value,
+      () => {
+        logContent.value = ''
+        fetchLogContent()
       }
-    })
+    )
+
+    watch(
+      () => refreshInterval.value,
+      () => {
+        setupRefreshInterval()
+      }
+    )
+
+    watch(
+      () => props.show,
+      (newVal) => {
+        if (newVal) {
+          fetchLogNodes()
+          setupRefreshInterval()
+        } else {
+          clearRefreshTimer()
+        }
+      }
+    )
 
     onMounted(() => {
       if (props.show) {
@@ -271,27 +296,32 @@ const LogViewerModal = defineComponent({
       <NModal
         show={this.show}
         onUpdateShow={(v: boolean) => this.$emit('update:show', v)}
-        title={t('project.synchronization_instance.view_log') + (this.jobName ? `: ${this.jobName}` : '')}
-        style="width: 90%; max-width: 1600px;"
-        preset="card"
+        title={
+          t('project.synchronization_instance.view_log') +
+          (this.jobName ? `: ${this.jobName}` : '')
+        }
+        style='width: 90%; max-width: 1600px;'
+        preset='card'
       >
-        <NSpace vertical size="small">
+        <NSpace vertical size='small'>
           {this.error && (
-            <NAlert type="error" closable>
+            <NAlert type='error' closable>
               {this.error}
             </NAlert>
           )}
 
           <div class={styles['control-panel']}>
             <div class={styles['control-group']}>
-              <label class={styles['control-label']}>{t('project.synchronization_instance.log_node')}:</label>
+              <label class={styles['control-label']}>
+                {t('project.synchronization_instance.log_node')}:
+              </label>
               <NSelect
                 v-model:value={this.selectedLogNode}
-                options={this.logNodes.map(node => ({
+                options={this.logNodes.map((node) => ({
                   label: node.node + ' - ' + node.logName,
                   value: node.logLink
                 }))}
-                style="min-width: 300px;"
+                style='min-width: 300px;'
                 loading={this.loading}
                 disabled={this.loading || this.logNodes.length === 0}
               />
@@ -299,22 +329,35 @@ const LogViewerModal = defineComponent({
 
             <div class={styles['control-group']}>
               <div class={styles['control-item']}>
-                <label class={styles['control-label']}>{t('project.synchronization_instance.auto_scroll')}:</label>
+                <label class={styles['control-label']}>
+                  {t('project.synchronization_instance.auto_scroll')}:
+                </label>
                 <NSwitch v-model:value={this.autoScroll} />
               </div>
               <div class={styles['control-item']}>
-                <label class={styles['control-label']}>{t('project.synchronization_instance.auto_refresh')}:</label>
+                <label class={styles['control-label']}>
+                  {t('project.synchronization_instance.auto_refresh')}:
+                </label>
                 <NSelect
                   v-model:value={this.refreshInterval}
                   options={this.refreshIntervalOptions}
-                  style="min-width: 120px;"
+                  style='min-width: 120px;'
                 />
               </div>
-              <NButton onClick={this.handleRefresh} loading={this.loadingLogs} class={styles['refresh-button']}>
+              <NButton
+                onClick={this.handleRefresh}
+                loading={this.loadingLogs}
+                class={styles['refresh-button']}
+              >
                 {t('project.synchronization_instance.refresh')}
               </NButton>
-              <NButton onClick={this.handleCopy} class={styles['refresh-button']}>
-                <NIcon><CopyOutlined /></NIcon>
+              <NButton
+                onClick={this.handleCopy}
+                class={styles['refresh-button']}
+              >
+                <NIcon>
+                  <CopyOutlined />
+                </NIcon>
               </NButton>
             </div>
           </div>
@@ -324,18 +367,34 @@ const LogViewerModal = defineComponent({
               v-model:value={this.searchQuery}
               placeholder={t('project.synchronization_instance.search_logs')}
               clearable
-              style="width: 300px;"
+              style='width: 300px;'
             >
               {{
-                prefix: () => <NIcon><SearchOutlined /></NIcon>
+                prefix: () => (
+                  <NIcon>
+                    <SearchOutlined />
+                  </NIcon>
+                )
               }}
             </NInput>
-            <NSpace size="small">
+            <NSpace size='small'>
               {this.logStats.total > 0 && (
                 <>
-                  <NTag size="small">{this.logStats.total + ' ' + t('project.synchronization_instance.lines')}</NTag>
-                  {this.logStats.error > 0 && <NTag type="error" size="small">{'ERROR ' + this.logStats.error}</NTag>}
-                  {this.logStats.warn > 0 && <NTag type="warning" size="small">{'WARN ' + this.logStats.warn}</NTag>}
+                  <NTag size='small'>
+                    {this.logStats.total +
+                      ' ' +
+                      t('project.synchronization_instance.lines')}
+                  </NTag>
+                  {this.logStats.error > 0 && (
+                    <NTag type='error' size='small'>
+                      {'ERROR ' + this.logStats.error}
+                    </NTag>
+                  )}
+                  {this.logStats.warn > 0 && (
+                    <NTag type='warning' size='small'>
+                      {'WARN ' + this.logStats.warn}
+                    </NTag>
+                  )}
                 </>
               )}
             </NSpace>
@@ -344,28 +403,35 @@ const LogViewerModal = defineComponent({
           <div class={styles['log-content-container']}>
             {this.loading ? (
               <div class={styles['loading-container']}>
-                <NSpin size="large" />
+                <NSpin size='large' />
               </div>
             ) : this.logNodes.length === 0 ? (
-              <NEmpty description={t('project.synchronization_instance.no_logs_available')} />
+              <NEmpty
+                description={t(
+                  'project.synchronization_instance.no_logs_available'
+                )}
+              />
             ) : (
               <div
                 class={styles['log-content']}
-                ref="logContentRef"
+                ref='logContentRef'
                 onScroll={this.handleScroll}
               >
                 {this.loadingLogs ? (
-                  <NSpin size="small" />
+                  <NSpin size='small' />
                 ) : (
                   <pre>
                     {this.filteredLogLines.map((line, i) => (
-                      <span key={i} class={this.getLineClass(line)}>{line}{'\n'}</span>
+                      <span key={i} class={this.getLineClass(line)}>
+                        {line}
+                        {'\n'}
+                      </span>
                     ))}
                   </pre>
                 )}
                 {this.userScrolled && this.autoScroll && (
                   <div
-                    style="position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;"
+                    style='position: absolute; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer;'
                     onClick={this.scrollToBottom}
                   >
                     {t('project.synchronization_instance.scroll_to_bottom')}

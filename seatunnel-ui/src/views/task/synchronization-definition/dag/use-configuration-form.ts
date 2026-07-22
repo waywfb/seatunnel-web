@@ -43,8 +43,8 @@ export const useConfigurationForm = (
   nodeType: NodeType,
   transformType: string,
   datasourceName: string,
-  predecessorDatasourceName: string = '',
-  predecessorTableName: string = ''
+  predecessorDatasourceName = '',
+  predecessorTableName = ''
 ) => {
   const { t } = useI18n()
   const dagStore = useSynchronizationDefinitionStore()
@@ -65,28 +65,28 @@ export const useConfigurationForm = (
   }
 
   const state = reactive<{
-    model: typeof initialModel;
-    loading: boolean;
-    datasourceOptions: any[];
-    datasourceLoading: boolean;
-    databaseOptions: any[];
-    databaseLoading: boolean;
-    tableOptions: TableOption[];
-    tableLoading: boolean;
-    formStructure: any[];
-    formLocales: any;
-    formName: string;
-    formLoading: boolean;
-    inputTableData: any[];
-    outputTableData: any[];
-    tableColumnsLoading: boolean;
-    rules: any;
-    allowedSceneModes: string[];
-    predecessorDatasourceName: string;
-    predecessorTableName: string;
-    useDatabaseAndTable: boolean;
-    standardFields: any[];
-    standardTableFields: any[];
+    model: typeof initialModel
+    loading: boolean
+    datasourceOptions: any[]
+    datasourceLoading: boolean
+    databaseOptions: any[]
+    databaseLoading: boolean
+    tableOptions: TableOption[]
+    tableLoading: boolean
+    formStructure: any[]
+    formLocales: any
+    formName: string
+    formLoading: boolean
+    inputTableData: any[]
+    outputTableData: any[]
+    tableColumnsLoading: boolean
+    rules: any
+    allowedSceneModes: string[]
+    predecessorDatasourceName: string
+    predecessorTableName: string
+    useDatabaseAndTable: boolean
+    standardFields: any[]
+    standardTableFields: any[]
   }>({
     model: cloneDeep(initialModel),
     loading: false,
@@ -188,7 +188,7 @@ export const useConfigurationForm = (
             )
           }
         }
-      },
+      }
     }
   })
 
@@ -257,9 +257,9 @@ export const useConfigurationForm = (
         }))
         // FTP / SFTP are file connectors — they expose file_path, not a
         // database/table model. Hide the database & table name fields for them.
-  const isFileConnector = /^(ftp|sftp|localfile)$/i.test(
-    option?.datasourceName || ''
-  )
+        const isFileConnector = /^(ftp|sftp|localfile)$/i.test(
+          option?.datasourceName || ''
+        )
         state.useDatabaseAndTable = !isFileConnector && result.length > 0
       }
       await getFormStructure(datasourceInstanceId)
@@ -268,7 +268,11 @@ export const useConfigurationForm = (
     }
   }
 
-  const getTableOptions = async (databases: Array<string> | string, filterName?: string, size?: number) => {
+  const getTableOptions = async (
+    databases: Array<string> | string,
+    filterName?: string,
+    size?: number
+  ) => {
     filterName = filterName || ''
     if (
       nodeType === 'source' ||
@@ -358,12 +362,14 @@ export const useConfigurationForm = (
   const fetchStandardGroups = async (standardId: string) => {
     if (!standardId) {
       state.standardFields = []
-      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
-        if (f.field === 'standard_group') {
-          return { ...f, options: [], placeholder: '请先选择数据标准' }
+      state.formStructure = (state.formStructure as Array<any>).map(
+        (f: any) => {
+          if (f.field === 'standard_group') {
+            return { ...f, options: [], placeholder: '请先选择数据标准' }
+          }
+          return f
         }
-        return f
-      })
+      )
       return
     }
     try {
@@ -382,13 +388,24 @@ export const useConfigurationForm = (
       fieldArray.forEach((item: any) => {
         if (item.groupName) groupSet.add(item.groupName)
       })
-      const groupOptions = Array.from(groupSet).map((g) => ({ label: g, value: g }))
-      state.formStructure = (state.formStructure as Array<any>).map((f: any) => {
-        if (f.field === 'standard_group') {
-          return { ...f, options: groupOptions, placeholder: groupOptions.length ? '请选择分组分类' : '暂无分组分类' }
+      const groupOptions = Array.from(groupSet).map((g) => ({
+        label: g,
+        value: g
+      }))
+      state.formStructure = (state.formStructure as Array<any>).map(
+        (f: any) => {
+          if (f.field === 'standard_group') {
+            return {
+              ...f,
+              options: groupOptions,
+              placeholder: groupOptions.length
+                ? '请选择分组分类'
+                : '暂无分组分类'
+            }
+          }
+          return f
         }
-        return f
-      })
+      )
     } catch (err) {
       console.error('Failed to load standard groups:', err)
     }
@@ -399,7 +416,9 @@ export const useConfigurationForm = (
       state.standardTableFields = []
       return
     }
-    state.standardTableFields = state.standardFields.filter((item: any) => item.groupName === groupName)
+    state.standardTableFields = state.standardFields.filter(
+      (item: any) => item.groupName === groupName
+    )
   }
 
   const transformDataStandardField = async () => {
@@ -414,14 +433,16 @@ export const useConfigurationForm = (
       const standardListRes = await getDataStandardEnabledList()
       const standardList = Array.isArray(standardListRes)
         ? standardListRes
-        : (standardListRes?.data || [])
+        : standardListRes?.data || []
       const standardOptions = standardList.map((item: any) => ({
         label: item.name || item.dataStandardName || '',
         value: String(item.id || item.dataStandardId || '')
       }))
 
       const fieldsArray = state.formStructure as Array<any>
-      const hasStandardGroup = fieldsArray.some((f: any) => f.field === 'standard_group')
+      const hasStandardGroup = fieldsArray.some(
+        (f: any) => f.field === 'standard_group'
+      )
 
       state.formStructure = fieldsArray.map((f: any) => {
         if (f.field === 'data_standard_id') {
@@ -460,7 +481,6 @@ export const useConfigurationForm = (
     }
   }
 
-
   if (/^(ftp|sftp|localfile)$/i.test(datasourceName || '')) {
     state.formStructure = [
       {
@@ -494,7 +514,9 @@ export const useConfigurationForm = (
 
     watch(
       () => state.model.standard_group,
-      (val) => { updateStandardTableStructure(val as string) }
+      (val) => {
+        updateStandardTableStructure(val as string)
+      }
     )
   }
 
@@ -559,7 +581,11 @@ export const useConfigurationForm = (
       }
 
       if (values.tableOption?.databases?.length) {
-        await getTableOptions(values.tableOption.databases[0], '', state.model.sceneMode === 'MULTIPLE_TABLE' ? 9999999 : 100)
+        await getTableOptions(
+          values.tableOption.databases[0],
+          '',
+          state.model.sceneMode === 'MULTIPLE_TABLE' ? 9999999 : 100
+        )
       }
 
       if (values.sceneMode === 'MULTIPLE_TABLE') {
@@ -606,16 +632,26 @@ export const useConfigurationForm = (
 
   const resolveTableName = () => {
     if (nodeType === 'transform') {
-      return state.predecessorTableName || (typeof state.model.tableName === 'string' ? state.model.tableName : '') || ''
+      return (
+        state.predecessorTableName ||
+        (typeof state.model.tableName === 'string'
+          ? state.model.tableName
+          : '') ||
+        ''
+      )
     }
-    return typeof state.model.tableName === 'string' ? state.model.tableName : ''
+    return typeof state.model.tableName === 'string'
+      ? state.model.tableName
+      : ''
   }
 
   const onSmartParseOpen = async () => {
     const dsName = resolveDatasourceName()
     const tblName = resolveTableName()
     if (!dsName || !tblName) {
-      window.$message.warning(t('project.synchronization_definition.smart_parse_required_tips'))
+      window.$message.warning(
+        t('project.synchronization_definition.smart_parse_required_tips')
+      )
       return
     }
     smartParseState.showModal = true
@@ -636,7 +672,9 @@ export const useConfigurationForm = (
     } catch {
       smartParseState.hasMessage = false
       smartParseState.fields = []
-      window.$message.error(t('project.synchronization_definition.smart_parse_error'))
+      window.$message.error(
+        t('project.synchronization_definition.smart_parse_error')
+      )
     } finally {
       smartParseState.loading = false
     }
@@ -674,7 +712,9 @@ export const useConfigurationForm = (
     }))
     ;(state.model as any).columns = JSON.stringify(columnsJson, null, 2)
     smartParseState.showModal = false
-    window.$message.success(t('project.synchronization_definition.smart_parse_success'))
+    window.$message.success(
+      t('project.synchronization_definition.smart_parse_success')
+    )
   }
 
   const onSmartParseCancel = () => {
@@ -698,7 +738,11 @@ export const useConfigurationForm = (
   }
 }
 
-export const getSceneModeOptions = (jobType: string, t: Function, allowedSceneModes?: string[]) => {
+export const getSceneModeOptions = (
+  jobType: string,
+  t: Function,
+  allowedSceneModes?: string[]
+) => {
   const allOptions = [
     {
       label: t('project.synchronization_definition.multi_table_sync'),

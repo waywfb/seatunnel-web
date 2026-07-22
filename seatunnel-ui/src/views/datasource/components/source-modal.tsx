@@ -16,13 +16,7 @@
  */
 
 import { defineComponent, PropType, ref } from 'vue'
-import {
-  NSpace,
-  NModal,
-  NCard,
-  NButton,
-  NEmpty
-} from 'naive-ui'
+import { NSpace, NModal, NCard, NButton, NEmpty } from 'naive-ui'
 import STabs from '@/components/tabs'
 import { useI18n } from 'vue-i18n'
 import { useSource } from './use-source'
@@ -69,7 +63,7 @@ const SourceModal = defineComponent({
         >
           <STabs
             value={activeType.value}
-            onUpdate:value={(val: string) => activeType.value = val}
+            onUpdate:value={(val: string) => (activeType.value = val)}
             tabs={tabs}
           >
             {Object.fromEntries(
@@ -84,8 +78,8 @@ const SourceModal = defineComponent({
                       >
                         <img
                           src={slip.iconSvg}
-                          width="28"
-                          height="28"
+                          width='28'
+                          height='28'
                           class={styles.iconImg}
                         />
                         <span class={styles.itemLabel}>{slip.label}</span>

@@ -19,11 +19,7 @@ import { defineComponent, ref } from 'vue'
 import { RunningInstance } from './running-instance'
 import { TaskDefinition } from './task-definition'
 import { TaskMetrics } from './task-metrics'
-import {
-  NBreadcrumb,
-  NBreadcrumbItem,
-  NCard
-} from 'naive-ui'
+import { NBreadcrumb, NBreadcrumbItem, NCard } from 'naive-ui'
 import STabs from '@/components/tabs'
 import PageLayout from '@/components/page-layout'
 import { useI18n } from 'vue-i18n'
@@ -39,9 +35,20 @@ const SynchronizationInstanceDetail = defineComponent({
     const activeTab = ref('task-definition')
 
     const tabs = [
-      { name: 'task-definition', label: t('project.synchronization_instance.sync_task_definition') },
-      { name: 'running-instance', label: t('project.synchronization_instance.data_pipeline_running_instance') },
-      { name: 'task-metrics', label: t('project.synchronization_instance.task_metrics') }
+      {
+        name: 'task-definition',
+        label: t('project.synchronization_instance.sync_task_definition')
+      },
+      {
+        name: 'running-instance',
+        label: t(
+          'project.synchronization_instance.data_pipeline_running_instance'
+        )
+      },
+      {
+        name: 'task-metrics',
+        label: t('project.synchronization_instance.task_metrics')
+      }
     ]
 
     return () => (
@@ -72,7 +79,7 @@ const SynchronizationInstanceDetail = defineComponent({
             tabs: () => (
               <STabs
                 value={activeTab.value}
-                onUpdate:value={(val: string) => activeTab.value = val}
+                onUpdate:value={(val: string) => (activeTab.value = val)}
                 tabs={tabs}
               >
                 {{

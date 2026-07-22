@@ -59,7 +59,7 @@ export function getRangeShortCuts(t: any) {
 
 export const getMetricsRangeShortcuts = (t: any) => {
   const now = new Date()
-  
+
   return [
     {
       label: t('project.metrics.last_1_minute'),
