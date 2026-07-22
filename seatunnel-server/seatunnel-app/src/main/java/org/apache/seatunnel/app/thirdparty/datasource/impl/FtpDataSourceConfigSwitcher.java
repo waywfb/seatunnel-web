@@ -94,7 +94,6 @@ public class FtpDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitche
         excludedKeys.add(FtpOptionRule.CONNECT_TIMEOUT.key());
         excludedKeys.add(FtpOptionRule.SO_TIMEOUT.key());
         excludedKeys.add(FtpOptionRule.TYPE.key());
-        excludedKeys.add(FtpOptionRule.FILE_PATH.key());
 
         excludedKeys.addAll(FORMAT_FIELD_KEYS);
 

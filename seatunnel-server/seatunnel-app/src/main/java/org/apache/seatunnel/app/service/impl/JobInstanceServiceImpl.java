@@ -648,6 +648,9 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
 
     private Config parseConfigWithOptionRule(
             PluginType pluginType, String connectorType, Config config, OptionRule optionRule) {
+        if (optionRule == null) {
+            return config;
+        }
         Map<String, TypeReference<?>> typeReferenceMap = new HashMap<>();
         optionRule
                 .getOptionalOptions()

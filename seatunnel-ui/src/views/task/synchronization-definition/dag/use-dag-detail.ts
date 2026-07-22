@@ -54,12 +54,13 @@ export const useDagDetail = () => {
       const checkedNodesAndEdges = nodesAndEdges
         ? await Promise.all(
             nodesAndEdges.plugins.map(async (p: any) => {
-              if (p.type === 'SOURCE') {
+              if (p.type === 'SOURCE' && p.tableOption) {
+                const checkResult = await checkDatabaseAndTable(
+                  String(p.dataSourceId),
+                  p.tableOption
+                )
                 return {
-                  ...(await checkDatabaseAndTable(
-                    String(p.dataSourceId),
-                    p.tableOption
-                  )),
+                  ...checkResult,
                   pluginId: p.pluginId,
                   name: p.name
                 }
