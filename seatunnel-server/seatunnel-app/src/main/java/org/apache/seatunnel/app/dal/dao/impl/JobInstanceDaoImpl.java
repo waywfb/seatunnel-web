@@ -93,6 +93,11 @@ public class JobInstanceDaoImpl implements IJobInstanceDao {
     }
 
     @Override
+    public Long countActiveByJobDefinitionId(Long jobDefinitionId, Long workspaceId) {
+        return jobInstanceMapper.countActiveByJobDefinitionId(jobDefinitionId, workspaceId);
+    }
+
+    @Override
     public List<JobInstance> getAllJobInstance(@NonNull List<Long> jobInstanceIdList) {
         return jobInstanceMapper.selectList(
                 new LambdaQueryWrapper<JobInstance>()

@@ -44,6 +44,10 @@ public class UserContextHolder {
         return userContext;
     }
 
+    public static boolean hasUserContext() {
+        return userContextHolder.get() != null;
+    }
+
     public static void clear() {
         userContextHolder.remove();
     }

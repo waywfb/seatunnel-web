@@ -388,3 +388,54 @@ CREATE TABLE `t_st_config_audit_log` (
   INDEX `idx_log_datasource`(`datasource_id`) USING BTREE
 ) ENGINE=InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT=DYNAMIC COMMENT='采集配置变更审计日志表';
 
+
+-- ----------------------------
+-- Table structure for t_st_job_schedule (任务定时调度配置)
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_job_schedule`;
+CREATE TABLE `t_st_job_schedule` (
+  `id` bigint(20) NOT NULL COMMENT '主键 ID',
+  `job_definition_id` bigint(20) NOT NULL COMMENT '关联任务定义 ID',
+  `cron_expression` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT 'Cron 表达式',
+  `timezone` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT 'Asia/Shanghai' COMMENT '时区',
+  `retry_times` int(11) NOT NULL DEFAULT 0 COMMENT '失败重试次数',
+  `retry_interval` int(11) NOT NULL DEFAULT 60 COMMENT '重试间隔(秒)',
+  `active_start_time` timestamp(3) NULL DEFAULT NULL COMMENT '生效开始时间',
+  `active_end_time` timestamp(3) NULL DEFAULT NULL COMMENT '生效结束时间',
+  `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '调度状态: 0-停用 1-启用',
+  `concurrent_policy` tinyint(4) NOT NULL DEFAULT 0 COMMENT '并发策略: 0-跳过(SKIP) 1-并行(PARALLEL)',
+  `misfire_policy` tinyint(4) NOT NULL DEFAULT 0 COMMENT '错过补偿策略: 0-忽略 1-补执行一次',
+  `notify_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '预留: 通知类型(邮件/钉钉/webhook)',
+  `notify_target` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '预留: 通知目标',
+  `create_user_id` int(11) NOT NULL,
+  `update_user_id` int(11) NULL DEFAULT NULL,
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `workspace_id` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_schedule_job_definition`(`job_definition_id`, `workspace_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='任务定时调度配置表';
+
+-- ----------------------------
+-- Table structure for t_st_job_schedule_trigger_log (调度触发记录)
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_job_schedule_trigger_log`;
+CREATE TABLE `t_st_job_schedule_trigger_log` (
+  `id` bigint(20) NOT NULL COMMENT '主键 ID',
+  `schedule_id` bigint(20) NOT NULL COMMENT '调度配置 ID',
+  `job_definition_id` bigint(20) NOT NULL COMMENT '任务定义 ID',
+  `scheduled_fire_time` timestamp(3) NOT NULL COMMENT '预期触发时间',
+  `actual_fire_time` timestamp(3) NOT NULL COMMENT '实际触发时间',
+  `end_time` timestamp(3) NULL DEFAULT NULL COMMENT '结束时间',
+  `status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '状态: 0-执行中 1-成功 2-失败 3-跳过',
+  `retry_count` int(11) NOT NULL DEFAULT 0 COMMENT '本次触发已重试次数',
+  `job_instance_id` bigint(20) NULL DEFAULT NULL COMMENT '关联任务实例 ID',
+  `error_message` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '失败原因',
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `workspace_id` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_tl_schedule`(`schedule_id`, `workspace_id`) USING BTREE,
+  INDEX `idx_tl_job_definition`(`job_definition_id`, `workspace_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='任务调度触发记录表';
+

@@ -51,6 +51,8 @@ public interface IJobInstanceDao {
 
     List<JobInstance> getAllRunningJobInstance();
 
+    Long countActiveByJobDefinitionId(Long jobDefinitionId, Long workspaceId);
+
     JobInstance getJobExecutionStatus(@NonNull Long jobInstanceId);
 
     void deleteById(@NonNull Long jobInstanceId);

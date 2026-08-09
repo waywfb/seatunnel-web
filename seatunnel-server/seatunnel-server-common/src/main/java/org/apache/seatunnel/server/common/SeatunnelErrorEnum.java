@@ -102,7 +102,16 @@ public enum SeatunnelErrorEnum {
     DATA_STANDARD_VERSION_ALREADY_EXISTS(70005, "数据标准版本已存在", "数据标准版本[%s]已存在"),
     DATA_STANDARD_VERSION_NOT_DRAFT(70006, "版本状态不是草稿", "仅草稿状态的版本允许修改"),
     DATA_STANDARD_VERSION_NOT_RELEASED(70007, "版本状态不是已发布", "仅已发布状态的版本允许归档"),
-    VIRTUAL_TABLE_STANDARD_NOT_BOUND(70008, "虚拟表未绑定数据标准", "虚拟表[%s]未绑定数据标准");
+    VIRTUAL_TABLE_STANDARD_NOT_BOUND(70008, "虚拟表未绑定数据标准", "虚拟表[%s]未绑定数据标准"),
+
+    JOB_SCHEDULE_NOT_FOUND(71001, "调度配置不存在", "调度配置不存在，可能已被其他用户删除。"),
+    JOB_SCHEDULE_ALREADY_EXISTS(71002, "任务已存在调度配置", "任务[%s]已存在调度配置，请勿重复创建。"),
+    JOB_SCHEDULE_INVALID_CRON(71003, "Cron表达式非法", "Cron表达式[%s]非法，请检查输入内容。"),
+    JOB_SCHEDULE_INVALID_TIME_RANGE(71004, "生效时间范围非法", "生效开始时间不能晚于结束时间。"),
+    JOB_SCHEDULE_JOB_NOT_FOUND(71005, "任务不存在", "任务[%s]不存在，可能已被其他用户删除。"),
+    JOB_SCHEDULE_TRIGGER_LOG_NOT_FOUND(71006, "触发日志不存在", "调度触发日志不存在，可能已被其他用户删除。"),
+    JOB_SCHEDULE_EXECUTE_FAILED(71007, "调度触发任务执行失败", "任务[%s]调度触发失败：%s"),
+    JOB_SCHEDULE_QUARTZ_OPERATION_FAILED(71008, "调度器操作失败", "调度器[%s]操作失败：%s");
 
     private final int code;
     private final String msg;

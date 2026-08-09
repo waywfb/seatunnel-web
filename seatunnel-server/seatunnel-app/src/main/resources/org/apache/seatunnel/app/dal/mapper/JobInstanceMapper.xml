@@ -62,4 +62,11 @@
         FROM t_st_job_instance t
         WHERE t.job_status = 'RUNNING'
     </select>
+    <select id="countActiveByJobDefinitionId" resultType="java.lang.Long">
+        SELECT COUNT(1)
+        FROM t_st_job_instance t
+        WHERE t.job_define_id = #{jobDefinitionId}
+          AND t.workspace_id = #{workspaceId}
+          AND t.job_status IN ('SCHEDULED', 'RUNNING')
+    </select>
 </mapper>

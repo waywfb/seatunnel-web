@@ -44,4 +44,7 @@ public interface JobInstanceMapper extends BaseMapper<JobInstance> {
     JobInstance getJobExecutionStatus(@Param("jobInstanceId") Long jobInstanceId);
 
     List<JobInstance> getAllRunningJobInstance();
+
+    Long countActiveByJobDefinitionId(
+            @Param("jobDefinitionId") Long jobDefinitionId, @Param("workspaceId") Long workspaceId);
 }

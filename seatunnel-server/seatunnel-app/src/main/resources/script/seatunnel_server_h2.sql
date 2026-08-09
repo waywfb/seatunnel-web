@@ -335,3 +335,47 @@ CREATE TABLE t_st_config_audit_log (
 -- No equivalent records provided for the user_login_log table in the provided SQL script.
 -- You can insert records into this table using similar INSERT INTO statements.
 -- However, you would need to provide the values for columns like "user_id", "token", "token_status", etc.
+
+-- Table structure for t_st_job_schedule (任务定时调度配置)
+DROP TABLE IF EXISTS t_st_job_schedule;
+CREATE TABLE t_st_job_schedule (
+  id BIGINT NOT NULL,
+  job_definition_id BIGINT NOT NULL,
+  cron_expression VARCHAR(100) NOT NULL,
+  timezone VARCHAR(64) NOT NULL DEFAULT 'Asia/Shanghai',
+  retry_times INT NOT NULL DEFAULT 0,
+  retry_interval INT NOT NULL DEFAULT 60,
+  active_start_time TIMESTAMP(3) DEFAULT NULL,
+  active_end_time TIMESTAMP(3) DEFAULT NULL,
+  status TINYINT NOT NULL DEFAULT 0,
+  concurrent_policy TINYINT NOT NULL DEFAULT 0,
+  misfire_policy TINYINT NOT NULL DEFAULT 0,
+  notify_type VARCHAR(50) DEFAULT NULL,
+  notify_target VARCHAR(500) DEFAULT NULL,
+  create_user_id INT NOT NULL,
+  update_user_id INT DEFAULT NULL,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  workspace_id BIGINT NOT NULL,
+  PRIMARY KEY (id),
+  CONSTRAINT uk_schedule_job_definition UNIQUE (job_definition_id, workspace_id)
+);
+
+-- Table structure for t_st_job_schedule_trigger_log (调度触发记录)
+DROP TABLE IF EXISTS t_st_job_schedule_trigger_log;
+CREATE TABLE t_st_job_schedule_trigger_log (
+  id BIGINT NOT NULL,
+  schedule_id BIGINT NOT NULL,
+  job_definition_id BIGINT NOT NULL,
+  scheduled_fire_time TIMESTAMP(3) NOT NULL,
+  actual_fire_time TIMESTAMP(3) NOT NULL,
+  end_time TIMESTAMP(3) DEFAULT NULL,
+  status TINYINT NOT NULL DEFAULT 0,
+  retry_count INT NOT NULL DEFAULT 0,
+  job_instance_id BIGINT DEFAULT NULL,
+  error_message VARCHAR(4096) DEFAULT NULL,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  workspace_id BIGINT NOT NULL,
+  PRIMARY KEY (id)
+);
