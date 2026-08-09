@@ -180,17 +180,6 @@ const Login = defineComponent({
 
             {/* Bottom Footer (Left) */}
             <div class='flex items-center gap-4'>
-              <div class='flex -space-x-2'>
-                <div class='w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] text-white'>
-                  王
-                </div>
-                <div class='w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] text-white'>
-                  李
-                </div>
-                <div class='w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] text-white'>
-                  张
-                </div>
-              </div>
               <p class='text-slate-400 font-tide-label-md text-tide-label-md'>
                 {this.t('login.footer_tagline')}
               </p>
