@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { reactive, ref, SetupContext, watch, nextTick } from 'vue'
+import { reactive, ref, SetupContext } from 'vue'
 import {
   getInputTableSchema,
   saveTaskDefinitionItem
@@ -375,22 +375,13 @@ export function useNodeSettingModal(
     initModelData(node)
   }
 
-  watch(
-    () => props.show,
-    async () => {
-      await nextTick()
-      if (props.show && configurationFormRef.value && modelRef.value) {
-        initModelData(configurationFormRef.value.getValues())
-      }
-    }
-  )
-
   return {
     state,
     configurationFormRef,
     modelRef,
     onSave,
     handleChangeTable,
-    handleSmartParseConfirm
+    handleSmartParseConfirm,
+    initModelData
   }
 }

@@ -48,7 +48,8 @@ const NodeSetting = defineComponent({
       modelRef,
       onSave,
       handleChangeTable,
-      handleSmartParseConfirm
+      handleSmartParseConfirm,
+      initModelData
     } = useNodeSettingModal(props, ctx)
 
     const standardTableFields = ref<any[]>([])
@@ -72,6 +73,9 @@ const NodeSetting = defineComponent({
           modelRef.value.setSelectFields(
             props.nodeInfo.selectTableFields?.tableFields || []
           )
+        }
+        if (props.show && configurationFormRef.value) {
+          initModelData(configurationFormRef.value.getValues())
         }
         refreshStandardTableFields()
       }
