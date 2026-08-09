@@ -59,6 +59,9 @@ public class DataStandardFormat {
     @TableField("header_rows")
     private Integer headerRows;
 
+    @TableField("header_field_count")
+    private Integer headerFieldCount;
+
     @TableField("quote_char")
     private String quoteChar;
 

@@ -32,12 +32,19 @@ import org.apache.seatunnel.api.options.ConnectorCommonOptions;
 import org.apache.seatunnel.app.bean.connector.ConnectorCache;
 import org.apache.seatunnel.app.config.ConnectorDataSourceMapperConfig;
 import org.apache.seatunnel.app.config.EncryptionConfig;
+import org.apache.seatunnel.app.dal.dao.IDataStandardDao;
+import org.apache.seatunnel.app.dal.dao.IDataStandardFieldDao;
+import org.apache.seatunnel.app.dal.dao.IDataStandardFormatDao;
+import org.apache.seatunnel.app.dal.dao.IDataStandardVersionDao;
 import org.apache.seatunnel.app.dal.dao.IJobDefinitionDao;
 import org.apache.seatunnel.app.dal.dao.IJobInstanceDao;
 import org.apache.seatunnel.app.dal.dao.IJobLineDao;
 import org.apache.seatunnel.app.dal.dao.IJobTaskDao;
 import org.apache.seatunnel.app.dal.dao.IJobVersionDao;
 import org.apache.seatunnel.app.dal.entity.DataSourceTag;
+import org.apache.seatunnel.app.dal.entity.DataStandardField;
+import org.apache.seatunnel.app.dal.entity.DataStandardFormat;
+import org.apache.seatunnel.app.dal.entity.DataStandardVersion;
 import org.apache.seatunnel.app.dal.entity.JobDefinition;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.dal.entity.JobLine;
@@ -134,6 +141,14 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
     @Resource private IJobLineDao jobLineDao;
 
     @Resource private IJobMetricsService jobMetricsService;
+
+    @Resource private IDataStandardDao dataStandardDao;
+
+    @Resource private IDataStandardVersionDao dataStandardVersionDao;
+
+    @Resource private IDataStandardFormatDao dataStandardFormatDao;
+
+    @Resource private IDataStandardFieldDao dataStandardFieldDao;
 
     @Autowired private ConfigShadeUtil configShadeUtil;
 
@@ -233,6 +248,19 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
                                         task.getConnectorType(),
                                         task.getConfig(),
                                         optionRule));
+
+                // Sync fields from data standard whenever data_standard_id is present.
+                // This ensures skip_header_row_number, file_format_type, and schema
+                // are always kept in sync with the current data standard definition.
+                if (pluginType == PluginType.SOURCE && config.hasPath("data_standard_id")) {
+                    try {
+                        long standardId = Long.parseLong(config.getString("data_standard_id"));
+                        config = fillFromDataStandard(config, standardId);
+                    } catch (Exception e) {
+                        log.warn("Failed to resolve config from data standard: {}", e.getMessage());
+                    }
+                }
+
                 switch (pluginType) {
                     case SOURCE:
                         if (inputLines.containsKey(pluginId)) {
@@ -567,6 +595,143 @@ public class JobInstanceServiceImpl extends SeatunnelBaseServiceImpl
             config = config.withoutPath(removeKey);
         }
         return config;
+    }
+
+    private Config fillFromDataStandard(Config config, long standardId) {
+        DataStandardVersion version = dataStandardVersionDao.selectCurrentVersion(standardId);
+        if (version == null) {
+            return config;
+        }
+
+        List<DataStandardFormat> formats =
+                dataStandardFormatDao.selectFormatsByVersionId(version.getId());
+        if (formats != null && !formats.isEmpty()) {
+            DataStandardFormat fmt = formats.get(0);
+
+            int headerRows = fmt.getHeaderRows() != null ? fmt.getHeaderRows() : 0;
+            config =
+                    config.withValue(
+                            "skip_header_row_number",
+                            ConfigValueFactory.fromAnyRef(String.valueOf(headerRows)));
+
+            if (!config.hasPath("file_format_type")) {
+                String mapped = mapFileTypeToSeaTunnelFormat(fmt.getFileType());
+                config =
+                        config.withValue("file_format_type", ConfigValueFactory.fromAnyRef(mapped));
+            }
+        }
+
+        if (!config.hasPath("schema")) {
+            List<DataStandardField> fields =
+                    dataStandardFieldDao.selectFieldsByVersionId(version.getId());
+
+            // Use header_field_count from format to skip header-only fields from schema.
+            // This is separate from skip_header_row_number which controls how many
+            // physical rows to skip in the file. The schema must contain only
+            // measurement fields so the field count matches each data row.
+            int headerFieldCount = 0;
+            if (formats != null && !formats.isEmpty()) {
+                DataStandardFormat fmt2 = formats.get(0);
+                if (fmt2.getHeaderFieldCount() != null) {
+                    headerFieldCount = fmt2.getHeaderFieldCount();
+                }
+            }
+
+            if (fields != null && !fields.isEmpty()) {
+                Map<String, Object> schemaFields = new LinkedHashMap<>();
+                for (int i = 0; i < fields.size(); i++) {
+                    if (i < headerFieldCount) {
+                        continue;
+                    }
+                    DataStandardField field = fields.get(i);
+                    schemaFields.put(field.getCode(), convertDataType(field.getDataType()));
+                }
+                Map<String, Object> schema = new LinkedHashMap<>();
+                schema.put("fields", schemaFields);
+                config = config.withValue("schema", ConfigFactory.parseMap(schema).root());
+            }
+        }
+
+        return config;
+    }
+
+    private String mapFileTypeToSeaTunnelFormat(String fileType) {
+        if (fileType == null || fileType.isEmpty()) {
+            return "TEXT";
+        }
+        switch (fileType.toLowerCase()) {
+            case ".txt":
+            case "txt":
+                return "TEXT";
+            case ".csv":
+            case "csv":
+                return "CSV";
+            case ".json":
+            case "json":
+                return "JSON";
+            case ".xlsx":
+            case ".xls":
+            case "xlsx":
+            case "xls":
+                return "EXCEL";
+            case ".parquet":
+            case "parquet":
+                return "PARQUET";
+            case ".orc":
+            case "orc":
+                return "ORC";
+            case ".xml":
+            case "xml":
+                return "XML";
+            case ".md":
+            case ".markdown":
+            case "md":
+            case "markdown":
+                return "MARKDOWN";
+            default:
+                return "TEXT";
+        }
+    }
+
+    private String convertDataType(String dataType) {
+        if (dataType == null) {
+            return "string";
+        }
+        switch (dataType) {
+            case "字符":
+            case "STRING":
+                return "string";
+            case "数值":
+                return "double";
+            case "日期":
+                return "timestamp";
+            case "INT":
+                return "int";
+            case "BIGINT":
+                return "bigint";
+            case "FLOAT":
+                return "float";
+            case "DOUBLE":
+                return "double";
+            case "DATE":
+                return "date";
+            case "TIMESTAMP":
+                return "timestamp";
+            case "BOOLEAN":
+                return "boolean";
+            default:
+                return "string";
+        }
+    }
+
+    private int resolveHeaderFieldCount(Config config) {
+        if (config.hasPath("skip_header_row_number")) {
+            try {
+                return Integer.parseInt(config.getString("skip_header_row_number"));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return 0;
     }
 
     private void checkSceneMode(List<JobTask> tasks) {
