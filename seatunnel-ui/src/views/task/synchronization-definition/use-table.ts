@@ -22,12 +22,14 @@ import {
   EditOutlined,
   PlayCircleOutlined,
   PauseCircleOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  ScheduleOutlined
 } from '@vicons/antd'
 import {
   querySyncTaskDefinitionPaging,
   deleteSyncTaskDefinition,
-  executeJob
+  executeJob,
+  queryJobSchedulePaging
 } from '@/service/sync-task-definition'
 import { useRouter } from 'vue-router'
 import type { Router } from 'vue-router'
@@ -50,8 +52,11 @@ export function useTable() {
     searchName: ref(''),
     totalPage: ref(1),
     showModalRef: ref(false),
+    scheduleModalRef: ref(false),
     statusRef: ref(0),
     row: {},
+    scheduleRow: {},
+    scheduleMap: {},
     loadingRef: ref(false)
   })
 
@@ -235,6 +240,70 @@ export function useTable() {
         }
       },
       {
+        title: t('project.synchronization_definition.schedule_status'),
+        key: 'scheduleStatus',
+        width: 110,
+        render: (row: any) => {
+          if (row.jobMode === 'STREAMING') return '-'
+          const schedule = variables.scheduleMap[row.id]
+          if (!schedule) {
+            return h(
+              NTag,
+              {
+                size: 'small',
+                color: {
+                  textColor: '#6b7280',
+                  borderColor: '#e5e7eb',
+                  color: '#f3f4f6'
+                },
+                bordered: false,
+                round: false
+              },
+              {
+                default: () =>
+                  t('project.synchronization_definition.schedule_unconfigured')
+              }
+            )
+          }
+          if (schedule.status === 1) {
+            return h(
+              NTag,
+              {
+                size: 'small',
+                color: {
+                  textColor: '#16a34a',
+                  borderColor: '#bbf7d0',
+                  color: '#f0fdf4'
+                },
+                bordered: false,
+                round: false
+              },
+              {
+                default: () =>
+                  t('project.synchronization_definition.schedule_enabled')
+              }
+            )
+          }
+          return h(
+            NTag,
+            {
+              size: 'small',
+              color: {
+                textColor: '#d97706',
+                borderColor: '#fde68a',
+                color: '#fffbeb'
+              },
+              bordered: false,
+              round: false
+            },
+            {
+              default: () =>
+                t('project.synchronization_definition.schedule_disabled')
+            }
+          )
+        }
+      },
+      {
         title: t('project.synchronization_definition.data_save_mode'),
         key: 'dataSaveMode',
         width: 140,
@@ -307,7 +376,7 @@ export function useTable() {
       useTableOperation({
         title: t('project.synchronization_definition.operation'),
         key: 'operation',
-        itemNum: 3,
+        itemNum: 4,
         buttons: [
           {
             type: 'default',
@@ -318,6 +387,16 @@ export function useTable() {
               })
             },
             icon: h(EditOutlined)
+          },
+          {
+            type: 'info',
+            text: t('project.synchronization_definition.schedule'),
+            isHidden: (row: any) => row.jobMode === 'STREAMING',
+            onClick: (row: any) => {
+              variables.scheduleRow = row
+              variables.scheduleModalRef = true
+            },
+            icon: h(ScheduleOutlined)
           },
           {
             type: 'primary',
@@ -354,6 +433,18 @@ export function useTable() {
     ]
   }
 
+  const loadScheduleMap = () => {
+    queryJobSchedulePaging({ pageNo: 1, pageSize: 1000 })
+      .then((res: any) => {
+        const map: Record<number, any> = {}
+        ;(res?.totalList || []).forEach((s: any) => {
+          if (s.jobDefinitionId != null) map[s.jobDefinitionId] = s
+        })
+        variables.scheduleMap = map
+      })
+      .catch(() => {})
+  }
+
   const getTableData = (params: any) => {
     if (variables.loadingRef) return
     variables.loadingRef = true
@@ -363,6 +454,7 @@ export function useTable() {
         variables.tableData = res.data
         variables.totalPage = res.totalPage
         variables.loadingRef = false
+        loadScheduleMap()
       })
       .catch(() => {
         variables.loadingRef = false

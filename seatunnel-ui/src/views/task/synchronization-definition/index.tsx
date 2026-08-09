@@ -43,6 +43,7 @@ import {
 import { I18N_KEYS } from '@/common/i18n-keys'
 import { useTable } from './use-table'
 import { TaskModal } from './task-modal'
+import { ScheduleModal } from './schedule-modal'
 import StatCard from '@/components/stat-card'
 import TaskCard from '@/components/task-card'
 import { useRoute, useRouter } from 'vue-router'
@@ -117,6 +118,15 @@ const SynchronizationDefinition = defineComponent({
       requestData()
     }
 
+    const onCancelScheduleModal = () => {
+      variables.scheduleModalRef = false
+    }
+
+    const onConfirmScheduleModal = () => {
+      variables.scheduleModalRef = false
+      requestData()
+    }
+
     const handleModalChange = () => {
       variables.showModalRef = true
     }
@@ -178,6 +188,8 @@ const SynchronizationDefinition = defineComponent({
       requestData,
       onCancelModal,
       onConfirmModal,
+      onCancelScheduleModal,
+      onConfirmScheduleModal,
       handleModalChange,
       onSearch,
       handleKeyup,
@@ -336,6 +348,12 @@ const SynchronizationDefinition = defineComponent({
           showModalRef={this.showModalRef}
           onCancelModal={this.onCancelModal}
           onConfirmModal={this.onConfirmModal}
+        />
+        <ScheduleModal
+          showModalRef={this.scheduleModalRef}
+          row={this.scheduleRow}
+          onCancelModal={this.onCancelScheduleModal}
+          onConfirmModal={this.onConfirmScheduleModal}
         />
       </div>
     )

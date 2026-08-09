@@ -330,3 +330,86 @@ export function executeJob(jobDefineId: number): any {
     }
   })
 }
+
+export function queryJobSchedulePaging(params: any): any {
+  return axios({
+    url: '/job-schedule/page',
+    method: 'get',
+    params
+  })
+}
+
+export function createJobSchedule(data: any): any {
+  return axios({
+    url: '/job-schedule',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    },
+    transformRequest: (params) => JSON.stringify(params)
+  })
+}
+
+export function updateJobSchedule(scheduleId: number, data: any): any {
+  return axios({
+    url: `/job-schedule/${scheduleId}`,
+    method: 'put',
+    data,
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    },
+    transformRequest: (params) => JSON.stringify(params)
+  })
+}
+
+export function deleteJobSchedule(scheduleId: number): any {
+  return axios({
+    url: `/job-schedule/${scheduleId}`,
+    method: 'delete'
+  })
+}
+
+export function enableJobSchedule(scheduleId: number): any {
+  return axios({
+    url: `/job-schedule/${scheduleId}/enable`,
+    method: 'post'
+  })
+}
+
+export function disableJobSchedule(scheduleId: number): any {
+  return axios({
+    url: `/job-schedule/${scheduleId}/disable`,
+    method: 'post'
+  })
+}
+
+export function triggerJobSchedule(scheduleId: number): any {
+  return axios({
+    url: `/job-schedule/${scheduleId}/trigger`,
+    method: 'post'
+  })
+}
+
+export function previewCronExecution(data: any): any {
+  return axios({
+    url: '/job-schedule/cron-preview',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    },
+    transformRequest: (params) => JSON.stringify(params)
+  })
+}
+
+export function queryScheduleTriggerLogPaging(
+  scheduleId: number,
+  params: any
+): any {
+  return axios({
+    url: `/job-schedule/${scheduleId}/trigger-log`,
+    method: 'get',
+    params
+  })
+}

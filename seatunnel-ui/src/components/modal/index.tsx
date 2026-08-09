@@ -35,6 +35,10 @@ const props = {
     type: Boolean as PropType<boolean>,
     default: true
   },
+  closable: {
+    type: Boolean as PropType<boolean>,
+    default: false
+  },
   confirmText: {
     type: String as PropType<string>
   },
@@ -83,7 +87,12 @@ const Modal = defineComponent({
         mask-closable={false}
         style={{ width: '600px' }}
       >
-        <NCard title={this.title} contentStyle={{ overflowY: 'auto' }}>
+        <NCard
+          title={this.title}
+          closable={this.closable}
+          onClose={onCancel}
+          contentStyle={{ overflowY: 'auto' }}
+        >
           {{
             default: () => renderSlot($slots, 'default'),
             footer: () => (
