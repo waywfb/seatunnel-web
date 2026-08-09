@@ -67,7 +67,11 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         }
 
         long currentTimestamp = System.currentTimeMillis();
-        final String token = request.getHeader(TOKEN);
+        // SSE/EventSource 无法设置自定义 header，token 通过 query 参数传递，此处作为 header 的兜底
+        String token = request.getHeader(TOKEN);
+        if (StringUtils.isBlank(token)) {
+            token = request.getParameter(TOKEN);
+        }
         if (StringUtils.isBlank(token)) {
             log.info("user does not exist");
             response.setStatus(HttpStatus.UNAUTHORIZED_401);

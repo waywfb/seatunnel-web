@@ -88,6 +88,17 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
     }
 
     @Override
+    public List<JobPipelineSummaryMetricsRes> getJobPipelineSummaryMetrics(
+            @NonNull JobInstance jobInstance) {
+        if (JobUtils.isJobEndStatus(jobInstance.getJobStatus())) {
+            return new ArrayList<>();
+        }
+        List<JobMetrics> jobPipelineDetailMetrics =
+                getJobMetricsFromEngine(jobInstance, jobInstance.getJobEngineId());
+        return summaryMetrics(jobPipelineDetailMetrics);
+    }
+
+    @Override
     public JobSummaryMetricsRes getJobSummaryMetrics(
             @NonNull Long jobInstanceId, @NonNull String jobEngineId) {
         int userId = ServletUtils.getCurrentUserId();

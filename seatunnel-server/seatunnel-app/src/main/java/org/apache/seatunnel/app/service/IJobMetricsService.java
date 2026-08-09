@@ -37,6 +37,9 @@ public interface IJobMetricsService {
 
     List<JobPipelineSummaryMetricsRes> getJobPipelineSummaryMetrics(@NonNull Long jobInstanceId);
 
+    List<JobPipelineSummaryMetricsRes> getJobPipelineSummaryMetrics(
+            @NonNull JobInstance jobInstance);
+
     List<JobPipelineDetailMetricsRes> getJobPipelineDetailMetricsRes(@NonNull Long jobInstanceId);
 
     JobDAG getJobDAG(@NonNull Long jobInstanceId) throws JsonProcessingException;

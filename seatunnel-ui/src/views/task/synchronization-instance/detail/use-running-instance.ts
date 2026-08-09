@@ -125,7 +125,10 @@ export function useRunningInstance() {
       {
         title: t('project.synchronization_instance.delay_of_data'),
         key: 'recordDelay',
-        render: (row: any) => row.recordDelay / 1000
+        render: (row: any) => {
+          if (!row.recordDelay && row.recordDelay !== 0) return ''
+          return row.recordDelay / 1000
+        }
       },
       {
         title: t('project.synchronization_instance.sink'),
@@ -171,9 +174,9 @@ export function useRunningInstance() {
     ]
   }
 
-  const getTableData = () => {
+  const getTableData = (silent = false) => {
     if (variables.loadingRef) return
-    variables.loadingRef = true
+    if (!silent) variables.loadingRef = true
 
     queryRunningInstancePaging({
       jobInstanceId: route.query.jobInstanceId

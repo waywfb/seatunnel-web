@@ -18,6 +18,7 @@
 import { defineComponent, onMounted, Ref, ref } from 'vue'
 import { NGi, NGrid, NCard, NSpace } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { Graph } from '@antv/x6'
 import { useDagGraph } from './dag/use-dag-graph'
 import { useDagResize } from './dag/use-dag-resize'
@@ -25,6 +26,9 @@ import { useDagNodeChangePosition } from './dag/use-dag-node-change-position'
 import { DagEdgeName, DagNodeName } from './dag/dag-setting'
 import { useDagEdge } from './dag/use-dag-edge'
 import { useTaskDefinition } from './use-task-definition'
+import { updateDagNodeTools } from './dag/use-dag-add-shape'
+import { querySyncTaskInstanceDetail } from '@/service/sync-task-instance'
+import { useSse } from '@/composables/use-sse'
 import styles from './task-definition.module.scss'
 import { useDagNode } from './dag/use-dag-node'
 import { useCanvasTheme } from './dag/theme-manager'
@@ -40,12 +44,33 @@ const TaskDefinition = defineComponent({
   name: 'TaskDefinition',
   setup() {
     const { t, te } = useI18n()
+    const route = useRoute()
     const container = ref()
     const dagContainer = ref()
     const minimapContainer = ref()
     const jobConfig = ref<IJobConfig>({} as IJobConfig)
     const graph = ref<Graph>()
     const { getJobConfig, getJobDag } = useTaskDefinition(t)
+
+    const updateDagSummary = (data: any) => {
+      if (graph.value && Array.isArray(data) && data.length > 0) {
+        updateDagNodeTools(graph.value, data, t)
+      }
+    }
+
+    useSse(
+      'job-instance/summary',
+      { jobInstanceId: String(route.query.jobInstanceId) },
+      {
+        onMessage: updateDagSummary,
+        fallback: async () => {
+          const data = await querySyncTaskInstanceDetail({
+            jobInstanceId: route.query.jobInstanceId
+          })
+          updateDagSummary(data)
+        }
+      }
+    )
 
     const {} = useCanvasTheme()
 

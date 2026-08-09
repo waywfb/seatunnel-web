@@ -36,23 +36,87 @@ const stateColor = {
   }
 }
 
+const statusLabels: Record<string, string> = {
+  RUNNING: '运行中',
+  FINISHED: '已完成',
+  FAILED: '失败',
+  CANCELED: '已取消',
+  INITIALIZING: '初始化中',
+  WAITING: '等待中'
+}
+
+export function buildNodeToolMarkup(node: any, t: any) {
+  return [
+    {
+      tagName: 'text',
+      textContent: `数据链路 #${node.pipelineId}`,
+      attrs: {
+        fill: '#333333',
+        'font-size': 14,
+        'text-anchor': 'center',
+        stroke: 'black'
+      }
+    },
+    {
+      tagName: 'text',
+      textContent: `状态: ${
+        statusLabels[node.status.toUpperCase()] || node.status
+      }`,
+      attrs: {
+        fill: '#868686',
+        'font-size': 12,
+        'text-anchor': 'start',
+        x: '7em'
+      }
+    },
+    {
+      tagName: 'text',
+      textContent: `${t('project.synchronization_instance.read')} ${
+        node.readRowCount
+      }${t('project.synchronization_instance.line')}/${t(
+        'project.synchronization_instance.write'
+      )} ${node.writeRowCount}${t('project.synchronization_instance.line')}`,
+      attrs: {
+        fill: '#868686',
+        'font-size': 12,
+        'text-anchor': 'start',
+        x: '20em'
+      }
+    }
+  ]
+}
+
+function addGroupTool(group: any, node: any, t: any) {
+  group.addTools({
+    name: 'button',
+    args: {
+      markup: buildNodeToolMarkup(node, t),
+      x: 0,
+      y: 0,
+      offset: { x: 0, y: -18 }
+    }
+  })
+}
+
+export function updateDagNodeTools(graph: any, summaryList: Array<any>, t: any) {
+  summaryList.forEach((item: any) => {
+    const group = graph.getCellById('group-' + item.pipelineId)
+    if (group) {
+      group.removeTools()
+      addGroupTool(group, item, t)
+    }
+  })
+}
+
 export function useDagAddShape(
   graph: any,
   nodes: any,
   edges: Array<any>,
   t: any
 ) {
-  const statusLabels: Record<string, string> = {
-    RUNNING: '运行中',
-    FINISHED: '已完成',
-    FAILED: '失败',
-    CANCELED: '已取消',
-    INITIALIZING: '初始化中',
-    WAITING: '等待中'
-  }
-
   for (const i in nodes) {
     const group = graph.addNode({
+      id: 'group-' + nodes[i].pipelineId,
       x: 40,
       y: 40,
       width: 360,
@@ -70,54 +134,7 @@ export function useDagAddShape(
       }
     })
 
-    group.addTools({
-      name: 'button',
-      args: {
-        markup: [
-          {
-            tagName: 'text',
-            textContent: `数据链路 #${nodes[i].pipelineId}`,
-            attrs: {
-              fill: '#333333',
-              'font-size': 14,
-              'text-anchor': 'center',
-              stroke: 'black'
-            }
-          },
-          {
-            tagName: 'text',
-            textContent: `状态: ${
-              statusLabels[nodes[i].status.toUpperCase()] || nodes[i].status
-            }`,
-            attrs: {
-              fill: '#868686',
-              'font-size': 12,
-              'text-anchor': 'start',
-              x: '7em'
-            }
-          },
-          {
-            tagName: 'text',
-            textContent: `${t('project.synchronization_instance.read')} ${
-              nodes[i].readRowCount
-            }${t('project.synchronization_instance.line')}/${t(
-              'project.synchronization_instance.write'
-            )} ${nodes[i].writeRowCount}${t(
-              'project.synchronization_instance.line'
-            )}`,
-            attrs: {
-              fill: '#868686',
-              'font-size': 12,
-              'text-anchor': 'start',
-              x: '20em'
-            }
-          }
-        ],
-        x: 0,
-        y: 0,
-        offset: { x: 0, y: -18 }
-      }
-    })
+    addGroupTool(group, nodes[i], t)
 
     nodes[i].child.forEach((n: any) => {
       const nodeType =

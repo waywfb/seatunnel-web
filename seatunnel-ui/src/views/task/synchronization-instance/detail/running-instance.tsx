@@ -18,13 +18,27 @@
 import { defineComponent, onMounted, toRefs, watch } from 'vue'
 import { NSpace, NCard, NDataTable } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useRunningInstance } from './use-running-instance'
+import { useSse } from '@/composables/use-sse'
 
 const RunningInstance = defineComponent({
   name: 'RunningInstance',
   setup() {
     const { t } = useI18n()
+    const route = useRoute()
     const { variables, getTableData, createColumns } = useRunningInstance()
+
+    useSse(
+      'job-instance/metrics',
+      { jobInstanceId: String(route.query.jobInstanceId) },
+      {
+        onMessage: (data: any) => {
+          variables.tableData = data
+        },
+        fallback: () => getTableData(true)
+      }
+    )
 
     onMounted(() => {
       createColumns(variables)
