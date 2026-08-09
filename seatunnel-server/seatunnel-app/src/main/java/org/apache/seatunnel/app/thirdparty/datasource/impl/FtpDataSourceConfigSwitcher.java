@@ -22,6 +22,9 @@ import org.apache.seatunnel.api.configuration.Options;
 import org.apache.seatunnel.api.configuration.util.OptionRule;
 import org.apache.seatunnel.api.configuration.util.RequiredOption;
 import org.apache.seatunnel.app.domain.request.connector.BusinessMode;
+import org.apache.seatunnel.app.domain.request.job.DataSourceOption;
+import org.apache.seatunnel.app.domain.request.job.SelectTableFields;
+import org.apache.seatunnel.app.domain.response.datasource.VirtualTableDetailRes;
 import org.apache.seatunnel.app.dynamicforms.DynamicSelectOption;
 import org.apache.seatunnel.app.dynamicforms.FormOptionBuilder;
 import org.apache.seatunnel.app.dynamicforms.FormStructure;
@@ -145,5 +148,33 @@ public class FtpDataSourceConfigSwitcher extends AbstractDataSourceConfigSwitche
                         });
 
         return formStructure;
+    }
+
+    @Override
+    public org.apache.seatunnel.shade.com.typesafe.config.Config mergeDatasourceConfig(
+            org.apache.seatunnel.shade.com.typesafe.config.Config dataSourceInstanceConfig,
+            VirtualTableDetailRes virtualTableDetail,
+            DataSourceOption dataSourceOption,
+            SelectTableFields selectTableFields,
+            BusinessMode businessMode,
+            PluginType pluginType,
+            org.apache.seatunnel.shade.com.typesafe.config.Config connectorConfig) {
+
+        org.apache.seatunnel.shade.com.typesafe.config.Config merged =
+                super.mergeDatasourceConfig(
+                        dataSourceInstanceConfig,
+                        virtualTableDetail,
+                        dataSourceOption,
+                        selectTableFields,
+                        businessMode,
+                        pluginType,
+                        connectorConfig);
+
+        // FTP connector expects key "user" but datasource config stores "username"
+        if (dataSourceInstanceConfig.hasPath("username") && !merged.hasPath("user")) {
+            merged = merged.withValue("user", dataSourceInstanceConfig.getValue("username"));
+        }
+
+        return merged;
     }
 }
