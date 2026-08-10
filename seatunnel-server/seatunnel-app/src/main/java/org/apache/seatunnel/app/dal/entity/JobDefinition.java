@@ -46,6 +46,10 @@ public class JobDefinition {
     @TableField("job_type")
     private String jobType;
 
+    /** STREAMING / BATCH */
+    @TableField("job_mode")
+    private String jobMode;
+
     @TableField("create_user_id")
     private Integer createUserId;
 

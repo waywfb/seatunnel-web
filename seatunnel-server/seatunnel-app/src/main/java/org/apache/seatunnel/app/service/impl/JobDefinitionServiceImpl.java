@@ -96,6 +96,7 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                         .createUserId(userId)
                         .updateUserId(userId)
                         .jobType(jobReq.getJobType().name())
+                        .jobMode(getJobMode(jobReq.getJobType()).name())
                         .build());
         JobVersion.JobVersionBuilder builder = JobVersion.builder();
         builder.jobId(uuid)
@@ -104,15 +105,21 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                 .name(DEFAULT_VERSION)
                 .id(uuid)
                 .engineName(EngineType.SeaTunnel)
-                .engineVersion("2.3.11");
-        if (BusinessMode.DATA_INTEGRATION.equals(jobReq.getJobType())) {
-            builder.jobMode(JobMode.BATCH);
-        } else if (BusinessMode.DATA_REPLICA.equals(jobReq.getJobType())) {
-            builder.jobMode(JobMode.STREAMING);
-        }
+                .engineVersion("2.3.11")
+                .jobMode(getJobMode(jobReq.getJobType()));
         jobVersionDao.createVersion(builder.build());
 
         return uuid;
+    }
+
+    private JobMode getJobMode(BusinessMode businessMode) {
+        if (BusinessMode.DATA_INTEGRATION.equals(businessMode)) {
+            return JobMode.BATCH;
+        }
+        if (BusinessMode.DATA_REPLICA.equals(businessMode)) {
+            return JobMode.STREAMING;
+        }
+        return JobMode.BATCH;
     }
 
     @Override
@@ -141,10 +148,8 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                 job.getData().stream().map(JobDefinitionRes::getId).collect(Collectors.toList());
         List<JobVersion> versions = jobVersionDao.getLatestVersionByJobIds(jobIds);
         Map<Long, Long> jobIdToVersionId = new HashMap<>();
-        Map<Long, JobMode> jobIdToJobMode = new HashMap<>();
         for (JobVersion version : versions) {
             jobIdToVersionId.putIfAbsent(version.getJobId(), version.getId());
-            jobIdToJobMode.putIfAbsent(version.getJobId(), version.getJobMode());
         }
 
         if (!jobIdToVersionId.isEmpty()) {
@@ -169,11 +174,6 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
             }
 
             for (JobDefinitionRes res : job.getData()) {
-                JobMode mode = jobIdToJobMode.get(res.getId());
-                if (mode != null) {
-                    res.setJobMode(mode.name());
-                }
-
                 Long versionId = jobIdToVersionId.get(res.getId());
                 if (versionId == null) continue;
                 List<JobTask> tasks = tasksByVersion.get(versionId);

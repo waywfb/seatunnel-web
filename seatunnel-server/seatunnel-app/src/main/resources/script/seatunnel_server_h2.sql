@@ -82,6 +82,7 @@ CREATE TABLE t_st_job_definition (
                                      name VARCHAR(50) NOT NULL,
                                      description VARCHAR(255) DEFAULT NULL,
                                      job_type VARCHAR(50) DEFAULT NULL,
+                                     job_mode VARCHAR(10) DEFAULT NULL,
                                      create_user_id INT NOT NULL,
                                      update_user_id INT NOT NULL,
                                      create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

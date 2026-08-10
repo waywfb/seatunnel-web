@@ -100,9 +100,10 @@ public class JobConfigServiceImpl extends SeatunnelBaseServiceImpl implements IJ
         jobDefinition.setUpdateUserId(userId);
         jobDefinition.setName(jobConfig.getName());
         jobDefinition.setDescription(jobConfig.getDescription());
-        jobDefinitionDao.updateJob(jobDefinition);
         if (jobConfig.getEnv().containsKey(JOB_MODE)) {
             JobMode jobMode = JobMode.valueOf(jobConfig.getEnv().get(JOB_MODE).toString());
+            jobDefinition.setJobMode(jobMode.name());
+            jobDefinitionDao.updateJob(jobDefinition);
             jobVersionDao.updateVersion(
                     JobVersion.builder()
                             .jobId(version.getJobId())

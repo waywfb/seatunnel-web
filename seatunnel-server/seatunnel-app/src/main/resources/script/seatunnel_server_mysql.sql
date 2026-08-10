@@ -82,6 +82,7 @@ CREATE TABLE `t_st_job_definition`  (
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
   `job_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
+  `job_mode` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL,
   `create_user_id` int(11) NOT NULL,
   `update_user_id` int(11) NOT NULL,
   `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

@@ -45,6 +45,7 @@ import org.apache.seatunnel.app.service.IJobScheduleService;
 import org.apache.seatunnel.app.utils.PageInfo;
 import org.apache.seatunnel.app.utils.ServletUtils;
 import org.apache.seatunnel.common.access.AccessInfo;
+import org.apache.seatunnel.common.constants.JobMode;
 import org.apache.seatunnel.server.common.CodeGenerateUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
 import org.apache.seatunnel.server.common.SeatunnelException;
@@ -434,6 +435,11 @@ public class JobScheduleServiceImpl implements IJobScheduleService {
         if (jobDefinition == null) {
             throw new SeatunnelException(
                     SeatunnelErrorEnum.JOB_SCHEDULE_JOB_NOT_FOUND, req.getJobDefinitionId());
+        }
+        if (JobMode.STREAMING.name().equals(jobDefinition.getJobMode())) {
+            throw new SeatunnelException(
+                    SeatunnelErrorEnum.JOB_SCHEDULE_STREAMING_NOT_SUPPORTED,
+                    jobDefinition.getName());
         }
         validateCron(req.getCronExpression());
         if (req.getActiveStartTime() != null

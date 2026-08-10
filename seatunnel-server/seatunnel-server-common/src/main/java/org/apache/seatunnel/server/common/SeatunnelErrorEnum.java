@@ -111,7 +111,8 @@ public enum SeatunnelErrorEnum {
     JOB_SCHEDULE_JOB_NOT_FOUND(71005, "任务不存在", "任务[%s]不存在，可能已被其他用户删除。"),
     JOB_SCHEDULE_TRIGGER_LOG_NOT_FOUND(71006, "触发日志不存在", "调度触发日志不存在，可能已被其他用户删除。"),
     JOB_SCHEDULE_EXECUTE_FAILED(71007, "调度触发任务执行失败", "任务[%s]调度触发失败：%s"),
-    JOB_SCHEDULE_QUARTZ_OPERATION_FAILED(71008, "调度器操作失败", "调度器[%s]操作失败：%s");
+    JOB_SCHEDULE_QUARTZ_OPERATION_FAILED(71008, "调度器操作失败", "调度器[%s]操作失败：%s"),
+    JOB_SCHEDULE_STREAMING_NOT_SUPPORTED(71009, "实时任务不支持定时调度", "任务[%s]为实时任务，实时任务不支持定时调度，请使用离线任务。");
 
     private final int code;
     private final String msg;
