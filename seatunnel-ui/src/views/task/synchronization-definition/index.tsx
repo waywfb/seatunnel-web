@@ -73,7 +73,10 @@ const SynchronizationDefinition = defineComponent({
     }
 
     const handleEdit = (task: Task) => {
-      router.push({ path: `/task/synchronization-definition/${task.id}` })
+      router.push({
+        path: `/task/synchronization-definition/${task.id}`,
+        query: { jobMode: task.jobMode }
+      })
     }
 
     const stats = computed((): TaskStats => {
@@ -174,6 +177,14 @@ const SynchronizationDefinition = defineComponent({
     watch(locale, () => {
       createColumns(variables)
     })
+
+    watch(
+      () => route.meta.jobMode,
+      () => {
+        variables.page = 1
+        requestData()
+      }
+    )
 
     return {
       t,

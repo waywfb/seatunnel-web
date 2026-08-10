@@ -31,7 +31,7 @@ import {
   executeJob,
   queryJobSchedulePaging
 } from '@/service/sync-task-definition'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import type { Router } from 'vue-router'
 import type { JobType } from './dag/types'
 import { useMessage } from 'naive-ui'
@@ -44,6 +44,7 @@ import type { Task } from '@/types/task'
 export function useTable() {
   const { t } = useI18n()
   const router: Router = useRouter()
+  const route = useRoute()
   const variables = reactive({
     columns: [],
     tableData: [],
@@ -383,7 +384,8 @@ export function useTable() {
             text: t('project.synchronization_definition.edit'),
             onClick: (row: any) => {
               router.push({
-                path: `/task/synchronization-definition/${row.id}`
+                path: `/task/synchronization-definition/${row.id}`,
+                query: { jobMode: row.jobMode }
               })
             },
             icon: h(EditOutlined)
@@ -449,7 +451,8 @@ export function useTable() {
     if (variables.loadingRef) return
     variables.loadingRef = true
 
-    querySyncTaskDefinitionPaging(params)
+    const jobMode = (route.meta.jobMode as string) || ''
+    querySyncTaskDefinitionPaging({ ...params, jobMode })
       .then((res: any) => {
         variables.tableData = res.data
         variables.totalPage = res.totalPage

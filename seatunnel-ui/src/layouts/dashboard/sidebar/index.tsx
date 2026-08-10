@@ -94,10 +94,16 @@ const NAV_GROUPS: NavGroup[] = [
     sectionLabelKey: 'section_pipeline',
     items: [
       {
-        key: 'synchronization-definition',
+        key: 'synchronization-definition-realtime',
         icon: 'account_tree',
-        route: '/task/synchronization-definition',
-        labelKey: 'sync_task_definition'
+        route: '/task/synchronization-definition/realtime',
+        labelKey: 'sync_task_definition_realtime'
+      },
+      {
+        key: 'synchronization-definition-offline',
+        icon: 'account_tree',
+        route: '/task/synchronization-definition/offline',
+        labelKey: 'sync_task_definition_offline'
       },
       {
         key: 'synchronization-instance',
@@ -127,16 +133,26 @@ const Sidebar = defineComponent({
     const { t } = useI18n()
 
     const collapsed = ref(false)
-    const activeKey = ref(
-      ((route.meta.activeSide || route.meta.activeMenu) as string) || ''
-    )
+    const resolveActiveKey = (): string => {
+      const metaSide = (route.meta.activeSide ||
+        route.meta.activeMenu) as string
+
+      if (route.name === 'synchronization-definition-dag') {
+        return (route.query.jobMode as string) === 'STREAMING'
+          ? 'synchronization-definition-realtime'
+          : 'synchronization-definition-offline'
+      }
+
+      return metaSide || ''
+    }
+
+    const activeKey = ref(resolveActiveKey())
     const expandedKeys = ref<string[]>([])
 
     watch(
-      () => route.path,
+      () => route.fullPath,
       () => {
-        activeKey.value =
-          ((route.meta.activeSide || route.meta.activeMenu) as string) || ''
+        activeKey.value = resolveActiveKey()
       },
       { immediate: true }
     )

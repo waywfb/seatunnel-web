@@ -26,6 +26,8 @@ export default {
   tag_manage: '测点管理',
   virtual_tables: '数据模型',
   sync_task_definition: '同步任务定义',
+  sync_task_definition_realtime: '实时任务',
+  sync_task_definition_offline: '离线任务',
   sync_task_instance: '同步任务实例',
   synchronization_instance: '同步任务实例',
   section_overview: '概览',

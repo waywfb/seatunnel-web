@@ -17,7 +17,15 @@
 
 import { defineComponent, PropType, toRefs, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { NForm, NFormItem, NInput, NRadioGroup, NRadio, NSpace } from 'naive-ui'
+import {
+  NForm,
+  NFormItem,
+  NInput,
+  NRadioGroup,
+  NRadio,
+  NSpace,
+  NTag
+} from 'naive-ui'
 import { useTaskModal } from './use-task-modal'
 import Modal from '@/components/modal'
 
@@ -139,6 +147,31 @@ const TaskModal = defineComponent({
                   </NRadio>
                 </NSpace>
               </NRadioGroup>
+            </NFormItem>
+            <NFormItem
+              label={this.t('project.synchronization_definition.job_mode')}
+              path='jobMode'
+            >
+              <NTag
+                size='small'
+                bordered={false}
+                round={false}
+                color={
+                  this.model.jobType === 'DATA_REPLICA'
+                    ? {
+                        textColor: '#7c3aed',
+                        borderColor: '#ddd6fe',
+                        color: '#f5f3ff'
+                      }
+                    : {
+                        textColor: '#1a5c8a',
+                        borderColor: '#b8dff5',
+                        color: '#e8f4fd'
+                      }
+                }
+              >
+                {this.model.jobType === 'DATA_REPLICA' ? '实时同步' : '离线同步'}
+              </NTag>
             </NFormItem>
           </NForm>
         </Modal>

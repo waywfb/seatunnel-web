@@ -27,17 +27,34 @@ export default {
   meta: {
     title: 'tasks'
   },
-  redirect: { name: 'synchronization-definition' },
+  redirect: { path: '/task/synchronization-definition/offline' },
   component: () => import('@/layouts/dashboard'),
   children: [
     {
       path: '/task/synchronization-definition',
-      name: 'synchronization-definition',
+      redirect: { path: '/task/synchronization-definition/offline' }
+    },
+    {
+      path: '/task/synchronization-definition/realtime',
+      name: 'synchronization-definition-realtime',
       component: components['task-synchronization-definition'],
       meta: {
         title: 'synchronization-definition',
         activeMenu: 'tasks',
-        activeSide: 'synchronization-definition',
+        activeSide: 'synchronization-definition-realtime',
+        jobMode: 'STREAMING',
+        showSide: true
+      }
+    },
+    {
+      path: '/task/synchronization-definition/offline',
+      name: 'synchronization-definition-offline',
+      component: components['task-synchronization-definition'],
+      meta: {
+        title: 'synchronization-definition',
+        activeMenu: 'tasks',
+        activeSide: 'synchronization-definition-offline',
+        jobMode: 'BATCH',
         showSide: true
       }
     },

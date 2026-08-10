@@ -26,6 +26,8 @@ export default {
   tag_manage: 'Tag Manage',
   virtual_tables: 'Virtual Tables',
   sync_task_definition: 'Syncing Task Definition',
+  sync_task_definition_realtime: 'Realtime Task',
+  sync_task_definition_offline: 'Offline Task',
   sync_task_instance: 'Syncing Task Instance',
   synchronization_instance: 'Syncing Task Instance',
   section_overview: 'Overview',
