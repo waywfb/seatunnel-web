@@ -30,6 +30,9 @@ export function useTaskModal(
   const router: Router = useRouter()
   const route = useRoute()
 
+  // 作业模式由当前菜单决定（实时同步菜单 -> STREAMING，离线同步菜单 -> BATCH）
+  const jobMode = (route.meta.jobMode as string) || 'BATCH'
+
   const variables = reactive({
     taskModalFormRef: ref(),
     saving: false,
@@ -75,7 +78,8 @@ export function useTaskModal(
     createSyncTaskDefinition({
       description: variables.model.description,
       name: variables.model.name,
-      jobType: variables.model.jobType
+      jobType: variables.model.jobType,
+      jobMode
     }).then((res: any) => {
       variables.model.description = ''
       variables.model.name = ''
@@ -85,8 +89,7 @@ export function useTaskModal(
       router.push({
         path: `/task/synchronization-definition/${res}`,
         query: {
-          jobMode:
-            variables.model.jobType === 'DATA_REPLICA' ? 'STREAMING' : 'BATCH'
+          jobMode
         }
       })
     })
@@ -94,6 +97,7 @@ export function useTaskModal(
 
   return {
     variables,
-    handleValidate
+    handleValidate,
+    jobMode
   }
 }

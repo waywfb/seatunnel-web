@@ -93,20 +93,25 @@ export function useTaskSettingModal(ctx: SetupContext<'cancelModal'[]>) {
       state.model.description = config.description
       const resJson = await taskDefinitionForm()
       const res = JSON.parse(resJson)
-      const forms = config.env
-        ? res.forms.map((f: any) => {
+      // 作业模式由当前菜单决定，设置弹窗不再手动选择；隐藏 job.mode 字段，
+      // 保存时仍按菜单模式注入 env（后端 updateJobConfig 强制要求 env 含 job.mode）
+      const forms = res.forms
+        .filter((f: any) => f.field !== 'job.mode')
+        .map((f: any) => {
+          if (config.env && config.env[f.field] !== undefined) {
             f.defaultValue = config.env[f.field]
-            return f
-          })
-        : res.forms.map((item: any) => {
-            if (item.field === 'job.mode') {
-              item.defaultValue = ''
-            }
-            return item
-          })
+          }
+          return f
+        })
       state.formName = res.name
       state.formLocales = res.locales || {}
-      Object.assign(state.model, useFormField(forms))
+      Object.assign(state.model, useFormField(forms), {
+        'job.mode':
+          (route.query.jobMode as string) ||
+          config.env?.['job.mode'] ||
+          config.jobMode ||
+          'BATCH'
+      })
       Object.assign(state.rules, useFormValidate(forms, state.model, t))
       state.formStructure = useFormStructure(
         res.apis ? useFormRequest(res.apis, forms) : forms

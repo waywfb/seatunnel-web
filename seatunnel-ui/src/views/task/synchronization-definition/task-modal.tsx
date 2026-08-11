@@ -46,7 +46,7 @@ const TaskModal = defineComponent({
   emits: ['cancelModal', 'confirmModal'],
   setup(props, ctx) {
     const { t } = useI18n()
-    const { variables, handleValidate } = useTaskModal(props, ctx)
+    const { variables, handleValidate, jobMode } = useTaskModal(props, ctx)
     const synchronizationForm: any = ref(null)
 
     const cancelModal = () => {
@@ -83,7 +83,8 @@ const TaskModal = defineComponent({
       confirmModal,
       preCancle,
       getNextStep,
-      synchronizationForm
+      synchronizationForm,
+      jobMode
     }
   },
   render() {
@@ -157,7 +158,7 @@ const TaskModal = defineComponent({
                 bordered={false}
                 round={false}
                 color={
-                  this.model.jobType === 'DATA_REPLICA'
+                  this.jobMode === 'STREAMING'
                     ? {
                         textColor: '#7c3aed',
                         borderColor: '#ddd6fe',
@@ -170,7 +171,7 @@ const TaskModal = defineComponent({
                       }
                 }
               >
-                {this.model.jobType === 'DATA_REPLICA' ? '实时同步' : '离线同步'}
+                {this.jobMode === 'STREAMING' ? '实时同步' : '离线同步'}
               </NTag>
             </NFormItem>
           </NForm>
