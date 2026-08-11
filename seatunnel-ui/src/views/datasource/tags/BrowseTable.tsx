@@ -8,7 +8,8 @@ import {
   RefreshCw,
   Check,
   Minus,
-  X
+  X,
+  Edit3
 } from 'lucide-vue-next'
 import type { BrowseNode } from './types'
 

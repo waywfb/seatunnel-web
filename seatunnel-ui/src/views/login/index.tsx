@@ -46,7 +46,10 @@ import {
   Lock,
   Building2,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  Folder,
+  ArrowRight,
+  KeyRound
 } from 'lucide-vue-next'
 import backgroundImage from '@/assets/background.png'
 

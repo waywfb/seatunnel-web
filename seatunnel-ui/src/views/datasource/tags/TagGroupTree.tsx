@@ -1,5 +1,5 @@
 import { defineComponent } from 'vue'
-import { Database, Folder, Trash2, RefreshCw, FolderOff } from 'lucide-vue-next'
+import { Database, Folder, Trash2, RefreshCw } from 'lucide-vue-next'
 
 interface GroupNode {
   id: string
