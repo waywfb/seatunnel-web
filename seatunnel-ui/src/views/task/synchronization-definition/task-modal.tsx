@@ -96,6 +96,7 @@ const TaskModal = defineComponent({
             'project.synchronization_definition.create_synchronization_task'
           )}
           show={showModalRef}
+          closable
           onCancel={this.cancelModal}
           onConfirm={this.confirmModal}
           confirmLoading={this.saving}

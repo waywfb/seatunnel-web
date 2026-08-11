@@ -98,7 +98,17 @@ const Modal = defineComponent({
             footer: () => (
               <NSpace justify='end'>
                 {this.cancelShow && (
-                  <NButton quaternary size='small' onClick={onCancel}>
+                  <NButton
+                    ghost
+                    size='small'
+                    style={{
+                      '--n-border': '1px solid currentColor',
+                      '--n-border-hover': '1px solid currentColor',
+                      '--n-border-pressed': '1px solid currentColor',
+                      '--n-border-focus': '1px solid currentColor'
+                    }}
+                    onClick={onCancel}
+                  >
                     {this.cancelText || t('modal.cancel')}
                   </NButton>
                 )}
