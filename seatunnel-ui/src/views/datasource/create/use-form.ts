@@ -33,12 +33,19 @@ import type { ResponseBasic } from '@/service/types'
 
 const localesCache = new Map<string, any>()
 
+interface DataSourceFormState {
+  pluginName: string
+  datasourceName: string
+  description: string
+  [key: string]: any
+}
+
 export function useForm(type: string) {
   const { t } = useI18n()
   const router = useRouter()
   const formStructuresStore = useFormStructuresStore()
 
-  const initialValues = {
+  const initialValues: DataSourceFormState = {
     pluginName: type,
     datasourceName: '',
     description: ''

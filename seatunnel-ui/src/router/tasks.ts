@@ -17,6 +17,7 @@
 
 import utils from '@/utils'
 import type { Component } from 'vue'
+import type { RouteRecordRaw } from 'vue-router'
 
 const modules = import.meta.glob('/src/views/**/**.tsx')
 const components: { [key: string]: Component } = utils.mapping(modules)
@@ -92,4 +93,4 @@ export default {
       }
     }
   ]
-}
+} as RouteRecordRaw

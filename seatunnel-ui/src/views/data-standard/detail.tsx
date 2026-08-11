@@ -333,7 +333,14 @@ export default defineComponent({
     const handleExport = () => {
       try {
         const name = form.name || '数据标准字段'
-        exportFields(fields.value, exportFormat.value, name)
+        exportFields(
+          fields.value.map((f) => ({
+            ...f,
+            fieldType: f.fieldType || 'BODY'
+          })),
+          exportFormat.value,
+          name
+        )
         showExportModal.value = false
         message.success('导出成功')
       } catch (e: any) {
@@ -1329,7 +1336,7 @@ export default defineComponent({
                               <div class='ds-inspector-section-title'>
                                 {t('data_standard.inspector_basic')}
                               </div>
-                              <NForm labelPlacement='top' size='tiny'>
+                              <NForm labelPlacement='top' size='small'>
                                 <NFormItem
                                   label={t('data_standard.field_name')}
                                 >
@@ -1406,7 +1413,7 @@ export default defineComponent({
                               <div class='ds-inspector-section-title'>
                                 高级属性
                               </div>
-                              <NForm labelPlacement='top' size='tiny'>
+                              <NForm labelPlacement='top' size='small'>
                                 <NGrid cols={2} xGap={6}>
                                   <NGridItem>
                                     <NFormItem

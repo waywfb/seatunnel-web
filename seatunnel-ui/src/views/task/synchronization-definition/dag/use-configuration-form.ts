@@ -49,7 +49,24 @@ export const useConfigurationForm = (
   const { t } = useI18n()
   const dagStore = useSynchronizationDefinitionStore()
   const route = useRoute()
-  const initialModel = {
+
+  interface ConfigurationFormModel {
+    name: string
+    datasourceInstanceId: null | string | number
+    datasourceInstanceName: null | string | number
+    sceneMode: null | string
+    database: null | string | string[]
+    tableName: null | string | string[]
+    kinds: any[]
+    kind: number
+    columnSelectable: boolean
+    pluginName: string
+    datasourceName: string
+    query: string
+    [key: string]: any
+  }
+
+  const initialModel: ConfigurationFormModel = {
     name: '',
     datasourceInstanceId: null,
     datasourceInstanceName: null,
@@ -287,7 +304,7 @@ export const useConfigurationForm = (
       state.tableLoading = true
       try {
         const result = await getTableByDatabase(
-          state.model.datasourceInstanceName || '',
+          String(state.model.datasourceInstanceName || ''),
           typeof databases === 'string' ? databases : databases[0],
           filterName,
           size

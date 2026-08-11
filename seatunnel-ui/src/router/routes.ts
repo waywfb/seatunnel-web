@@ -50,7 +50,6 @@ const loginPage: RouteRecordRaw[] = [
   {
     path: '/setting',
     redirect: { name: 'setting' },
-    component: () => import('@/layouts/dashboard'),
     children: [
       {
         path: '/setting',

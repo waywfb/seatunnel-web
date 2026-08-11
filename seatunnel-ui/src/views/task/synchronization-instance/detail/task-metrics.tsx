@@ -97,10 +97,8 @@ const TaskMetrics = defineComponent({
                         valueFormat='timestamp'
                         actions={['clear', 'confirm']}
                         style={{ width: '320px' }}
-                        placeholder={[
-                          this.t('project.metrics.start_time'),
-                          this.t('project.metrics.end_time')
-                        ]}
+                        startPlaceholder={this.t('project.metrics.start_time')}
+                        endPlaceholder={this.t('project.metrics.end_time')}
                         placement='bottom-end'
                         size='small'
                         to={false}

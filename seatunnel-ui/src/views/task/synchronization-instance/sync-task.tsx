@@ -66,7 +66,7 @@ const SyncTask = defineComponent({
   name: 'SyncTask',
   props,
   setup(props) {
-    let logTimer: number
+    let logTimer: ReturnType<typeof setTimeout>
     let refreshTimer: number
     const { t, locale } = useI18n()
     const {

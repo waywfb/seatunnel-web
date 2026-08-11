@@ -19,9 +19,6 @@ export default defineComponent({
         | 'segment'
         | 'bar'
         | 'card'
-        | 'border-card'
-        | 'button-card'
-        | 'button'
       >,
       default: 'line'
     },
