@@ -56,7 +56,10 @@ const DagToolbar = defineComponent({
 
     const onClose = () => {
       router.push({
-        name: 'synchronization-definition',
+        name:
+          route.query.jobMode === 'STREAMING'
+            ? 'synchronization-definition-realtime'
+            : 'synchronization-definition-offline',
         query: {
           project: route.query.project,
           global: route.query.global

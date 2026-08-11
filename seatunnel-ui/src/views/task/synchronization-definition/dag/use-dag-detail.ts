@@ -146,8 +146,12 @@ export const useDagDetail = () => {
           duration: 0
         })
       } else {
+        message.success(t('project.synchronization_definition.save_success'))
         router.push({
-          name: 'synchronization-definition',
+          name:
+            route.query.jobMode === 'STREAMING'
+              ? 'synchronization-definition-realtime'
+              : 'synchronization-definition-offline',
           query: {
             project: route.query.project,
             global: route.query.global
