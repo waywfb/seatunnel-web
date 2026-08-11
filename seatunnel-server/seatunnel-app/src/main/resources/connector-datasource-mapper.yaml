@@ -137,12 +137,14 @@ connector-datasource-mapper:
     Kafka:
       businessMode:
         - DATA_INTEGRATION
+        - DATA_REPLICA
       sceneMode:
         - SINGLE_TABLE
 
     Http:
       businessMode:
         - DATA_INTEGRATION
+        - DATA_REPLICA
       sceneMode:
         - SINGLE_TABLE
 
@@ -203,18 +205,21 @@ connector-datasource-mapper:
     Modbus:
       businessMode:
         - DATA_INTEGRATION
+        - DATA_REPLICA
       sceneMode:
         - SINGLE_TABLE
 
     OPCUA:
       businessMode:
         - DATA_INTEGRATION
+        - DATA_REPLICA
       sceneMode:
         - SINGLE_TABLE
 
     S7:
       businessMode:
         - DATA_INTEGRATION
+        - DATA_REPLICA
       sceneMode:
         - SINGLE_TABLE
 
