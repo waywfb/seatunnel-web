@@ -46,11 +46,6 @@ const light: GlobalThemeOverrides = {
     placeholderColorDisabled: '#D1D5DB',
 
     /**************** Focus */
-    focusColor: 'rgba(0, 104, 95, 0.2)',
-    boxShadowFocus: '0 0 0 2px rgba(0, 104, 95, 0.2)',
-    boxShadowFocusOutset: '0 0 0 2px rgba(0, 104, 95, 0.2)',
-    boxShadowFocusOutsetInset: 'inset 0 0 0 2px rgba(0, 104, 95, 0.2)',
-    boxShadowFromPopup: '0 2px 8px rgba(0, 0, 0, 0.06)',
 
     /**************** Opacity */
     opacityDisabled: '0.5',
@@ -65,12 +60,7 @@ const light: GlobalThemeOverrides = {
   Layout: {
     color: '#faf8ff',
     headerColor: '#ffffff',
-    headerColorModal: '#ffffff',
-    headerColorPopover: '#ffffff',
     siderColor: '#ffffff',
-    siderColorModal: '#ffffff',
-    siderColorPopover: '#ffffff',
-    borderColor: '#bcc9c6'
   },
 
   Menu: {
@@ -87,7 +77,6 @@ const light: GlobalThemeOverrides = {
     itemColorHover: '#f0f7f5',
     itemHeight: '40px',
     borderRadius: '4px',
-    borderColor: '#bcc9c6',
     color: '#ffffff',
     groupTextColor: '#9CA3AF',
     arrowColor: '#6d7a77'
@@ -106,7 +95,6 @@ const light: GlobalThemeOverrides = {
     borderColor: '#bcc9c6',
     borderColorModal: '#bcc9c6',
     borderColorPopover: '#bcc9c6',
-    tdColorHover: '#f0f7f5'
   },
 
   Button: {
@@ -125,56 +113,31 @@ const light: GlobalThemeOverrides = {
     textColorDisabled: '#9CA3AF',
     opacityDisabled: '0.5',
     fontWeight: '500',
-    borderRadius: '4px',
-    height: '40px',
-    padding: '0 16px',
-    fontSize: '14px',
-    iconSize: '18px',
 
     /* Secondary */
     colorSecondary: '#ffffff',
     colorSecondaryHover: '#faf8ff',
     colorSecondaryPressed: '#f0f7f5',
-    textColorSecondary: '#3d4947',
-    textColorSecondaryHover: '#131b2e',
-    textColorSecondaryPressed: '#131b2e',
-    borderSecondary: '1px solid #bcc9c6',
-    borderSecondaryHover: '1px solid #6d7a77',
 
     /* Error / Destructive */
     colorError: '#BE123C',
-    colorErrorHover: '#9F1239',
-    colorErrorPressed: '#881337',
-    colorErrorFocus: '#BE123C',
     textColorError: '#ffffff',
 
     /* Warning */
     colorWarning: '#D97B29',
-    colorWarningHover: '#B45309',
-    colorWarningPressed: '#92400E',
-    colorWarningFocus: '#D97B29',
     textColorWarning: '#ffffff',
 
     /* Success */
     colorSuccess: '#10B981',
-    colorSuccessHover: '#059669',
-    colorSuccessPressed: '#047857',
-    colorSuccessFocus: '#10B981',
     textColorSuccess: '#ffffff',
 
     /* Info */
     colorInfo: '#1DA7B4',
-    colorInfoHover: '#158994',
-    colorInfoPressed: '#0F6B74',
-    colorInfoFocus: '#1DA7B4',
     textColorInfo: '#ffffff',
 
     /* Ghost */
     textColorGhost: '#3d4947',
     textColorGhostHover: '#131b2e',
-    colorGhost: 'transparent',
-    colorGhostHover: '#f0f7f5',
-    colorGhostPressed: '#e2f0ee',
 
     /* Text (link-like) */
     textColorText: '#00685f',
@@ -184,8 +147,6 @@ const light: GlobalThemeOverrides = {
 
   Input: {
     color: '#ffffff',
-    colorModal: '#ffffff',
-    colorPopover: '#ffffff',
     textColor: '#131b2e',
     placeholderColor: '#9CA3AF',
     border: '1px solid #bcc9c6',
@@ -195,41 +156,13 @@ const light: GlobalThemeOverrides = {
     borderError: '1px solid #BE123C',
     boxShadowFocusError: '0 0 0 2px rgba(190, 18, 60, 0.2)',
     colorDisabled: '#f0f7f5',
-    colorDisabledModal: '#f0f7f5',
     textColorDisabled: '#D1D5DB',
     borderRadius: '4px',
-    height: '40px',
-    fontSize: '14px',
-    padding: '0 12px',
     iconSize: '18px'
   },
 
   Select: {
-    menuColor: '#ffffff',
-    menuColorModal: '#ffffff',
-    menuColorPopover: '#ffffff',
     menuBoxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
-    menuBorder: '1px solid #bcc9c6',
-    menuBorderRadius: '4px',
-    optionTextColor: '#3d4947',
-    optionTextColorHover: '#131b2e',
-    optionTextColorActive: '#00685f',
-    optionColorHover: '#f0f7f5',
-    optionColorActive: '#e2f0ee',
-    optionFontSize: '14px',
-    optionHeight: '36px',
-    optionPadding: '0 12px',
-    color: '#ffffff',
-    colorModal: '#ffffff',
-    colorPopover: '#ffffff',
-    border: '1px solid #bcc9c6',
-    borderHover: '1px solid #6d7a77',
-    borderFocus: '1px solid #00685f',
-    boxShadowFocus: '0 0 0 2px rgba(0, 104, 95, 0.2)',
-    borderRadius: '4px',
-    height: '40px',
-    fontSize: '14px',
-    placeholderColor: '#9CA3AF'
   },
 
   Card: {
@@ -238,28 +171,18 @@ const light: GlobalThemeOverrides = {
     colorPopover: '#ffffff',
     borderColor: '#bcc9c6',
     borderRadius: '8px',
-    paddingTop: '16px',
-    paddingBottom: '16px',
-    paddingLeft: '16px',
-    paddingRight: '16px',
     boxShadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
-    titleFontSize: '16px',
     titleFontWeight: '500',
     titleTextColor: '#131b2e'
   },
 
   Dialog: {
     color: '#ffffff',
-    colorModal: '#ffffff',
-    colorPopover: '#ffffff',
     border: '1px solid #bcc9c6',
     borderRadius: '8px',
-    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.1)',
     titleFontSize: '16px',
     titleFontWeight: '600',
     titleTextColor: '#131b2e',
-    contentFontSize: '14px',
-    contentTextColor: '#3d4947',
     actionSpace: '16px'
   },
 
@@ -267,13 +190,11 @@ const light: GlobalThemeOverrides = {
     color: '#131b2e',
     textColor: '#faf8ff',
     borderRadius: '4px',
-    fontSize: '12px',
     boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)'
   },
 
   Popover: {
     color: '#ffffff',
-    border: '1px solid #bcc9c6',
     borderRadius: '4px',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
     padding: '12px',
@@ -288,14 +209,9 @@ const light: GlobalThemeOverrides = {
     borderFocus: '1px solid #00685f',
     borderRadius: '4px',
     textColor: '#131b2e',
-    size: '18px'
   },
 
   Radio: {
-    radioColor: '#ffffff',
-    radioColorActive: '#00685f',
-    border: '1px solid #bcc9c6',
-    borderActive: '1px solid #00685f',
     textColor: '#3d4947'
   },
 
@@ -316,8 +232,6 @@ const light: GlobalThemeOverrides = {
     itemBorder: '1px solid #bcc9c6',
     itemBorderActive: '1px solid #00685f',
     itemBorderRadius: '4px',
-    itemFontSize: '14px',
-    itemSize: '36px',
     buttonBorder: '1px solid #bcc9c6',
     buttonIconColor: '#6d7a77'
   },
@@ -327,23 +241,17 @@ const light: GlobalThemeOverrides = {
     itemColorHover: '#f0f7f5',
     itemTextColorActive: '#00685f',
     panelColor: '#ffffff',
-    panelBorderColor: '#bcc9c6',
     panelBorderRadius: '8px',
-    calendarDaysColor: '#6d7a77'
   },
 
   Dropdown: {
     color: '#ffffff',
-    colorModal: '#ffffff',
-    colorPopover: '#ffffff',
     optionTextColor: '#3d4947',
     optionTextColorHover: '#131b2e',
     optionTextColorActive: '#00685f',
     optionColorHover: '#f0f7f5',
     optionColorActive: '#e2f0ee',
     borderRadius: '4px',
-    border: '1px solid #bcc9c6',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
     dividerColor: '#bcc9c6'
   },
 
@@ -352,17 +260,12 @@ const light: GlobalThemeOverrides = {
     textColor: '#3d4947',
     border: '1px solid #bcc9c6',
     borderRadius: '4px',
-    fontSize: '12px',
     padding: '0 8px',
-    height: '24px'
   },
 
   Progress: {
     railColor: '#bcc9c6',
-    color: '#00685f',
-    textColor: '#3d4947',
     fontSize: '12px',
-    fontWeight: '500'
   },
 
   Badge: {
@@ -398,16 +301,13 @@ const light: GlobalThemeOverrides = {
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     iconColor: '#00685f',
     textColor: '#3d4947',
-    closeColor: '#6d7a77'
   },
 
   Notification: {
     color: '#ffffff',
     borderRadius: '8px',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-    titleTextColor: '#131b2e',
     textColor: '#3d4947',
-    closeColor: '#6d7a77'
   },
 
   Empty: {
@@ -422,41 +322,27 @@ const light: GlobalThemeOverrides = {
   },
 
   Tabs: {
-    tabTextColor: '#6d7a77',
-    tabTextColorActive: '#00685f',
-    tabTextColorHover: '#131b2e',
-    tabFontSize: '14px',
     tabFontWeight: '500',
     tabBorderRadius: '4px',
     barColor: '#00685f',
     colorSegment: '#f0f7f5',
     tabColorSegment: '#ffffff',
-    tabColorSegmentActive: '#ffffff',
-    paneColor: '#ffffff',
     tabColor: 'transparent',
-    tabColorHover: '#f0f7f5',
-    borderColor: '#bcc9c6'
   },
 
   Collapse: {
     titleTextColor: '#131b2e',
-    titleTextColorActive: '#00685f',
     titleFontSize: '14px',
     titleFontWeight: '500',
     arrowColor: '#6d7a77',
     dividerColor: '#bcc9c6',
-    itemBorderColor: '#bcc9c6',
-    titlePadding: '12px 0'
   },
 
   TimePicker: {
     panelColor: '#ffffff',
-    panelBorderColor: '#bcc9c6',
-    panelBorderRadius: '8px',
     itemTextColor: '#3d4947',
     itemTextColorActive: '#00685f',
     itemColorHover: '#f0f7f5',
-    itemColorActive: '#e2f0ee'
   },
 
   Slider: {
@@ -467,13 +353,11 @@ const light: GlobalThemeOverrides = {
     handleColor: '#ffffff',
     handleBoxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.1)',
     handleBoxShadowHover: '0 1px 2px 0 rgba(0, 0, 0, 0.15)',
-    markColor: '#6d7a77',
     markFontSize: '12px'
   },
 
   Drawer: {
     color: '#ffffff',
-    border: '1px solid #bcc9c6',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
     bodyPadding: '16px 24px',
     headerPadding: '16px 24px',
@@ -482,10 +366,8 @@ const light: GlobalThemeOverrides = {
 
   Form: {
     labelTextColor: '#3d4947',
-    labelFontSize: '14px',
     labelFontWeight: '500',
     feedbackTextColor: '#BE123C',
-    feedbackFontSize: '12px',
     feedbackPadding: '4px 0 0'
   },
 
@@ -499,8 +381,6 @@ const light: GlobalThemeOverrides = {
     tdColorHover: '#f0f7f5',
     borderRadius: '8px',
     loadingColor: '#00685f',
-    paginationColor: '#00685f',
-    paginationTextColor: '#3d4947'
   }
 }
 
