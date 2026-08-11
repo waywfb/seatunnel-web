@@ -88,6 +88,8 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
         Integer userId = ServletUtils.getCurrentUserId();
         permCheck(jobReq.getName(), AccessType.CREATE);
         long uuid = CodeGenerateUtils.getInstance().genCode();
+        JobMode jobMode =
+                jobReq.getJobMode() != null ? jobReq.getJobMode() : getJobMode(jobReq.getJobType());
         jobDefinitionDao.add(
                 JobDefinition.builder()
                         .id(uuid)
@@ -96,7 +98,7 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                         .createUserId(userId)
                         .updateUserId(userId)
                         .jobType(jobReq.getJobType().name())
-                        .jobMode(getJobMode(jobReq.getJobType()).name())
+                        .jobMode(jobMode.name())
                         .build());
         JobVersion.JobVersionBuilder builder = JobVersion.builder();
         builder.jobId(uuid)
@@ -106,7 +108,7 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
                 .id(uuid)
                 .engineName(EngineType.SeaTunnel)
                 .engineVersion("2.3.11")
-                .jobMode(getJobMode(jobReq.getJobType()));
+                .jobMode(jobMode);
         jobVersionDao.createVersion(builder.build());
 
         return uuid;

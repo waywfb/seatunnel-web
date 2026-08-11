@@ -18,6 +18,7 @@
 package org.apache.seatunnel.app.domain.request.job;
 
 import org.apache.seatunnel.app.domain.request.connector.BusinessMode;
+import org.apache.seatunnel.common.constants.JobMode;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -34,4 +35,9 @@ public class JobReq {
 
     @ApiModelProperty(value = "job type", dataType = "String")
     private BusinessMode jobType;
+
+    @ApiModelProperty(
+            value = "job mode: BATCH / STREAMING, optional; falls back to jobType when absent",
+            dataType = "String")
+    private JobMode jobMode;
 }
