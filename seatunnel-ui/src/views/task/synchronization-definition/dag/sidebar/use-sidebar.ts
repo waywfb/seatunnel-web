@@ -70,7 +70,14 @@ export function useSidebar() {
   }
 
   const getSourceDatasourceTypes = () => {
-    fetchSourceDatasourceTypes().then((res: any) => {
+    const jobMode = route.query.jobMode as string
+    const businessMode =
+      jobMode === 'STREAMING'
+        ? 'DATA_REPLICA'
+        : jobMode === 'BATCH'
+          ? 'DATA_INTEGRATION'
+          : undefined
+    fetchSourceDatasourceTypes(businessMode).then((res: any) => {
       variables.sourceTypes = res || []
     })
   }

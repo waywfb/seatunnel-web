@@ -69,8 +69,16 @@ public class ConnectorServiceImpl extends SeatunnelBaseServiceImpl implements IC
     private static final List<String> SKIP_SINK = Collections.emptyList();
 
     @Override
-    public List<SourceDatasourceType> listSourceDatasourceTypes() {
+    public List<SourceDatasourceType> listSourceDatasourceTypes(BusinessMode businessMode) {
         return dataSourceMapperConfig.getSourceDatasourceFeatures().entrySet().stream()
+                .filter(
+                        entry ->
+                                businessMode == null
+                                        || dataSourceMapperConfig
+                                                .supportedBusinessMode(
+                                                        entry.getKey(), PluginType.SOURCE)
+                                                .map(modes -> modes.contains(businessMode))
+                                                .orElse(false))
                 .map(
                         entry ->
                                 new SourceDatasourceType(

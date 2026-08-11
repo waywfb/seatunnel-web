@@ -78,10 +78,11 @@ export function updateSyncTaskDefinition(jobCode: string, data: any): any {
   })
 }
 
-export function fetchSourceDatasourceTypes(): any {
+export function fetchSourceDatasourceTypes(businessMode?: string): any {
   return axios({
     url: '/datasource/source-types',
-    method: 'get'
+    method: 'get',
+    params: businessMode ? { businessMode } : undefined
   })
 }
 

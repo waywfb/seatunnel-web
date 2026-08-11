@@ -17,6 +17,7 @@
 
 package org.apache.seatunnel.app.service;
 
+import org.apache.seatunnel.app.domain.request.connector.BusinessMode;
 import org.apache.seatunnel.app.domain.request.connector.ConnectorStatus;
 import org.apache.seatunnel.app.domain.request.connector.SceneMode;
 import org.apache.seatunnel.app.domain.response.connector.ConnectorInfo;
@@ -31,7 +32,7 @@ import java.util.List;
 
 public interface IConnectorService {
 
-    List<SourceDatasourceType> listSourceDatasourceTypes();
+    List<SourceDatasourceType> listSourceDatasourceTypes(BusinessMode businessMode);
 
     List<ConnectorInfo> listSources(ConnectorStatus status);
 

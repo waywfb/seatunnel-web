@@ -18,6 +18,7 @@
 package org.apache.seatunnel.app.controller;
 
 import org.apache.seatunnel.app.common.Result;
+import org.apache.seatunnel.app.domain.request.connector.BusinessMode;
 import org.apache.seatunnel.app.domain.request.connector.ConnectorStatus;
 import org.apache.seatunnel.app.domain.request.connector.SceneMode;
 import org.apache.seatunnel.app.domain.response.connector.ConnectorInfo;
@@ -48,8 +49,10 @@ public class ConnectorDataSourceController {
 
     @GetMapping("/source-types")
     @ApiOperation(value = "list all source datasource types", httpMethod = "GET")
-    public Result<List<SourceDatasourceType>> listSourceDatasourceTypes() {
-        return Result.success(connectorService.listSourceDatasourceTypes());
+    public Result<List<SourceDatasourceType>> listSourceDatasourceTypes(
+            @ApiParam(value = "businessMode", required = false) @RequestParam(required = false)
+                    BusinessMode businessMode) {
+        return Result.success(connectorService.listSourceDatasourceTypes(businessMode));
     }
 
     @GetMapping("/sources")
