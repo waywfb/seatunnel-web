@@ -134,32 +134,21 @@ public class ConnectorServiceImpl extends SeatunnelBaseServiceImpl implements IC
     @Override
     public List<ConnectorInfo> listTransformsForJob(Long jobId) {
         funcPermissionCheck(SeatunnelFuncPermissionKeyConstant.CONNECTOR_DATASOURCE_TRANSFORMS, 0);
-        BusinessMode businessMode =
-                BusinessMode.valueOf(
-                        jobDefinitionService
-                                .getJobDefinitionByJobId(jobId)
-                                .getJobType()
-                                .toUpperCase());
-
-        if (businessMode.equals(BusinessMode.DATA_INTEGRATION)) {
-
-            return connectorCache.getTransform().stream()
-                    .filter(
-                            connectorInfo -> {
-                                String pluginName =
-                                        connectorInfo.getPluginIdentifier().getPluginName();
-                                return pluginName.equals("FieldMapper")
-                                        || pluginName.equals("FilterRowKind")
-                                        || pluginName.equals("Replace")
-                                        || pluginName.equals("Copy")
-                                        || pluginName.equals("MultiFieldSplit")
-                                        || pluginName.equals("Sql")
-                                        || pluginName.equals("JsonPath");
-                            })
-                    .collect(Collectors.toList());
-        }
-
-        return Collections.emptyList();
+        // Transform 白名单对离线(BATCH)与实时(STREAMING)任务均适用，
+        // 不再按业务模式(DATA_INTEGRATION/DATA_REPLICA)区分，实时任务同样需要 Transform 组件。
+        return connectorCache.getTransform().stream()
+                .filter(
+                        connectorInfo -> {
+                            String pluginName = connectorInfo.getPluginIdentifier().getPluginName();
+                            return pluginName.equals("FieldMapper")
+                                    || pluginName.equals("FilterRowKind")
+                                    || pluginName.equals("Replace")
+                                    || pluginName.equals("Copy")
+                                    || pluginName.equals("MultiFieldSplit")
+                                    || pluginName.equals("Sql")
+                                    || pluginName.equals("JsonPath");
+                        })
+                .collect(Collectors.toList());
     }
 
     @Override

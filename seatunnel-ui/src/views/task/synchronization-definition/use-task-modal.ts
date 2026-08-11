@@ -32,6 +32,8 @@ export function useTaskModal(
 
   // 作业模式由当前菜单决定（实时同步菜单 -> STREAMING，离线同步菜单 -> BATCH）
   const jobMode = (route.meta.jobMode as string) || 'BATCH'
+  // jobType 跟随菜单联动：实时 -> DATA_REPLICA，离线 -> DATA_INTEGRATION
+  const jobType = jobMode === 'STREAMING' ? 'DATA_REPLICA' : 'DATA_INTEGRATION'
 
   const variables = reactive({
     taskModalFormRef: ref(),
@@ -39,7 +41,7 @@ export function useTaskModal(
     model: {
       name: ref(''),
       description: ref(''),
-      jobType: ref('DATA_REPLICA')
+      jobType: ref(jobType)
     },
     rules: {
       name: {
