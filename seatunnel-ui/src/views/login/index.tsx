@@ -94,7 +94,7 @@ const Login = defineComponent({
               </div>
               <div class='flex flex-col'>
                 <span class='font-tide-headline-lg text-tide-headline-lg text-white font-bold tracking-tight'>
-                  Data Fusion Studio
+                  工业数据融合平台
                 </span>
                 <span class='text-tide-primary-fixed-dim text-xs font-medium tracking-widest uppercase'>
                   {this.t('login.brand_subtitle')}
