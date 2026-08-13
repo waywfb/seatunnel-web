@@ -123,9 +123,19 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
             long createTimeSecond = createTime.toInstant().getEpochSecond();
             Date endTime = jobInstanceDto.getEndTime();
             if (endTime == null) {
-                Date currentData = new Date();
-                long currentDateSecond = currentData.toInstant().getEpochSecond();
-                runningTime = Math.abs(currentDateSecond - createTimeSecond);
+                Date referenceTime;
+                if (jobInstanceDto.getJobStatus() != null
+                        && jobInstanceDto.getJobStatus().isEndState()) {
+                    // 终态（如 UNKNOWABLE）未记录结束时间，运行时间冻结在最后一次状态更新时间
+                    referenceTime =
+                            jobInstanceDto.getUpdateTime() != null
+                                    ? jobInstanceDto.getUpdateTime()
+                                    : createTime;
+                } else {
+                    referenceTime = new Date();
+                }
+                long referenceTimeSecond = referenceTime.toInstant().getEpochSecond();
+                runningTime = Math.abs(referenceTimeSecond - createTimeSecond);
                 jobInstanceDto.setRunningTime(runningTime);
             } else {
                 long endTimeSecond = jobInstanceDto.getEndTime().toInstant().getEpochSecond();
