@@ -16,7 +16,7 @@
  */
 
 import { useI18n } from 'vue-i18n'
-import { computed, reactive, ref, SetupContext, watch } from 'vue'
+import { computed, reactive, ref, SetupContext, watch, nextTick } from 'vue'
 import { useMessage, type FormItemRule } from 'naive-ui'
 import {
   queryJobSchedulePaging,
@@ -29,21 +29,7 @@ import {
   previewCronExecution
 } from '@/service/sync-task-definition'
 
-const DEFAULT_TIMEZONE = 'Asia/Shanghai'
-
-export const TIMEZONE_OPTIONS = [
-  { label: 'Asia/Shanghai (UTC+8)', value: 'Asia/Shanghai' },
-  { label: 'Asia/Hong_Kong (UTC+8)', value: 'Asia/Hong_Kong' },
-  { label: 'Asia/Tokyo (UTC+9)', value: 'Asia/Tokyo' },
-  { label: 'Asia/Singapore (UTC+8)', value: 'Asia/Singapore' },
-  { label: 'Asia/Seoul (UTC+9)', value: 'Asia/Seoul' },
-  { label: 'Europe/London (UTC+0)', value: 'Europe/London' },
-  { label: 'Europe/Paris (UTC+1)', value: 'Europe/Paris' },
-  { label: 'America/New_York (UTC-5)', value: 'America/New_York' },
-  { label: 'America/Los_Angeles (UTC-8)', value: 'America/Los_Angeles' },
-  { label: 'UTC (UTC+0)', value: 'UTC' },
-  { label: 'Australia/Sydney (UTC+10)', value: 'Australia/Sydney' }
-]
+export const DEFAULT_TIMEZONE = 'Asia/Shanghai'
 
 export const CONCURRENT_POLICY_OPTIONS = [
   { label: 'skip', value: 0 },
@@ -57,6 +43,8 @@ export const MISFIRE_POLICY_OPTIONS = [
 
 /** 可视化调度频率类型：仅允许以下 5 种，禁止手填 cron */
 export type ScheduleFrequencyType = 'minute' | 'hour' | 'day' | 'week' | 'month'
+
+export type ScheduleMode = 'friendly' | 'cron'
 
 export interface ScheduleFrequency {
   type: ScheduleFrequencyType
@@ -99,16 +87,26 @@ export function buildCronExpression(f: ScheduleFrequency): string {
     case 'minute':
       return `0 */${clamp(f.minuteInterval, 1, 59)} * * * ?`
     case 'hour':
-      return `0 ${clamp(f.minuteOfHour, 0, 59)} */${clamp(f.hourInterval, 1, 23)} * * ?`
+      return `0 ${clamp(f.minuteOfHour, 0, 59)} */${clamp(
+        f.hourInterval,
+        1,
+        23
+      )} * * ?`
     case 'day':
-      return `0 ${pad2(clamp(f.minute, 0, 59))} ${pad2(clamp(f.hour, 0, 23))} * * ?`
+      return `0 ${pad2(clamp(f.minute, 0, 59))} ${pad2(
+        clamp(f.hour, 0, 23)
+      )} * * ?`
     case 'week': {
       // UI 1=周一..7=周日 -> Quartz 1=周日..7=周六
-      const quartzWeekday = clamp(f.weekday, 1, 7) % 7 + 1
-      return `0 ${pad2(clamp(f.minute, 0, 59))} ${pad2(clamp(f.hour, 0, 23))} ? * ${quartzWeekday}`
+      const quartzWeekday = (clamp(f.weekday, 1, 7) % 7) + 1
+      return `0 ${pad2(clamp(f.minute, 0, 59))} ${pad2(
+        clamp(f.hour, 0, 23)
+      )} ? * ${quartzWeekday}`
     }
     case 'month':
-      return `0 ${pad2(clamp(f.minute, 0, 59))} ${pad2(clamp(f.hour, 0, 23))} ${clamp(f.dayOfMonth, 1, 31)} * ?`
+      return `0 ${pad2(clamp(f.minute, 0, 59))} ${pad2(
+        clamp(f.hour, 0, 23)
+      )} ${clamp(f.dayOfMonth, 1, 31)} * ?`
   }
 }
 
@@ -125,19 +123,41 @@ export function parseCronExpression(cron: string): ScheduleFrequency {
   const isNum = (s: string) => /^\d+$/.test(s)
 
   // 0 */N * * * ?
-  if (sec === '0' && min.startsWith('*/') && hour === '*' && dom === '*' && mon === '*' && dow === '?') {
+  if (
+    sec === '0' &&
+    min.startsWith('*/') &&
+    hour === '*' &&
+    dom === '*' &&
+    mon === '*' &&
+    dow === '?'
+  ) {
     const n = parseInt(min.slice(2), 10)
-    if (n >= 1 && n <= 59) return { ...fallback, type: 'minute', minuteInterval: n }
+    if (n >= 1 && n <= 59)
+      return { ...fallback, type: 'minute', minuteInterval: n }
   }
   // 0 M */N * * ?
-  if (sec === '0' && isNum(min) && hour.startsWith('*/') && dom === '*' && mon === '*' && dow === '?') {
+  if (
+    sec === '0' &&
+    isNum(min) &&
+    hour.startsWith('*/') &&
+    dom === '*' &&
+    mon === '*' &&
+    dow === '?'
+  ) {
     const n = parseInt(hour.slice(2), 10)
     const m = parseInt(min, 10)
     if (n >= 1 && n <= 23 && m >= 0 && m <= 59)
       return { ...fallback, type: 'hour', hourInterval: n, minuteOfHour: m }
   }
   // 0 mm HH * * ?
-  if (sec === '0' && isNum(min) && isNum(hour) && dom === '*' && mon === '*' && dow === '?') {
+  if (
+    sec === '0' &&
+    isNum(min) &&
+    isNum(hour) &&
+    dom === '*' &&
+    mon === '*' &&
+    dow === '?'
+  ) {
     return {
       ...fallback,
       type: 'day',
@@ -146,7 +166,14 @@ export function parseCronExpression(cron: string): ScheduleFrequency {
     }
   }
   // 0 mm HH ? * 1-7  （Quartz 周）
-  if (sec === '0' && isNum(min) && isNum(hour) && dom === '?' && mon === '*' && isNum(dow)) {
+  if (
+    sec === '0' &&
+    isNum(min) &&
+    isNum(hour) &&
+    dom === '?' &&
+    mon === '*' &&
+    isNum(dow)
+  ) {
     const quartzWeekday = parseInt(dow, 10)
     if (quartzWeekday >= 1 && quartzWeekday <= 7) {
       // Quartz 1=周日 -> UI 1=周一：uiWeekday = quartzWeekday - 1 || 7
@@ -161,7 +188,14 @@ export function parseCronExpression(cron: string): ScheduleFrequency {
     }
   }
   // 0 mm HH D * ?
-  if (sec === '0' && isNum(min) && isNum(hour) && isNum(dom) && mon === '*' && dow === '?') {
+  if (
+    sec === '0' &&
+    isNum(min) &&
+    isNum(hour) &&
+    isNum(dom) &&
+    mon === '*' &&
+    dow === '?'
+  ) {
     const d = parseInt(dom, 10)
     if (d >= 1 && d <= 31) {
       return {
@@ -174,6 +208,19 @@ export function parseCronExpression(cron: string): ScheduleFrequency {
     }
   }
   return fallback
+}
+
+/**
+ * 简单校验 Cron 表达式格式（Quartz 7 段）。
+ * 返回 true 表示格式合法。
+ */
+export function validateCronExpression(cron: string): boolean {
+  if (!cron || !cron.trim()) return false
+  const parts = cron.trim().split(/\s+/)
+  if (parts.length < 6 || parts.length > 7) return false
+  // 允许 * ? / , - 这几个字符
+  const validPattern = /^[\d*/?,\-]+$/
+  return parts.every((p) => validPattern.test(p))
 }
 
 export function useScheduleModal(
@@ -191,14 +238,12 @@ export function useScheduleModal(
     scheduleStatus: 0,
     previewLoading: false,
     previewTimes: [] as string[],
+    mode: ref<ScheduleMode>('friendly'),
     frequency: ref<ScheduleFrequency>({ ...DEFAULT_FREQUENCY }),
     model: {
       cronExpression: ref(''),
-      timezone: ref(DEFAULT_TIMEZONE),
       retryTimes: ref(0),
-      retryInterval: ref(0),
-      activeStartTime: ref<string | null>(null),
-      activeEndTime: ref<string | null>(null),
+      retryInterval: ref(1),
       concurrentPolicy: ref(0),
       misfirePolicy: ref(0)
     },
@@ -211,10 +256,6 @@ export function useScheduleModal(
             return Error(t('project.synchronization_definition.cron_invalid'))
           }
         }
-      },
-      timezone: {
-        required: true,
-        trigger: ['change']
       }
     }
   })
@@ -224,7 +265,8 @@ export function useScheduleModal(
   )
 
   const frequencyTime = computed(
-    () => `${pad2(variables.frequency.hour)}:${pad2(variables.frequency.minute)}:00`
+    () =>
+      `${pad2(variables.frequency.hour)}:${pad2(variables.frequency.minute)}:00`
   )
 
   const handleFrequencyTimeChange = (val: string | number | null) => {
@@ -236,12 +278,41 @@ export function useScheduleModal(
     }
   }
 
+  // 监听频率变化，同步生成 cron 表达式（friendly 模式）
   watch(
     () => variables.frequency,
     () => {
-      variables.model.cronExpression = generatedCronExpression.value
+      if (variables.mode === 'friendly') {
+        variables.model.cronExpression = generatedCronExpression.value
+      }
     },
     { deep: true }
+  )
+
+  // 监听模式切换，同步 cron 表达式
+  watch(
+    () => variables.mode,
+    (newMode) => {
+      if (newMode === 'friendly') {
+        variables.model.cronExpression = generatedCronExpression.value
+      }
+      // cron 模式下 cronExpression 直接绑定用户输入，无需同步
+      nextTick(() => {
+        handlePreview()
+      })
+    }
+  )
+
+  // 监听 cron 表达式变化（cron 模式下），防抖预览
+  let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null
+  watch(
+    () => variables.model.cronExpression,
+    () => {
+      if (previewDebounceTimer) clearTimeout(previewDebounceTimer)
+      previewDebounceTimer = setTimeout(() => {
+        handlePreview()
+      }, 300)
+    }
   )
 
   const resetModel = () => {
@@ -249,13 +320,11 @@ export function useScheduleModal(
     variables.scheduleId = null
     variables.scheduleStatus = 0
     variables.previewTimes = []
+    variables.mode = 'friendly'
     variables.frequency = { ...DEFAULT_FREQUENCY }
     variables.model.cronExpression = buildCronExpression(variables.frequency)
-    variables.model.timezone = DEFAULT_TIMEZONE
     variables.model.retryTimes = 0
-    variables.model.retryInterval = 0
-    variables.model.activeStartTime = null
-    variables.model.activeEndTime = null
+    variables.model.retryInterval = 1
     variables.model.concurrentPolicy = 0
     variables.model.misfirePolicy = 0
   }
@@ -270,12 +339,16 @@ export function useScheduleModal(
         variables.editing = true
         variables.scheduleId = found.id
         variables.scheduleStatus = found.status
-        variables.frequency = parseCronExpression(found.cronExpression || '')
-        variables.model.timezone = found.timezone || DEFAULT_TIMEZONE
+        // 解析 cron 表达式为频率配置
+        const parsed = parseCronExpression(found.cronExpression || '')
+        variables.frequency = parsed
+        variables.model.cronExpression =
+          found.cronExpression || buildCronExpression(parsed)
         variables.model.retryTimes = found.retryTimes ?? 0
-        variables.model.retryInterval = found.retryInterval ?? 0
-        variables.model.activeStartTime = found.activeStartTime || null
-        variables.model.activeEndTime = found.activeEndTime || null
+        // 后端存储秒，UI 显示分钟
+        variables.model.retryInterval = found.retryInterval
+          ? Math.max(1, Math.round(found.retryInterval / 60))
+          : 1
         variables.model.concurrentPolicy = found.concurrentPolicy ?? 0
         variables.model.misfirePolicy = found.misfirePolicy ?? 0
       })
@@ -288,6 +361,10 @@ export function useScheduleModal(
       if (!val) return
       resetModel()
       loadSchedule()
+      // 打开弹窗后自动触发预览
+      nextTick(() => {
+        handlePreview()
+      })
     }
   )
 
@@ -299,7 +376,7 @@ export function useScheduleModal(
     variables.previewLoading = true
     previewCronExecution({
       cronExpression: variables.model.cronExpression,
-      timezone: variables.model.timezone || DEFAULT_TIMEZONE,
+      timezone: DEFAULT_TIMEZONE,
       count: 5
     })
       .then((res: any) => {
@@ -313,20 +390,71 @@ export function useScheduleModal(
       })
   }
 
+  /**
+   * 生成摘要文案，根据当前模式与频率实时生成。
+   * friendly 模式按频率生成，cron 模式显示自定义提示。
+   */
+  const summaryText = computed(() => {
+    if (variables.mode === 'cron') {
+      return t('project.synchronization_definition.schedule_summary_cron')
+    }
+    const f = variables.frequency
+    const time = `${pad2(f.hour)}:${pad2(f.minute)}`
+    switch (f.type) {
+      case 'minute':
+        return t(
+          'project.synchronization_definition.schedule_summary_minutely',
+          {
+            interval: f.minuteInterval
+          }
+        )
+      case 'hour':
+        return t('project.synchronization_definition.schedule_summary_hourly', {
+          interval: f.hourInterval,
+          minute: pad2(f.minuteOfHour)
+        })
+      case 'day':
+        return t('project.synchronization_definition.schedule_summary_daily', {
+          time
+        })
+      case 'week': {
+        const weekdays = t(
+          'project.synchronization_definition.frequency_weekdays'
+        ) as unknown as string[]
+        const day = weekdays[f.weekday - 1] || ''
+        return t('project.synchronization_definition.schedule_summary_weekly', {
+          day,
+          time
+        })
+      }
+      case 'month':
+        return t(
+          'project.synchronization_definition.schedule_summary_monthly',
+          {
+            day: f.dayOfMonth,
+            time
+          }
+        )
+      default:
+        return ''
+    }
+  })
+
   const handleValidate = async () => {
     await variables.scheduleFormRef.validate()
 
     if (variables.saving) return
     variables.saving = true
 
+    // 后端存储重试间隔为秒，UI 为分钟，需转换
+    const retryIntervalSeconds = variables.model.retryInterval * 60
+
     const payload = {
       jobDefinitionId: props.row?.id,
       cronExpression: variables.model.cronExpression,
-      timezone: variables.model.timezone || DEFAULT_TIMEZONE,
+      timezone: DEFAULT_TIMEZONE,
       retryTimes: variables.model.retryTimes,
-      retryInterval: variables.model.retryInterval,
-      activeStartTime: variables.model.activeStartTime,
-      activeEndTime: variables.model.activeEndTime,
+      retryInterval: retryIntervalSeconds,
       concurrentPolicy: variables.model.concurrentPolicy,
       misfirePolicy: variables.model.misfirePolicy
     }
@@ -391,6 +519,8 @@ export function useScheduleModal(
     handlePreview,
     handleToggleStatus,
     handleTrigger,
-    handleDelete
+    handleDelete,
+    summaryText,
+    validateCronExpression
   }
 }

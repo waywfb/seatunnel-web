@@ -23,20 +23,24 @@ import {
   PlayCircleOutlined,
   PauseCircleOutlined,
   DeleteOutlined,
-  ScheduleOutlined
+  ScheduleOutlined,
+  ThunderboltOutlined
 } from '@vicons/antd'
 import {
   querySyncTaskDefinitionPaging,
   deleteSyncTaskDefinition,
   executeJob,
-  queryJobSchedulePaging
+  queryJobSchedulePaging,
+  enableJobSchedule,
+  disableJobSchedule,
+  triggerJobSchedule
 } from '@/service/sync-task-definition'
 import { useRoute, useRouter } from 'vue-router'
 import type { Router } from 'vue-router'
 import type { JobType } from './dag/types'
 import { useMessage } from 'naive-ui'
 import { tasksState } from '@/common/common'
-import { NTooltip, NSpin, NIcon, NTag } from 'naive-ui'
+import { NTooltip, NSpin, NIcon, NTag, NSwitch } from 'naive-ui'
 import TimeAgo from '@/components/time-ago'
 import { getDatasourceDisplayName } from './dag/sidebar/use-sidebar'
 import type { Task } from '@/types/task'
@@ -75,6 +79,8 @@ export function useTable() {
   const message = useMessage()
 
   const loadingStates = ref(new Map())
+
+  const scheduleLoadingStates = ref(new Map())
 
   const renderStateCell = (state: string, t: Function) => {
     if (!state) return ''
@@ -266,42 +272,25 @@ export function useTable() {
               }
             )
           }
-          if (schedule.status === 1) {
-            return h(
-              NTag,
-              {
-                size: 'small',
-                color: {
-                  textColor: '#16a34a',
-                  borderColor: '#bbf7d0',
-                  color: '#f0fdf4'
-                },
-                bordered: false,
-                round: false
-              },
-              {
-                default: () =>
-                  t('project.synchronization_definition.schedule_enabled')
-              }
-            )
-          }
-          return h(
-            NTag,
-            {
-              size: 'small',
-              color: {
-                textColor: '#d97706',
-                borderColor: '#fde68a',
-                color: '#fffbeb'
-              },
-              bordered: false,
-              round: false
-            },
-            {
-              default: () =>
-                t('project.synchronization_definition.schedule_disabled')
-            }
-          )
+          const loading = !!scheduleLoadingStates.value.get(schedule.id)
+          return h(NTooltip, null, {
+            trigger: () =>
+              h(NSwitch, {
+                value: schedule.status,
+                checkedValue: 1,
+                uncheckedValue: 0,
+                loading,
+                disabled: loading,
+                onUpdateValue: (value: number) =>
+                  handleToggleSchedule(schedule, value)
+              }),
+            default: () =>
+              t(
+                schedule.status === 1
+                  ? 'project.synchronization_definition.schedule_enabled'
+                  : 'project.synchronization_definition.schedule_disabled'
+              )
+          })
         }
       },
       {
@@ -377,7 +366,7 @@ export function useTable() {
       useTableOperation({
         title: t('project.synchronization_definition.operation'),
         key: 'operation',
-        itemNum: 4,
+        itemNum: 5,
         buttons: [
           {
             type: 'default',
@@ -399,6 +388,16 @@ export function useTable() {
               variables.scheduleModalRef = true
             },
             icon: h(ScheduleOutlined)
+          },
+          {
+            type: 'warning',
+            text: t('project.synchronization_definition.execute_now'),
+            isHidden: (row: any) => {
+              if (row.jobMode === 'STREAMING') return true
+              return !variables.scheduleMap[row.id]
+            },
+            onClick: (row: any) => handleTrigger(row),
+            icon: h(ThunderboltOutlined)
           },
           {
             type: 'primary',
@@ -481,6 +480,42 @@ export function useTable() {
     } catch (error) {
       message.error(t('project.synchronization_definition.start_failed'))
       loadingStates.value.set(row.id, false)
+    }
+  }
+
+  const handleToggleSchedule = async (schedule: any, value: number) => {
+    if (!schedule || !schedule.id) return
+    scheduleLoadingStates.value.set(schedule.id, true)
+    try {
+      if (value === 1) {
+        await enableJobSchedule(schedule.id)
+        message.success(t('project.synchronization_definition.enable_success'))
+      } else {
+        await disableJobSchedule(schedule.id)
+        message.success(t('project.synchronization_definition.disable_success'))
+      }
+      schedule.status = value
+    } catch (err) {
+      message.error(
+        t(
+          value === 1
+            ? 'project.synchronization_definition.enable_failed'
+            : 'project.synchronization_definition.disable_failed'
+        )
+      )
+    } finally {
+      scheduleLoadingStates.value.set(schedule.id, false)
+    }
+  }
+
+  const handleTrigger = async (row: any) => {
+    const schedule = variables.scheduleMap[row.id]
+    if (!schedule || !schedule.id) return
+    try {
+      await triggerJobSchedule(schedule.id)
+      message.success(t('project.synchronization_definition.trigger_success'))
+    } catch (err) {
+      message.error(t('project.synchronization_definition.trigger_failed'))
     }
   }
 
