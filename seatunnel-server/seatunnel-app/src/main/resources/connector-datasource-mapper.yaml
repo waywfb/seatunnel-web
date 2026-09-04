@@ -79,9 +79,12 @@ connector-datasource-mapper:
 
     Plc4x:
       dataSources:
-        - OPCUA
         - Modbus
         - S7
+
+    Opcua:
+      dataSources:
+        - OPCUA
 
     FtpFile:
       dataSources:
