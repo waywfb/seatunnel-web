@@ -392,10 +392,9 @@ export function useTable() {
           {
             type: 'warning',
             text: t('project.synchronization_definition.execute_now'),
-            isHidden: (row: any) => {
-              if (row.jobMode === 'STREAMING') return true
-              return !variables.scheduleMap[row.id]
-            },
+            isHidden: (row: any) => row.jobMode === 'STREAMING',
+            disabled: (row: any) => !variables.scheduleMap[row.id],
+            class: 'execute-now-btn',
             onClick: (row: any) => handleTrigger(row),
             icon: h(ThunderboltOutlined)
           },

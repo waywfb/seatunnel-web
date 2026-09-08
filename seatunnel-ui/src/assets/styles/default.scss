@@ -52,3 +52,8 @@
 .task-item-info {
   cursor: help;
 }
+/* Execute-now button: gray when schedule is not configured */
+.n-button.execute-now-btn.n-button--disabled {
+  background-color: #9ca3af !important;
+  opacity: 1;
+}
