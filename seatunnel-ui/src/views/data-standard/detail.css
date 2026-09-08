@@ -1,5 +1,4 @@
-/* Import Inter and Noto Sans SC fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+/* Inter is bundled locally (src/assets/fonts); Noto Sans SC falls back to system CJK fonts */
 
 :root {
   /* Sidebar variables (Light Mode Slate matching the HTML spec) */
