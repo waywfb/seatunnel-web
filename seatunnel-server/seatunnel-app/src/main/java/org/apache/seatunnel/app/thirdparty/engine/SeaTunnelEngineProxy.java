@@ -17,24 +17,34 @@
 package org.apache.seatunnel.app.thirdparty.engine;
 
 import org.apache.seatunnel.engine.client.SeaTunnelClient;
-import org.apache.seatunnel.engine.common.config.ConfigProvider;
 import org.apache.seatunnel.engine.common.config.JobConfig;
 import org.apache.seatunnel.engine.common.config.SeaTunnelConfig;
 import org.apache.seatunnel.engine.common.config.YamlSeaTunnelConfigBuilder;
 import org.apache.seatunnel.engine.common.job.JobStatus;
 import org.apache.seatunnel.engine.core.job.JobDAGInfo;
 
-import com.hazelcast.client.config.ClientConfig;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.hazelcast.client.HazelcastClientOfflineException;
+import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class SeaTunnelEngineProxy {
 
-    private ClientConfig clientConfig = null;
+    private static final AtomicInteger CONSECUTIVE_FAILURES = new AtomicInteger();
+
+    /** 运行中任务指标快照缓存：缓存原始 String，TTL=5s，手动 put 由定时任务 fixedDelay 拉取刷新 */
+    private static final Cache<String, String> RUNNING_JOB_METRICS_CACHE =
+            CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.SECONDS).build();
+
+    private static final String RUNNING_JOB_METRICS_CACHE_KEY = "running-job-metrics";
 
     private static class SeaTunnelEngineProxyHolder {
         private static final SeaTunnelEngineProxy INSTANCE = new SeaTunnelEngineProxy();
@@ -44,71 +54,96 @@ public class SeaTunnelEngineProxy {
         return SeaTunnelEngineProxyHolder.INSTANCE;
     }
 
-    private SeaTunnelEngineProxy() {
-        clientConfig = ConfigProvider.locateAndGetClientConfig();
+    private SeaTunnelEngineProxy() {}
+
+    @FunctionalInterface
+    private interface EngineCall<T> {
+        T apply(SeaTunnelClient client) throws Exception;
+    }
+
+    private boolean isConnectionFailure(Throwable e) {
+        Throwable cause = e;
+        while (cause != null) {
+            if (cause instanceof HazelcastInstanceNotActiveException
+                    || cause instanceof HazelcastClientOfflineException
+                    || cause instanceof IOException) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
+    }
+
+    private void handleFailure(SeaTunnelClient client, Exception e) {
+        if (isConnectionFailure(e) && CONSECUTIVE_FAILURES.incrementAndGet() >= 3) {
+            log.warn("SeaTunnelClient consecutive connection failures reached 3, reconnect.", e);
+            SeaTunnelClientProvider.invalidateAndReconnect(client);
+            CONSECUTIVE_FAILURES.set(0);
+        }
+    }
+
+    private <T> T executeWithClient(EngineCall<T> call) {
+        SeaTunnelClient client = SeaTunnelClientProvider.getClient();
+        try {
+            T result = call.apply(client);
+            CONSECUTIVE_FAILURES.set(0);
+            return result;
+        } catch (RuntimeException e) {
+            handleFailure(client, e);
+            throw e;
+        } catch (Exception e) {
+            handleFailure(client, e);
+            throw new RuntimeException(e);
+        }
     }
 
     public String getMetricsContent(@NonNull String jobEngineId) {
-        SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig);
-        try {
-            return seaTunnelClient.getJobMetrics(Long.valueOf(jobEngineId));
-        } finally {
-            seaTunnelClient.close();
-        }
+        return executeWithClient(client -> client.getJobMetrics(Long.valueOf(jobEngineId)));
     }
 
     public String getJobPipelineStatusStr(@NonNull String jobEngineId) {
-        SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig);
-        try {
-            return seaTunnelClient.getJobDetailStatus(Long.valueOf(jobEngineId));
-        } finally {
-            seaTunnelClient.close();
-        }
+        return executeWithClient(client -> client.getJobDetailStatus(Long.valueOf(jobEngineId)));
     }
 
     public JobDAGInfo getJobInfo(@NonNull String jobEngineId) {
-        SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig);
-        try {
-            return seaTunnelClient.getJobInfo(Long.valueOf(jobEngineId));
-        } finally {
-            seaTunnelClient.close();
-        }
+        return executeWithClient(client -> client.getJobInfo(Long.valueOf(jobEngineId)));
     }
 
     public JobStatus getJobStatus(@NonNull String jobEngineId) {
-        SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig);
         try {
-            return JobStatus.valueOf(seaTunnelClient.getJobStatus(Long.valueOf(jobEngineId)));
+            return JobStatus.valueOf(
+                    executeWithClient(client -> client.getJobStatus(Long.valueOf(jobEngineId))));
         } catch (Exception e) {
             log.warn("Can not get job from engine.", e);
             return null;
-        } finally {
-            seaTunnelClient.close();
         }
     }
 
     public Map<String, String> getClusterHealthMetrics() {
-        SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig);
-        try {
-            return seaTunnelClient.getClusterHealthMetrics();
-        } finally {
-            seaTunnelClient.close();
-        }
+        return executeWithClient(SeaTunnelClient::getClusterHealthMetrics);
     }
 
     public String getAllRunningJobMetricsContent() {
-
-        SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig);
-        try {
-            return seaTunnelClient.getJobClient().getRunningJobMetrics();
-        } finally {
-            seaTunnelClient.close();
+        String cached = RUNNING_JOB_METRICS_CACHE.getIfPresent(RUNNING_JOB_METRICS_CACHE_KEY);
+        if (cached != null) {
+            return cached;
         }
+        return refreshRunningJobMetricsCache();
+    }
+
+    public String refreshRunningJobMetricsCache() {
+        String content = executeWithClient(client -> client.getJobClient().getRunningJobMetrics());
+        RUNNING_JOB_METRICS_CACHE.put(RUNNING_JOB_METRICS_CACHE_KEY, content);
+        return content;
     }
 
     public void pauseJob(@NonNull String jobEngineId) {
-        try (SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig)) {
-            seaTunnelClient.getJobClient().savePointJob(Long.valueOf(jobEngineId));
+        try {
+            executeWithClient(
+                    client -> {
+                        client.getJobClient().savePointJob(Long.valueOf(jobEngineId));
+                        return null;
+                    });
         } catch (Exception e) {
             log.warn("Can not pause job from engine.", e);
         }
@@ -119,12 +154,12 @@ public class SeaTunnelEngineProxy {
         JobConfig jobConfig = new JobConfig();
         jobConfig.setName(jobInstanceId + "_job");
         SeaTunnelConfig seaTunnelConfig = new YamlSeaTunnelConfigBuilder().build();
-        try (SeaTunnelClient seaTunnelClient = new SeaTunnelClient(clientConfig)) {
-            seaTunnelClient
-                    .restoreExecutionContext(filePath, jobConfig, seaTunnelConfig, jobEngineId)
-                    .execute();
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        executeWithClient(
+                client -> {
+                    client.restoreExecutionContext(
+                                    filePath, jobConfig, seaTunnelConfig, jobEngineId)
+                            .execute();
+                    return null;
+                });
     }
 }

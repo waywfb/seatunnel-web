@@ -362,7 +362,7 @@ public class SeaTunnelEngineMetricsExtractor implements IEngineMetricsExtractor 
                             });
                 }
 
-                log.info("jobEngineId={},metricsMap={}", jobEngineId, metricsMap);
+                log.debug("jobEngineId={},metricsMap={}", jobEngineId, metricsMap);
 
                 allRunningJobMetricsHashMap.put(jobEngineId, metricsMap);
             }
