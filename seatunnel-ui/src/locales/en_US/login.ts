@@ -23,8 +23,6 @@ export default {
   username_tips: 'Please input username',
   password_tips: 'Please input password',
   use_ldap: 'Ldap Authentication',
-  select_workspace: 'Select Workspace',
-  select_workspace_tips: 'Please select workspace',
   remember_device: 'Remember this device',
   sso_divider: 'Single Sign-On',
   enterprise_account: 'Enterprise Account',

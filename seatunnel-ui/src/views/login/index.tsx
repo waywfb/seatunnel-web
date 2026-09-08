@@ -29,7 +29,6 @@ import {
   NInput,
   NButton,
   NCheckbox,
-  NSelect,
   useMessage
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
@@ -45,9 +44,7 @@ import {
   User,
   Lock,
   Building2,
-  ChevronDown,
   ExternalLink,
-  Folder,
   ArrowRight,
   KeyRound
 } from 'lucide-vue-next'
@@ -308,45 +305,6 @@ const Login = defineComponent({
                   </div>
                 </div>
 
-                {/* Workspace Select */}
-                <div class='space-y-2'>
-                  <label
-                    class='block font-tide-label-md text-tide-label-md text-tide-on-surface-variant'
-                    for='workspace'
-                  >
-                    {this.t('login.select_workspace')}
-                  </label>
-                  <div class='relative'>
-                    <span class='absolute left-3 top-1/2 -translate-y-1/2 text-tide-outline group-focus-within:text-primary transition-colors text-[20px]'>
-                      <Folder size={20} />
-                    </span>
-                    {/* Visual Shell (Tailwind) + NSelect core */}
-                    <div class='w-full pl-10 pr-4 py-2.5 bg-white border border-tide-outline-variant rounded-lg transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'>
-                      <NSelect
-                        ref='workspaceSelect'
-                        options={this.workspaces.map((workspace: string) => ({
-                          label: workspace,
-                          value: workspace
-                        }))}
-                        v-model={[this.loginForm.selectedWorkspace, 'value']}
-                        placeholder={this.t('login.select_workspace_tips')}
-                        bordered={false}
-                        style={{
-                          width: '100%',
-                          backgroundColor: 'transparent',
-                          border: 'none',
-                          outline: 'none',
-                          fontSize: '14px',
-                          lineHeight: '20px',
-                          color: 'var(--color-foreground)',
-                          fontFamily: 'var(--font-sans)',
-                          padding: '0'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
                 {/* Remember + LDAP */}
                 <div class='flex items-center justify-between'>
                   <div class='flex items-center'>
@@ -381,8 +339,7 @@ const Login = defineComponent({
                   type='primary'
                   disabled={
                     !this.loginForm.username ||
-                    !this.loginForm.password ||
-                    !this.loginForm.selectedWorkspace
+                    !this.loginForm.password
                   }
                   class='w-full'
                   size='large'

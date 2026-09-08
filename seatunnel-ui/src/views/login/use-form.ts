@@ -15,20 +15,18 @@
  * limitations under the License.
  */
 
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { fetchWorkspaces, userLogin } from '@/service/user'
+import { userLogin } from '@/service/user'
 import { useUserStore } from '@/store/user'
 import { useRouter } from 'vue-router'
 import type { FormRules } from 'naive-ui'
 import type { Router } from 'vue-router'
-import { useSettingStore } from '@/store/setting'
 
 export function useForm() {
   const router: Router = useRouter()
   const { t } = useI18n()
   const userStore = useUserStore()
-  const settingStore = useSettingStore()
 
   const state = reactive({
     loginFormRef: ref(),
@@ -36,10 +34,8 @@ export function useForm() {
       username: '',
       password: '',
       useLdap: false,
-      remember: false,
-      selectedWorkspace: ''
+      remember: false
     },
-    workspaces: [] as string[],
     rules: {
       username: {
         trigger: ['input', 'blur'],
@@ -60,21 +56,10 @@ export function useForm() {
     } as FormRules
   })
 
-  onMounted(() => {
-    fetchWorkspaces()
-      .then((workspaces: string[]) => {
-        state.workspaces = workspaces
-        settingStore.setWorkspaces(workspaces)
-      })
-      .catch((error: any) => {
-        console.error('Failed to fetch workspaces:', error)
-      })
-  })
-
   const handleLogin = () => {
-    const { username, password, useLdap, selectedWorkspace } = state.loginForm
+    const { username, password, useLdap } = state.loginForm
     const headers = useLdap ? { 'X-Seatunnel-Auth-Type': 'LDAP' } : {}
-    userLogin({ username, password, workspace: selectedWorkspace }, { headers })
+    userLogin({ username, password }, { headers })
       .then((res: any) => {
         userStore.setUserInfo(res)
         router.push({ path: '/tasks' })
