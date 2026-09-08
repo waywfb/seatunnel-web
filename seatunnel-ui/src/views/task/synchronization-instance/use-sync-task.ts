@@ -182,7 +182,17 @@ export function useSyncTask(syncTaskType = 'BATCH') {
           return row.errorMessage
             ? h(
                 NPopover,
-                { trigger: 'click' },
+                {
+                  trigger: 'click',
+                  themeOverrides: {
+                    color: '#0f172a',
+                    textColor: '#e2e8f0',
+                    borderRadius: '8px',
+                    boxShadow:
+                      '0 0 0 1px #334155, 0 12px 32px rgba(0, 0, 0, 0.35)',
+                    padding: '0'
+                  }
+                },
                 {
                   trigger: () =>
                     h(
