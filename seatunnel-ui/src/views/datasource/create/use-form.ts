@@ -17,7 +17,6 @@
 
 import { onMounted, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 import { useFormStructuresStore, StructureItem } from '@/store/datasource'
 import {
   dynamicFormItems,
@@ -42,7 +41,6 @@ interface DataSourceFormState {
 
 export function useForm(type: string) {
   const { t } = useI18n()
-  const router = useRouter()
   const formStructuresStore = useFormStructuresStore()
 
   const initialValues: DataSourceFormState = {
@@ -189,8 +187,17 @@ export function useForm(type: string) {
   }
 
   const changeType = (value: string) => {
-    router.replace({ name: 'datasource-create', query: { type: value } })
-    getFormItems(value)
+    setType(value)
+  }
+
+  const setType = (value: string) => {
+    state.detailForm = {
+      ...initialValues,
+      pluginName: value
+    }
+    state.formStructure = []
+    state.locales = {}
+    return getFormItems(value)
   }
 
   const resetFieldsValue = () => {
@@ -221,6 +228,7 @@ export function useForm(type: string) {
   return {
     state,
     changeType,
+    setType,
     resetFieldsValue,
     getFieldsValue,
     setFieldsValue,

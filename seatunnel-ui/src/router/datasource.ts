@@ -41,32 +41,6 @@ export default {
       }
     },
     {
-      path: '/datasource/create',
-      name: 'datasource-create',
-      component: components['datasource-create'],
-      meta: {
-        title: 'datasource-create',
-        activeMenu: 'datasource',
-        breadcrumb: [
-          { label: '数据源', path: '/datasource/list' },
-          { label: '新建数据源' }
-        ]
-      }
-    },
-    {
-      path: '/datasource/:id',
-      name: 'datasource-edit',
-      component: components['datasource-create'],
-      meta: {
-        title: 'datasource-edit',
-        activeMenu: 'datasource',
-        breadcrumb: [
-          { label: '数据源', path: '/datasource/list' },
-          { label: '编辑数据源' }
-        ]
-      }
-    },
-    {
       path: '/datasource/tags',
       name: 'datasource-tags',
       component: components['datasource-tags'],

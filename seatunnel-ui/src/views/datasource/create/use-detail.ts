@@ -24,7 +24,6 @@ import {
 } from '@/service/data-source'
 import { useI18n } from 'vue-i18n'
 import { omit } from 'lodash'
-import { useRouter } from 'vue-router'
 
 export function useDetail(
   getFieldsValue: Function,
@@ -34,7 +33,6 @@ export function useDetail(
   id: string
 ) {
   const { t } = useI18n()
-  const router = useRouter()
   const status = reactive({
     saving: false,
     testing: false,
@@ -105,10 +103,6 @@ export function useDetail(
         : await datasourceAdd(formatParams())
 
       status.saving = false
-      router.push({
-        name: 'datasource-list',
-        query: {}
-      })
       return true
     } catch (err) {
       status.saving = false
