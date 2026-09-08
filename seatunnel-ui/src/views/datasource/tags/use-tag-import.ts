@@ -42,7 +42,8 @@ export function useTagImport(datasourceId: () => string | null) {
         tagAddress: n.address || n.nodeId,
         tagName: n.label,
         source: 'browse' as const,
-        groupPath: groupPath || '/root'
+        groupPath: groupPath || '/root',
+        properties: { dataType: n.attributes?.dataType }
       }))
       await importTags(id, { tags })
       checkedNodes.clear()

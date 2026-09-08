@@ -21,7 +21,8 @@ function buildNode(raw: RawBrowseNode, parentId: string | null): BrowseNode {
     children: [],
     loadedOnce: false,
     loading: false,
-    hasMore: false
+    hasMore: false,
+    attributes: raw.attributes
   }
   nodeMap.set(nodeId, node)
 

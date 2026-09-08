@@ -115,6 +115,7 @@ export const BrowseTable = defineComponent({
                 <tr>
                   <th class='p-tide-gap-sm pl-tide-gap-md font-bold w-8'></th>
                   <th class='p-tide-gap-sm font-bold'>名称</th>
+                  <th class='p-tide-gap-sm font-bold'>数据类型</th>
                   <th class='p-tide-gap-sm font-bold'>节点ID</th>
                   <th class='p-tide-gap-sm font-bold'>描述</th>
                   <th class='p-tide-gap-sm pr-tide-gap-md font-bold text-right'>
@@ -150,7 +151,7 @@ export const BrowseTable = defineComponent({
                 {filteredNodes.value.length === 0 ? (
                   <tr>
                     <td
-                      colspan='5'
+                      colspan='6'
                       class='p-8 text-center text-tide-outline font-tide-body-sm'
                     >
                       <X size={32} class='block mx-auto mb-2' />
@@ -167,6 +168,9 @@ export const BrowseTable = defineComponent({
                         </td>
                         <td class='p-tide-gap-sm font-medium'>
                           {child.label || '-'}
+                        </td>
+                        <td class='p-tide-gap-sm text-tide-on-surface-variant'>
+                          {child.attributes?.dataType || '-'}
                         </td>
                         <td class='p-tide-gap-sm font-tide-mono-data text-tide-mono-data text-tide-on-surface-variant'>
                           {child.nodeId || '-'}

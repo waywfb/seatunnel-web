@@ -13,6 +13,7 @@ export interface BrowseNode {
   loadedOnce: boolean
   loading: boolean
   hasMore: boolean
+  attributes?: Record<string, any>
 }
 
 export interface TagRow {
@@ -32,4 +33,5 @@ export interface RawBrowseNode {
   description?: string
   leaf: boolean
   children?: RawBrowseNode[]
+  attributes?: Record<string, any>
 }
