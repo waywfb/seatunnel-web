@@ -17,6 +17,7 @@
 
 package org.apache.seatunnel.app.scheduler;
 
+import org.apache.seatunnel.shade.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.seatunnel.shade.com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import org.apache.seatunnel.app.dal.dao.IJobInstanceDao;
@@ -27,7 +28,10 @@ import org.apache.seatunnel.app.domain.response.metrics.JobPipelineDetailMetrics
 import org.apache.seatunnel.app.service.IJobMetricsService;
 import org.apache.seatunnel.app.thirdparty.engine.SeaTunnelEngineProxy;
 import org.apache.seatunnel.app.utils.JobUtils;
+import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.engine.common.job.JobStatus;
+
+import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -40,8 +44,10 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -174,6 +180,76 @@ public class MonitorTaskScheduler {
                         log.error("Task scheduling error", e);
                     }
                 });
+    }
+
+    @Scheduled(fixedDelay = 3000)
+    public void syncEngineStatusToDB() {
+        try {
+            List<JobInstance> runningInstances = jobInstanceDao.getAllRunningJobInstance();
+            if (runningInstances.isEmpty()) {
+                return;
+            }
+            Set<Long> engineRunningJobIds = getEngineRunningJobIds();
+            for (JobInstance jobInstance : runningInstances) {
+                String jobEngineId = jobInstance.getJobEngineId();
+                if (jobEngineId == null) {
+                    continue;
+                }
+                long engineJobId = Long.parseLong(jobEngineId);
+                if (engineRunningJobIds.contains(engineJobId)) {
+                    continue;
+                }
+                JobStatus engineStatus =
+                        SeaTunnelEngineProxy.getInstance().getJobStatus(jobEngineId);
+                if (engineStatus != null && JobUtils.isJobEndStatus(engineStatus)) {
+                    int updated =
+                            jobInstanceDao
+                                    .getJobInstanceMapper()
+                                    .updateStatusIfNotEndState(
+                                            jobInstance.getId(), engineStatus, new Date());
+                    if (updated > 0) {
+                        log.info(
+                                "Job instance {} no longer running on engine, updated to {}",
+                                jobInstance.getId(),
+                                engineStatus);
+                        synchronized (mapLock) {
+                            jobInstanceMap.remove(jobInstance.getId());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to sync engine status to database", e);
+        }
+    }
+
+    private Set<Long> getEngineRunningJobIds() {
+        Set<Long> engineRunningJobIds = new HashSet<>();
+        try {
+            String allJobMetricsContent =
+                    SeaTunnelEngineProxy.getInstance().refreshRunningJobMetricsCache();
+            if (StringUtils.isEmpty(allJobMetricsContent)) {
+                return engineRunningJobIds;
+            }
+            JsonNode jsonNode = JsonUtils.stringToJsonNode(allJobMetricsContent);
+            for (JsonNode item : jsonNode) {
+                JsonNode sourceReceivedCount = item.get("metrics").get("SourceReceivedCount");
+                if (sourceReceivedCount != null && sourceReceivedCount.isArray()) {
+                    for (JsonNode node : sourceReceivedCount) {
+                        engineRunningJobIds.add(node.get("tags").get("jobId").asLong());
+                    }
+                }
+                JsonNode sinkWriteCount = item.get("metrics").get("SinkWriteCount");
+                if (sinkWriteCount != null && sinkWriteCount.isArray()) {
+                    for (JsonNode node : sinkWriteCount) {
+                        engineRunningJobIds.add(node.get("tags").get("jobId").asLong());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse engine running job metrics", e);
+        }
+        return engineRunningJobIds;
     }
 
     private void handleEngineJobNotFound(JobInstance jobInstance) {

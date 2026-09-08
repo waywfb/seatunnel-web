@@ -16,9 +16,14 @@ import org.apache.plc4x.java.api.PlcDriverManager;
 import org.apache.plc4x.java.api.messages.PlcBrowseItem;
 import org.apache.plc4x.java.api.messages.PlcBrowseRequest;
 import org.apache.plc4x.java.api.messages.PlcBrowseResponse;
+import org.apache.plc4x.java.api.types.PlcValueType;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
+import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.UaException;
+import org.eclipse.milo.opcua.stack.core.types.builtin.ExpandedNodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
@@ -54,6 +59,29 @@ public class BridgeClientImpl implements BridgeClient {
                     "OPCUA", "opcua",
                     "Modbus", "modbus",
                     "S7", "s7");
+
+    private static final Map<Integer, String> OPC_UA_TYPE_NAMES =
+            Map.ofEntries(
+                    Map.entry(1, "Boolean"),
+                    Map.entry(2, "SByte"),
+                    Map.entry(3, "Byte"),
+                    Map.entry(4, "Int16"),
+                    Map.entry(5, "UInt16"),
+                    Map.entry(6, "Int32"),
+                    Map.entry(7, "UInt32"),
+                    Map.entry(8, "Int64"),
+                    Map.entry(9, "UInt64"),
+                    Map.entry(10, "Float"),
+                    Map.entry(11, "Double"),
+                    Map.entry(12, "String"),
+                    Map.entry(13, "DateTime"),
+                    Map.entry(15, "ByteString"),
+                    Map.entry(22, "Structure"),
+                    Map.entry(24, "BaseDataType"),
+                    Map.entry(26, "Number"),
+                    Map.entry(27, "Integer"),
+                    Map.entry(28, "UInteger"),
+                    Map.entry(29, "Enumeration"));
 
     private final IDatasourceDao datasourceDao;
 
@@ -105,7 +133,14 @@ public class BridgeClientImpl implements BridgeClient {
                 if (ref == null || ref.getNodeId() == null) {
                     continue;
                 }
-                nodes.add(toBrowseNodeDTO(ref));
+                BrowseNodeDTO node = toBrowseNodeDTO(ref);
+                if (node.getLeaf()) {
+                    String dataType = readOpcUaDataType(client, ref.getNodeId());
+                    if (dataType != null) {
+                        node.getAttributes().put("dataType", dataType);
+                    }
+                }
+                nodes.add(node);
             }
 
             ProtocolCapabilityDTO cap = new ProtocolCapabilityDTO();
@@ -156,6 +191,53 @@ public class BridgeClientImpl implements BridgeClient {
         return node;
     }
 
+    private String readOpcUaDataType(OpcUaClient client, ExpandedNodeId expandedNodeId) {
+        try {
+            NodeId nodeId = expandedNodeId.toNodeId(null).orElse(null);
+            if (nodeId == null) {
+                return null;
+            }
+            UaVariableNode variableNode = client.getAddressSpace().getVariableNode(nodeId);
+            NodeId dataType = variableNode.getDataType();
+            if (dataType != null) {
+                return opcUaTypeName(client, dataType);
+            }
+        } catch (UaException e) {
+            LOG.debug("Failed to read DataType for {}: {}", expandedNodeId, e.getMessage());
+        }
+        return null;
+    }
+
+    private String opcUaTypeName(OpcUaClient client, NodeId typeId) {
+        Object id = typeId.getIdentifier();
+        if (id instanceof Number) {
+            int numericId = ((Number) id).intValue();
+            // ns=0;i=0 表示服务器未定义数据类型，避免显示裸数字 "0"。
+            if (numericId == 0) {
+                return "Unknown";
+            }
+            String name = OPC_UA_TYPE_NAMES.get(numericId);
+            if (name != null) {
+                return name;
+            }
+        }
+        // 非标准类型回退读取 DataType 节点 BrowseName。
+        try {
+            UaNode typeNode = client.getAddressSpace().getNode(typeId);
+            if (typeNode != null && typeNode.getBrowseName() != null) {
+                String browseName = typeNode.getBrowseName().getName();
+                if (browseName != null && !browseName.isEmpty()) {
+                    return browseName;
+                }
+            }
+        } catch (Exception e) {
+            LOG.debug("Failed to resolve data type name for {}: {}", typeId, e.getMessage());
+        }
+        String s = String.valueOf(id);
+        int idx = s.lastIndexOf('.');
+        return idx >= 0 ? s.substring(idx + 1) : s;
+    }
+
     private NodeId parseOpcUaNodeId(String nativeId) {
         if (nativeId == null || !nativeId.startsWith("ns=")) {
             return null;
@@ -204,7 +286,12 @@ public class BridgeClientImpl implements BridgeClient {
                     node.setLeaf(true);
 
                     Map<String, Object> attrs = new LinkedHashMap<>();
-                    attrs.put("dataType", item.getTag().getClass().getSimpleName());
+                    PlcValueType plcType = item.getTag().getPlcValueType();
+                    attrs.put(
+                            "dataType",
+                            plcType != null
+                                    ? plcType.name()
+                                    : item.getTag().getClass().getSimpleName());
                     node.setAttributes(attrs);
 
                     nodes.add(node);

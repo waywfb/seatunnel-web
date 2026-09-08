@@ -21,7 +21,9 @@ import org.apache.seatunnel.app.common.Result;
 import org.apache.seatunnel.app.common.Status;
 import org.apache.seatunnel.app.dal.dao.IJobDefinitionDao;
 import org.apache.seatunnel.app.dal.dao.IJobInstanceDao;
+import org.apache.seatunnel.app.dal.dao.IJobMetricsHistoryDao;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
+import org.apache.seatunnel.app.dal.entity.JobMetricsHistory;
 import org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto;
 import org.apache.seatunnel.app.domain.response.executor.JobExecutionStatus;
 import org.apache.seatunnel.app.domain.response.metrics.JobSummaryMetricsRes;
@@ -70,6 +72,8 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
 
     @Autowired IJobDefinitionDao jobDefinitionDao;
 
+    @Autowired IJobMetricsHistoryDao jobMetricsHistoryDao;
+
     @Override
     public Result<PageInfo<SeaTunnelJobInstanceDto>> getSyncTaskInstancePaging(
             String jobDefineName,
@@ -117,6 +121,7 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
     }
 
     private void addRunningTimeToResult(List<SeaTunnelJobInstanceDto> records) {
+        Map<Long, Date> lastMetricsUpdateTimeMap = getLastMetricsUpdateTimeMap(records);
         for (SeaTunnelJobInstanceDto jobInstanceDto : records) {
             long runningTime = 0l;
             Date createTime = jobInstanceDto.getCreateTime();
@@ -126,11 +131,14 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
                 Date referenceTime;
                 if (jobInstanceDto.getJobStatus() != null
                         && jobInstanceDto.getJobStatus().isEndState()) {
-                    // 终态（如 UNKNOWABLE）未记录结束时间，运行时间冻结在最后一次状态更新时间
+                    // 终态（如 UNKNOWABLE / SAVEPOINT_DONE）未记录结束时间（endTime 为空且 updateTime
+                    // 未推进时）时，以实例最近一次 metrics 写入时间作为实际结束时刻，避免运行时间被算成 0
+                    Date updateTime = jobInstanceDto.getUpdateTime();
                     referenceTime =
-                            jobInstanceDto.getUpdateTime() != null
-                                    ? jobInstanceDto.getUpdateTime()
-                                    : createTime;
+                            updateTime != null && updateTime.after(createTime)
+                                    ? updateTime
+                                    : lastMetricsUpdateTimeMap.getOrDefault(
+                                            jobInstanceDto.getId(), createTime);
                 } else {
                     referenceTime = new Date();
                 }
@@ -143,6 +151,34 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
                 jobInstanceDto.setRunningTime(runningTime);
             }
         }
+    }
+
+    private Map<Long, Date> getLastMetricsUpdateTimeMap(List<SeaTunnelJobInstanceDto> records) {
+        Map<Long, Date> result = new HashMap<>();
+        List<Long> instanceIds =
+                records.stream()
+                        .filter(
+                                dto ->
+                                        dto.getEndTime() == null
+                                                && dto.getJobStatus() != null
+                                                && dto.getJobStatus().isEndState())
+                        .map(SeaTunnelJobInstanceDto::getId)
+                        .filter(id -> id != null)
+                        .distinct()
+                        .collect(Collectors.toList());
+        if (instanceIds.isEmpty()) {
+            return result;
+        }
+        List<JobMetricsHistory> histories =
+                jobMetricsHistoryDao.getLastUpdateByInstanceIds(instanceIds);
+        for (JobMetricsHistory history : histories) {
+            if (history.getUpdateTime() != null) {
+                result.put(
+                        history.getJobInstanceId(),
+                        java.sql.Timestamp.valueOf(history.getUpdateTime()));
+            }
+        }
+        return result;
     }
 
     public Date dateConverter(String time) {
