@@ -20,6 +20,7 @@ package org.apache.seatunnel.app.dal.mapper;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto;
 import org.apache.seatunnel.common.constants.JobMode;
+import org.apache.seatunnel.engine.common.job.JobStatus;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -44,6 +45,12 @@ public interface JobInstanceMapper extends BaseMapper<JobInstance> {
     JobInstance getJobExecutionStatus(@Param("jobInstanceId") Long jobInstanceId);
 
     List<JobInstance> getAllRunningJobInstance();
+
+    /** 将运行中实例状态更新为终态，仅当当前 DB 状态非终态时生效，防止异步任务覆盖用户主动停止的终态 */
+    int updateStatusIfNotEndState(
+            @Param("id") Long id,
+            @Param("jobStatus") JobStatus jobStatus,
+            @Param("endTime") Date endTime);
 
     Long countActiveByJobDefinitionId(
             @Param("jobDefinitionId") Long jobDefinitionId, @Param("workspaceId") Long workspaceId);

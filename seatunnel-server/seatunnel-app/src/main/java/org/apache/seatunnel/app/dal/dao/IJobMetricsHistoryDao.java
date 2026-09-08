@@ -37,4 +37,7 @@ public interface IJobMetricsHistoryDao {
     /** Query monitoring history based on homework instance ID and time range */
     List<JobMetricsHistory> getByJobInstanceIdAndTimeRange(
             Long jobInstanceId, String startTime, String endTime);
+
+    /** 批量查询各实例最近一次 metrics 写入时间 */
+    List<JobMetricsHistory> getLastUpdateByInstanceIds(List<Long> jobInstanceIds);
 }

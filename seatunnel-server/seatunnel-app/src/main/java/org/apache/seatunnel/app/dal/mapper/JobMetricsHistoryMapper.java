@@ -46,4 +46,8 @@ public interface JobMetricsHistoryMapper extends BaseMapper<JobMetricsHistory> {
             @Param("jobInstanceId") Long jobInstanceId,
             @Param("startTime") String startTime,
             @Param("endTime") String endTime);
+
+    /** 批量查询各实例最近一次 metrics 写入时间（用于终态任务 endTime 缺失时计算实际运行时长） */
+    List<JobMetricsHistory> queryLastUpdateByInstanceIds(
+            @Param("jobInstanceIds") List<Long> jobInstanceIds);
 }

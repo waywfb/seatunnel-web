@@ -94,4 +94,14 @@
         </if>
         ORDER BY create_time ASC
     </select>
+
+    <select id="queryLastUpdateByInstanceIds" resultType="org.apache.seatunnel.app.dal.entity.JobMetricsHistory">
+        SELECT job_instance_id, MAX(update_time) AS update_time
+        FROM t_st_job_metrics_history
+        WHERE job_instance_id IN
+        <foreach collection="jobInstanceIds" item="jobInstanceId" open="(" separator="," close=")">
+            #{jobInstanceId}
+        </foreach>
+        GROUP BY job_instance_id
+    </select>
 </mapper> 

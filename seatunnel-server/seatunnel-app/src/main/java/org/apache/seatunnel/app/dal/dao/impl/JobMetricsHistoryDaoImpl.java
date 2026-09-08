@@ -62,4 +62,12 @@ public class JobMetricsHistoryDaoImpl implements IJobMetricsHistoryDao {
         return jobMetricsHistoryMapper.queryJobMetricsHistoryByInstanceIdAndTimeRange(
                 jobInstanceId, startTime, endTime);
     }
+
+    @Override
+    public List<JobMetricsHistory> getLastUpdateByInstanceIds(List<Long> jobInstanceIds) {
+        if (jobInstanceIds == null || jobInstanceIds.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+        return jobMetricsHistoryMapper.queryLastUpdateByInstanceIds(jobInstanceIds);
+    }
 }
