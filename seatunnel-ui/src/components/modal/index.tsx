@@ -57,6 +57,10 @@ const props = {
   confirmLoading: {
     type: Boolean as PropType<boolean>,
     default: false
+  },
+  width: {
+    type: String as PropType<string>,
+    default: '600px'
   }
 }
 
@@ -85,7 +89,7 @@ const Modal = defineComponent({
       <NModal
         v-model={[this.show, 'show']}
         mask-closable={false}
-        style={{ width: '600px' }}
+        style={{ width: this.width }}
       >
         <NCard
           title={this.title}

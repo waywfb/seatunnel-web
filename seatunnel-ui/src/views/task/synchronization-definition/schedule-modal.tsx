@@ -144,6 +144,7 @@ const ScheduleModal = defineComponent({
         onConfirm={confirmModal}
         confirmLoading={this.saving}
         confirmText={t('project.synchronization_definition.save')}
+        width='900px'
       >
         <NForm
           model={this.model}
