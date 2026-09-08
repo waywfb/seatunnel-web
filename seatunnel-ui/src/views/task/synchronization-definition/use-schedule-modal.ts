@@ -242,7 +242,7 @@ export function useScheduleModal(
     frequency: ref<ScheduleFrequency>({ ...DEFAULT_FREQUENCY }),
     model: {
       cronExpression: ref(''),
-      retryTimes: ref(0),
+      retryTimes: ref(3),
       retryInterval: ref(1),
       concurrentPolicy: ref(0),
       misfirePolicy: ref(0)
@@ -323,7 +323,7 @@ export function useScheduleModal(
     variables.mode = 'friendly'
     variables.frequency = { ...DEFAULT_FREQUENCY }
     variables.model.cronExpression = buildCronExpression(variables.frequency)
-    variables.model.retryTimes = 0
+    variables.model.retryTimes = 3
     variables.model.retryInterval = 1
     variables.model.concurrentPolicy = 0
     variables.model.misfirePolicy = 0
