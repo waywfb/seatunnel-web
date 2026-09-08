@@ -152,6 +152,13 @@ export function checkConnect(data: any): any {
   })
 }
 
+export function testDatasourceConnectById(id: string): any {
+  return axios({
+    url: `${DATASOURCE_BASE_URL}/test/` + id,
+    method: 'post'
+  })
+}
+
 export function dynamicFormItems(pluginName: string): any {
   return axios({
     url: `${DATASOURCE_BASE_URL}/dynamic-form`,

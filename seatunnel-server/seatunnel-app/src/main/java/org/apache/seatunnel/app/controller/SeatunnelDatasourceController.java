@@ -146,6 +146,14 @@ public class SeatunnelDatasourceController extends BaseController {
                         req.getPluginName(), DEFAULT_PLUGIN_VERSION, req.getDatasourceConfig()));
     }
 
+    @ApiOperation(
+            value = "test datasource connection by id",
+            notes = "test datasource connection by id")
+    @PostMapping("/test/{id}")
+    Result<Boolean> testConnectById(@PathVariable("id") String id) {
+        return Result.success(datasourceService.testDatasourceConnectionAble(Long.parseLong(id)));
+    }
+
     @ApiOperation(value = "update datasource", notes = "update datasource")
     @ApiImplicitParams({
         @ApiImplicitParam(

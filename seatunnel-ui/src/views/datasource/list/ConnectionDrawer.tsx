@@ -9,9 +9,13 @@ import {
   Plug,
   Eye
 } from 'lucide-vue-next'
-import { datasourceList, datasourceDelete } from '@/service/data-source'
+import { datasourceList, datasourceDelete, testDatasourceConnectById } from '@/service/data-source'
 import type { DatasourceList } from '@/service/data-source/types'
 import JsonHighlight from '../components/json-highlight'
+
+type ConnectionStatus = 'testing' | 'normal' | 'error'
+
+const CHECK_CONCURRENCY = 5
 
 const ConnectionDrawer = defineComponent({
   name: 'ConnectionDrawer',
@@ -25,9 +29,33 @@ const ConnectionDrawer = defineComponent({
   setup(props, { emit }) {
     const loading = ref(false)
     const connections = ref<DatasourceList[]>([])
+    const statusMap = ref<Record<string, ConnectionStatus>>({})
     const confirmVisible = ref(false)
     const pendingDelete = ref<DatasourceList | null>(null)
     const viewingParams = ref<DatasourceList | null>(null)
+
+    // Run real connectivity checks per connection with bounded concurrency,
+    // refreshing this.statusMap so each row reflects its actual state.
+    const checkConnections = async (rows: DatasourceList[]) => {
+      let index = 0
+      const worker = async () => {
+        while (index < rows.length) {
+          const row = rows[index++]
+          if (!row?.id) continue
+          statusMap.value[row.id] = 'testing'
+          try {
+            const ok = !!(await testDatasourceConnectById(row.id))
+            statusMap.value[row.id] = ok ? 'normal' : 'error'
+          } catch {
+            statusMap.value[row.id] = 'error'
+          }
+        }
+      }
+      const workerCount = Math.min(CHECK_CONCURRENCY, rows.length)
+      await Promise.all(
+        Array.from({ length: workerCount }, () => worker())
+      )
+    }
 
     const loadConnections = async () => {
       if (!props.pluginName) return
@@ -40,6 +68,7 @@ const ConnectionDrawer = defineComponent({
           pluginName: props.pluginName
         })
         connections.value = res?.data || []
+        checkConnections(connections.value)
       } catch {
         connections.value = []
       } finally {
@@ -105,6 +134,7 @@ const ConnectionDrawer = defineComponent({
       emit,
       loading,
       connections,
+      statusMap,
       confirmVisible,
       pendingDelete,
       viewingParams,
@@ -128,6 +158,7 @@ const ConnectionDrawer = defineComponent({
       color,
       loading,
       connections,
+      statusMap,
       confirmVisible,
       pendingDelete,
       viewingParams,
@@ -212,10 +243,22 @@ const ConnectionDrawer = defineComponent({
                           <div>
                             <h4 class='font-bold text-sm text-slate-800 flex items-center gap-2'>
                               {row.datasourceName}
-                              <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold'>
-                                <span class='w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse' />
-                                正常
-                              </span>
+                              {statusMap[row.id] === 'error' ? (
+                                <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-semibold'>
+                                  <span class='w-1.5 h-1.5 rounded-full bg-rose-500' />
+                                  异常
+                                </span>
+                              ) : statusMap[row.id] === 'normal' ? (
+                                <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-semibold'>
+                                  <span class='w-1.5 h-1.5 rounded-full bg-emerald-500' />
+                                  正常
+                                </span>
+                              ) : (
+                                <span class='inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-semibold'>
+                                  <span class='w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse' />
+                                  检测中
+                                </span>
+                              )}
                             </h4>
                             <p class='text-[11px] font-mono text-slate-400 mt-0.5'>
                               ID: {row.id}
