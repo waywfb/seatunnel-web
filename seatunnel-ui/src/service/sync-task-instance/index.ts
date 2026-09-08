@@ -44,12 +44,16 @@ export function querySyncTaskInstanceDag(params: any): any {
   })
 }
 
-export function querySyncTaskInstancePaging(params: any): any {
+export function querySyncTaskInstancePaging(
+  params: any,
+  config?: { signal?: AbortSignal }
+): any {
   return axios({
     url: '/task/jobMetrics',
     method: 'get',
     params,
-    timeout: 60000
+    timeout: 60000,
+    ...config
   })
 }
 

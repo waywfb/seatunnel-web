@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { h, reactive, ref } from 'vue'
+import { h, onUnmounted, reactive, ref } from 'vue'
 import { endOfToday, format, startOfToday, subDays } from 'date-fns'
 import { useTableLink, useTableOperation } from '@/hooks'
 import {
@@ -102,6 +102,25 @@ export function useSyncTask(syncTaskType = 'BATCH') {
   const isRunning = (jobStatus?: string) =>
     !!jobStatus &&
     ['RUNNING', 'RUNNING_EXECUTION', 'SUBMITTED_SUCCESS'].includes(jobStatus)
+
+  // 引擎终态全集（与 Seatunnel JobStatus.EndState.GLOBALLY 对齐）：
+  // FAILED / SAVEPOINT_DONE / CANCELED / FINISHED / UNKNOWABLE；缺失任一会被误当运行中
+  const endStates = [
+    'FINISHED',
+    'SAVEPOINT_DONE',
+    'CANCELED',
+    'FAILED',
+    'UNKNOWABLE'
+  ]
+
+  // 每秒跳动驱动：每行锁定锚点毫秒（snapshotAt - runningTime*1000 ≈ 真实开始时刻），
+  // 非终态统一基于 floor((nowTick - anchor)/1000) 单源计时，跨轮询持久，避免双时间基准对账抖动
+  const nowTick = ref(Date.now())
+  const rowAnchors = new Map<number, number>()
+  const tickTimer = setInterval(() => {
+    nowTick.value = Date.now()
+  }, 1000)
+  onUnmounted(() => clearInterval(tickTimer))
 
   const creatInstanceButtons = (variables: any) => {
     variables.buttonList = [
@@ -195,7 +214,18 @@ export function useSyncTask(syncTaskType = 'BATCH') {
       {
         title: t('project.synchronization_instance.run_time'),
         key: 'runningTime',
-        render: (row: any) => getRemainTime(row.runningTime),
+        render: (row: any) => {
+          if (endStates.includes(row.jobStatus)) {
+            return getRemainTime(row.runningTime)
+          }
+          const anchor = rowAnchors.get(row.id)
+          if (anchor === undefined) {
+            return getRemainTime(row.runningTime)
+          }
+          return getRemainTime(
+            Math.max(0, Math.floor((nowTick.value - anchor) / 1000))
+          )
+        },
         ...COLUMN_WIDTH_CONFIG['duration']
       },
       useTableOperation({
@@ -237,21 +267,48 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     }
   }
 
-  const getTableData = (params: any) => {
-    if (variables.loadingRef) return
-    variables.loadingRef = true
+  let abortController: AbortController | null = null
 
-    variables.loadingRef = false
-    querySyncTaskInstancePaging(params)
-      .then((res: any) => {
-        variables.tableData = res.totalList as any
-        variables.totalPage = res.totalPage
-        variables.loadingRef = false
+  const getTableData = async (params: any, silent = false) => {
+    if (variables.loadingRef) return
+    if (!silent) {
+      variables.loadingRef = true
+    }
+
+    // 取消上一次未完成的请求，防御陈旧数据覆盖新数据
+    if (abortController) {
+      abortController.abort()
+    }
+    abortController = new AbortController()
+
+    try {
+      const res = await querySyncTaskInstancePaging(params, {
+        signal: abortController.signal
       })
-      .catch(() => {
-        variables.loadingRef = false
+      const snapshotAt = Date.now()
+      variables.tableData = (res.totalList as any[]).map((row: any) => {
+        if (endStates.includes(row.jobStatus)) {
+          rowAnchors.delete(row.id)
+          return { ...row }
+        }
+        const anchor = snapshotAt - (row.runningTime || 0) * 1000
+        const prevAnchor = rowAnchors.get(row.id)
+        if (prevAnchor === undefined || Math.abs(anchor - prevAnchor) > 2000) {
+          rowAnchors.set(row.id, anchor)
+        }
+        return { ...row }
+      })
+      variables.totalPage = res.totalPage
+    } catch (error: any) {
+      // 仅处理非取消异常；AbortError 为主动取消，静默忽略
+      if (error?.name !== 'AbortError') {
         variables.tableData = [] as any
-      })
+      }
+    } finally {
+      if (!silent) {
+        variables.loadingRef = false
+      }
+    }
   }
   const handleRecover = (id: number) => {
     hanldleRecoverJob(id).then(() => {

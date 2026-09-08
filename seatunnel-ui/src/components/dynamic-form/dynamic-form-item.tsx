@@ -60,7 +60,14 @@ const descriptionTranslations: Record<string, string> = {
     '文件的编码格式，例如 UTF-8、ISO-8859-1 等',
   'The row delimiter of the file': '文件的行分隔符',
   'The field delimiter of the file': '文件的字段分隔符',
-  'The schema of the data': '数据的结构定义'
+  'The schema of the data': '数据的结构定义',
+  'PLC host address': 'PLC 主机地址',
+  'PLC port': 'PLC 端口',
+  'OPC UA security policy': 'OPC UA 安全策略',
+  'OPC UA username': 'OPC UA 用户名',
+  'OPC UA password': 'OPC UA 密码',
+  'Connection timeout in milliseconds': '连接超时时间（毫秒）',
+  'Read timeout in milliseconds': '读取超时时间（毫秒）'
 }
 
 const DynamicFormItem = defineComponent({

@@ -67,7 +67,8 @@ const SyncTask = defineComponent({
   props,
   setup(props) {
     let logTimer: ReturnType<typeof setTimeout>
-    let refreshTimer: number
+    let pollTimer: ReturnType<typeof setTimeout> | null = null
+    const pollInterval = props.syncTaskType === 'STREAMING' ? 3000 : 30000
     const { t, locale } = useI18n()
     const {
       variables,
@@ -114,6 +115,32 @@ const SyncTask = defineComponent({
         endDate: variables.datePickerRange ? variables.datePickerRange[1] : '',
         syncTaskType: variables.syncTaskType
       })
+    }
+    // 上一轮请求完全结束后延迟 pollInterval 再发起下一次，避免请求堆积
+    const pollData = async () => {
+      await getTableData(
+        {
+          pageNo: variables.page,
+          pageSize: variables.pageSize,
+          taskName: variables.taskName,
+          executorName: variables.executeUser,
+          host: variables.host,
+          stateType: variables.stateType,
+          startDate: variables.datePickerRange
+            ? variables.datePickerRange[0]
+            : '',
+          endDate: variables.datePickerRange ? variables.datePickerRange[1] : '',
+          syncTaskType: variables.syncTaskType
+        },
+        true
+      )
+      pollTimer = setTimeout(pollData, pollInterval)
+    }
+    const stopPolling = () => {
+      if (pollTimer) {
+        clearTimeout(pollTimer)
+        pollTimer = null
+      }
     }
     const rangeShortCuts = reactive({
       rangeOption: {}
@@ -216,17 +243,26 @@ const SyncTask = defineComponent({
       variables.stateType = (route.query.stateType as string) || null
     }
 
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling()
+      } else if (!pollTimer) {
+        pollData()
+      }
+    }
+
     onMounted(() => {
       initSearch()
       createColumns(variables)
       creatInstanceButtons(variables)
-      requestData()
-      refreshTimer = window.setInterval(requestData, 3000)
+      document.addEventListener('visibilitychange', onVisibilityChange)
+      pollData()
     })
 
     onUnmounted(() => {
       clearTimeout(logTimer)
-      clearInterval(refreshTimer)
+      stopPolling()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
     })
 
     watch(locale, () => {
