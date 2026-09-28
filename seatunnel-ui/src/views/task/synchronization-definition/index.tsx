@@ -18,33 +18,38 @@
 import {
   defineComponent,
   onMounted,
+  onBeforeUnmount,
   toRefs,
   watch,
   computed,
   ref,
-  h
+  h,
+  nextTick
 } from 'vue'
 import {
-  NSpace,
-  NCard,
   NButton,
   NButtonGroup,
   NInput,
   NIcon,
   NDataTable,
-  NPagination
+  NSelect
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import {
   SearchOutlined,
   UnorderedListOutlined,
-  AppstoreOutlined
+  AppstoreOutlined,
+  ReloadOutlined,
+  ThunderboltOutlined,
+  ApartmentOutlined,
+  MergeCellsOutlined,
+  CaretLeftOutlined,
+  CaretRightOutlined
 } from '@vicons/antd'
 import { I18N_KEYS } from '@/common/i18n-keys'
 import { useTable } from './use-table'
 import { TaskModal } from './task-modal'
 import { ScheduleModal } from './schedule-modal'
-import StatCard from '@/components/stat-card'
 import TaskCard from '@/components/task-card'
 import { useRoute, useRouter } from 'vue-router'
 import isEmpty from 'lodash/isEmpty'
@@ -79,24 +84,124 @@ const SynchronizationDefinition = defineComponent({
       })
     }
 
+    // 类型筛选：所有 / 数据集成 / 结构同步（参考页核心差异）
+    const jobTypeFilter = ref('')
+    const taskTypeOptions = computed(() => [
+      {
+        label: t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.ALL_TASK_TYPES),
+        value: ''
+      },
+      {
+        label: t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.DATA_INTEGRATION),
+        value: 'DATA_INTEGRATION'
+      },
+      {
+        label: t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.WHOLE_LIBRARY_SYNC),
+        value: 'whole_library_sync'
+      }
+    ])
+
+    const isReplicaType = (jobType?: string) =>
+      !!jobType &&
+      (jobType === 'DATA_REPLICA' || jobType === 'whole_library_sync')
+
+    // 类型筛选项：数据集成 -> DATA_INTEGRATION；结构同步 -> 整库/结构同步
+    const filterData = (rows: Task[]) => {
+      if (!jobTypeFilter.value) return rows
+      return rows.filter((row: Task) => {
+        const jobType = row.jobType
+        if (jobTypeFilter.value === 'DATA_INTEGRATION')
+          return jobType === 'DATA_INTEGRATION'
+        return isReplicaType(jobType)
+      })
+    }
+
+    const filteredTableData = computed(() =>
+      filterData((variables.tableData || []) as Task[])
+    )
+
+    const paginationSummary = computed(() => {
+      const total = variables.totalCount || 0
+      const page = variables.page || 1
+      const pageSize = variables.pageSize || 0
+      const start = total === 0 ? 0 : (page - 1) * pageSize + 1
+      const end = total === 0 ? 0 : Math.min(page * pageSize, total)
+      return t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.PAGINATION_SUMMARY, {
+        start,
+        end,
+        total
+      })
+    })
+
+    const pageItems = computed(() => {
+      const total = variables.totalPage || 1
+      const current = variables.page || 1
+      const pages: (number | '...')[] = []
+      if (total <= 7) {
+        for (let i = 1; i <= total; i++) pages.push(i)
+      } else {
+        const start = Math.max(1, current - 2)
+        const end = Math.min(total, current + 2)
+        if (start > 1) {
+          pages.push(1)
+          if (start > 2) pages.push('...')
+        }
+        for (let i = start; i <= end; i++) pages.push(i)
+        if (end < total) {
+          if (end < total - 1) pages.push('...')
+          pages.push(total)
+        }
+      }
+      return pages
+    })
+
+    const jumpToPage = (val: string) => {
+      const p = Number.parseInt(val, 10)
+      if (Number.isNaN(p) || p < 1 || p > (variables.totalPage || 1)) return
+      variables.page = p
+      requestData()
+    }
+
+    const onReset = () => {
+      variables.searchName = ''
+      jobTypeFilter.value = ''
+      if ('searchName' in route.query) {
+        router.replace({
+          query: { ...route.query, searchName: undefined }
+        })
+      }
+      variables.page = 1
+      requestData()
+    }
+
+    const onRefresh = () => {
+      requestData()
+    }
+
     const stats = computed((): TaskStats => {
       const data = (variables.tableData || []) as Task[]
       let running = 0
-      let success = 0
-      let failed = 0
+      let structSync = 0
+      let dataIntegration = 0
       for (const row of data) {
         const s = row.status || row.jobStatus
-        if (!s) continue
         if (
-          s === 'SUBMITTED_SUCCESS' ||
-          s === 'RUNNING_EXECUTION' ||
-          s === 'RUNNING'
+          s &&
+          (s === 'SUBMITTED_SUCCESS' ||
+            s === 'RUNNING_EXECUTION' ||
+            s === 'RUNNING')
         )
           running++
-        else if (s === 'SUCCESS') success++
-        else if (s === 'FAILURE' || s === 'FAILED') failed++
+        const jt = row.jobType
+        if (jt === 'DATA_REPLICA' || jt === 'whole_library_sync') structSync++
+        else if (jt === 'DATA_INTEGRATION') dataIntegration++
       }
-      return { total: data.length, running, success, failed }
+      return {
+        total: variables.totalCount,
+        running,
+        structSync,
+        dataIntegration
+      }
     })
 
     const requestData = () => {
@@ -105,11 +210,6 @@ const SynchronizationDefinition = defineComponent({
         pageNo: variables.page,
         searchName: variables.searchName
       })
-    }
-
-    const onUpdatePageSize = () => {
-      variables.page = 1
-      requestData()
     }
 
     const onCancelModal = () => {
@@ -186,6 +286,51 @@ const SynchronizationDefinition = defineComponent({
       }
     )
 
+    // —— 列表行高自适应：让表格填充卡片剩余高度，行数少时拉伸、行数多时定格 ——
+    const tableWrapRef = ref<HTMLElement | null>(null)
+    let resizeObserver: ResizeObserver | null = null
+
+    const setTableWrapRef = (el: unknown) => {
+      tableWrapRef.value = (el as HTMLElement | null) || null
+    }
+
+    const applyAdaptiveRowHeight = () => {
+      const wrap = tableWrapRef.value
+      if (!wrap || viewMode.value !== 'table') return
+      const scroller = wrap.querySelector<HTMLElement>('.n-scrollbar-container')
+      if (!scroller) return
+      // thead 位于滚动容器外部（frame 内、scroller 上方），可用的行区域即容器高度
+      const available = scroller.clientHeight
+      const rows = filteredTableData.value.length
+      if (!rows || available <= 0) return
+      // 固定按 10 行均分：数据不足 10 行时，底部留出与行高一致的空行位（视觉整齐）；
+      // 数据超过 10 行时保持该行高，容器内部滚动。
+      const TARGET_ROWS = 10
+      const MIN_ROW_H = 44
+      let rowH = available / TARGET_ROWS
+      if (rowH < MIN_ROW_H) rowH = MIN_ROW_H
+      wrap.style.setProperty('--st-row-h', `${rowH}px`)
+    }
+
+    onMounted(() => {
+      nextTick(applyAdaptiveRowHeight)
+      resizeObserver = new ResizeObserver(() => applyAdaptiveRowHeight())
+      resizeObserver.observe(document.body)
+    })
+
+    onBeforeUnmount(() => {
+      resizeObserver?.disconnect()
+      resizeObserver = null
+    })
+
+    watch(filteredTableData, () => {
+      nextTick(applyAdaptiveRowHeight)
+    })
+
+    watch(viewMode, () => {
+      nextTick(applyAdaptiveRowHeight)
+    })
+
     return {
       t,
       ...toRefs(variables),
@@ -195,7 +340,14 @@ const SynchronizationDefinition = defineComponent({
       handleRun,
       handleDelete,
       loadingStates,
-      onUpdatePageSize,
+      taskTypeOptions,
+      jobTypeFilter,
+      filteredTableData,
+      paginationSummary,
+      pageItems,
+      jumpToPage,
+      onReset,
+      onRefresh,
       requestData,
       onCancelModal,
       onConfirmModal,
@@ -204,24 +356,37 @@ const SynchronizationDefinition = defineComponent({
       handleModalChange,
       onSearch,
       handleKeyup,
-      toggleView
+      toggleView,
+      tableWrapRef,
+      setTableWrapRef
     }
   },
   render() {
     const renderSearchBar = () => (
-      <div class='bg-white rounded-xl border border-[#E5E7EB] px-5 py-4 flex items-center justify-between gap-4'>
+      <div class='bg-white rounded-xl border border-[#E5E7EB] shadow-sm px-4 py-3.5 flex items-center justify-between gap-4'>
         <div class='flex items-center gap-3'>
           <NInput
             clearable
             v-model={[this.searchName, 'value']}
             placeholder={this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.TASK_NAME)}
             onKeyup={this.handleKeyup}
-            style={{ width: '260px' }}
+            style={{ width: '220px' }}
           />
           <NButton type='primary' onClick={this.onSearch}>
             <NIcon>
               <SearchOutlined />
             </NIcon>
+          </NButton>
+          <NSelect
+            v-model:value={this.jobTypeFilter}
+            options={this.taskTypeOptions}
+            placeholder={this.t(
+              I18N_KEYS.SYNCHRONIZATION_DEFINITION.ALL_TASK_TYPES
+            )}
+            style={{ width: '160px' }}
+          />
+          <NButton onClick={this.onReset}>
+            {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.RESET)}
           </NButton>
         </div>
         <div class='flex items-center gap-3'>
@@ -245,6 +410,11 @@ const SynchronizationDefinition = defineComponent({
               }}
             </NButton>
           </NButtonGroup>
+          <NButton title={this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.REFRESH)} onClick={this.onRefresh}>
+            {{
+              icon: () => h(NIcon, null, { default: () => h(ReloadOutlined) })
+            }}
+          </NButton>
           <NButton type='info' onClick={this.handleModalChange}>
             {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.CREATE_TASK)}
           </NButton>
@@ -253,108 +423,228 @@ const SynchronizationDefinition = defineComponent({
     )
 
     const renderStatCards = () => (
-      <div class='flex gap-3'>
-        <StatCard
-          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.TOTAL)}
-          value={this.stats.total}
-          color='#3B82F6'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '📦')}
-        />
-        <StatCard
-          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.RUNNING)}
-          value={this.stats.running}
-          color='#F59E0B'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '⚡')}
-          trend='up'
-          trendText='12%'
-        />
-        <StatCard
-          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.SUCCESS)}
-          value={this.stats.success}
-          color='#16A34A'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '✅')}
-        />
-        <StatCard
-          label={this.t(I18N_KEYS.SYNCHRONIZATION_INSTANCE.FAIL)}
-          value={this.stats.failed}
-          color='#DC2626'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '⚠️')}
-        />
+      <div class='grid grid-cols-2 lg:grid-cols-4 gap-3.5'>
+        <div class='bg-white rounded-xl p-3 px-4 border border-slate-200/80 shadow-sm flex items-center justify-between'>
+          <div class='flex items-center gap-3'>
+            <div class='w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-base flex-shrink-0'>
+              <NIcon size={17}>
+                <AppstoreOutlined />
+              </NIcon>
+            </div>
+            <div>
+              <p class='text-[11px] font-medium text-slate-500'>
+                {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.TOTAL_TASKS)}
+              </p>
+              <div class='flex items-baseline gap-2'>
+                <span class='text-xl font-bold text-slate-800'>
+                  {this.stats.total}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='bg-white rounded-xl p-3 px-4 border border-slate-200/80 shadow-sm flex items-center justify-between'>
+          <div class='flex items-center gap-3'>
+            <div class='w-9 h-9 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center text-base flex-shrink-0'>
+              <NIcon size={17}>
+                <ThunderboltOutlined />
+              </NIcon>
+            </div>
+            <div>
+              <p class='text-[11px] font-medium text-slate-500'>
+                {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.RUNNING_TASKS)}
+              </p>
+              <div class='flex items-baseline gap-2'>
+                <span class='text-xl font-bold text-amber-600'>
+                  {this.stats.running}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='bg-white rounded-xl p-3 px-4 border border-slate-200/80 shadow-sm flex items-center justify-between'>
+          <div class='flex items-center gap-3'>
+            <div class='w-9 h-9 rounded-lg bg-indigo-50 text-indigo-500 flex items-center justify-center text-base flex-shrink-0'>
+              <NIcon size={17}>
+                <ApartmentOutlined />
+              </NIcon>
+            </div>
+            <div>
+              <p class='text-[11px] font-medium text-slate-500'>
+                {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.WHOLE_LIBRARY_SYNC)}
+              </p>
+              <div class='flex items-baseline gap-2'>
+                <span class='text-xl font-bold text-slate-800'>
+                  {this.stats.structSync}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class='bg-white rounded-xl p-3 px-4 border border-slate-200/80 shadow-sm flex items-center justify-between'>
+          <div class='flex items-center gap-3'>
+            <div class='w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-base flex-shrink-0'>
+              <NIcon size={17}>
+                <MergeCellsOutlined />
+              </NIcon>
+            </div>
+            <div>
+              <p class='text-[11px] font-medium text-slate-500'>
+                {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.DATA_INTEGRATION)}
+              </p>
+              <div class='flex items-baseline gap-2'>
+                <span class='text-xl font-bold text-emerald-600'>
+                  {this.stats.dataIntegration}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
 
-    const renderPagination = () => (
-      <NSpace justify='center'>
-        <NPagination
-          v-model:page={this.page}
-          v-model:page-size={this.pageSize}
-          page-count={this.totalPage}
-          show-size-picker
-          page-sizes={[10, 30, 50]}
-          show-quick-jumper
-          onUpdatePage={this.requestData}
-          onUpdatePageSize={this.onUpdatePageSize}
-        />
-      </NSpace>
+    const renderCompactPagination = () => (
+      <div class='flex items-center gap-3'>
+        <div class='flex items-center gap-1.5'>
+          <span>{this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.PER_PAGE)}:</span>
+          <select
+            class='bg-white border border-slate-200 rounded px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500'
+            value={this.pageSize}
+            onChange={(e: any) => {
+              this.pageSize = Number(e.target.value)
+              this.page = 1
+              this.requestData()
+            }}
+          >
+            {[10, 20, 50].map((size) => (
+              <option key={size} value={size}>
+                {this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.ITEMS_PER_PAGE, {
+                  count: size
+                })}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div class='flex items-center gap-1'>
+          <button
+            class='w-7 h-7 rounded border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center'
+            disabled={this.page <= 1}
+            onClick={() => {
+              this.page = (this.page || 1) - 1
+              this.requestData()
+            }}
+          >
+            <NIcon size={10}>
+              <CaretLeftOutlined />
+            </NIcon>
+          </button>
+          {this.pageItems.map((p: number | '...', idx: number) =>
+            p === '...' ? (
+              <span
+                key={`ellipsis-${idx}`}
+                class='w-7 h-7 flex items-center justify-center text-slate-400'
+              >
+                ...
+              </span>
+            ) : (
+              <button
+                key={p}
+                class={`w-7 h-7 rounded border flex items-center justify-center text-xs font-semibold transition ${
+                  p === this.page
+                    ? 'border-blue-500 bg-blue-600 text-white'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+                onClick={() => {
+                  this.page = p
+                  this.requestData()
+                }}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            class='w-7 h-7 rounded border border-slate-200 bg-white text-slate-400 hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center'
+            disabled={this.page >= (this.totalPage || 1)}
+            onClick={() => {
+              this.page = (this.page || 1) + 1
+              this.requestData()
+            }}
+          >
+            <NIcon size={10}>
+              <CaretRightOutlined />
+            </NIcon>
+          </button>
+        </div>
+        <div class='flex items-center gap-1.5 pl-2'>
+          <span>{this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.JUMP_TO)}</span>
+          <input
+            type='text'
+            value={this.page}
+            class='w-10 text-center bg-white border border-slate-200 rounded py-1 focus:outline-none focus:ring-1 focus:ring-blue-500'
+            onKeydown={(e: any) => {
+              if (e.key === 'Enter') this.jumpToPage(e.target.value)
+            }}
+          />
+          <span>{this.t(I18N_KEYS.SYNCHRONIZATION_DEFINITION.PAGE_UNIT)}</span>
+        </div>
+      </div>
     )
 
     const renderTableView = () => (
-      <NCard
-        style='height: 100%; overflow: hidden; display: flex; flex-direction: column;'
-        contentStyle='flex: 1; overflow: hidden; display: flex; flex-direction: column;'
+      <div
+        ref={(el: any) => {
+          this.setTableWrapRef(el)
+        }}
+        class='bg-white rounded-xl border border-[#E5E7EB] shadow-sm overflow-hidden flex-1 min-h-0 flex flex-col'
       >
-        <div style='flex: 1; overflow: hidden; display: flex; flex-direction: column;'>
-          <div style='flex: 1; overflow: auto;'>
-            <NDataTable
-              loading={this.loadingRef}
-              columns={this.columns}
-              data={this.tableData}
-            />
-          </div>
-          <NSpace justify='center' style='padding: 12px 0; flex-shrink: 0;'>
-            <NPagination
-              v-model:page={this.page}
-              v-model:page-size={this.pageSize}
-              page-count={this.totalPage}
-              show-size-picker
-              page-sizes={[10, 30, 50]}
-              show-quick-jumper
-              onUpdatePage={this.requestData}
-              onUpdatePageSize={this.onUpdatePageSize}
-            />
-          </NSpace>
+        <div class='overflow-x-auto st-offline-table flex-1 min-h-0'>
+          <NDataTable
+            flex-height
+            loading={this.loadingRef}
+            columns={this.columns}
+            data={this.filteredTableData}
+            scroll-x={this.columns.reduce(
+              (total: number, col: any) => total + (col.width || 120),
+              0
+            )}
+          />
         </div>
-      </NCard>
+        <div class='px-6 py-3.5 bg-slate-50/50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 flex-shrink-0'>
+          <div data-testid='table-footer-summary'>
+            {this.paginationSummary}
+          </div>
+          {renderCompactPagination()}
+        </div>
+      </div>
     )
 
     const renderCardView = () => (
-      <div style='height: 100%; overflow: auto;'>
-        <div class='grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-3 mb-4'>
-          {this.tableData.map((task: Task) => (
-            <TaskCard
-              task={task}
-              onEdit={this.handleEdit}
-              onRun={this.handleRun}
-              onDelete={this.handleDelete}
-              loadingStates={this.loadingStates}
-            />
-          ))}
+      <div class='bg-white rounded-xl border border-[#E5E7EB] shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden'>
+        <div class='flex-1 min-h-0 overflow-y-auto p-3'>
+          <div class='grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-3'>
+            {this.filteredTableData.map((task: Task) => (
+              <TaskCard
+                task={task}
+                onEdit={this.handleEdit}
+                onRun={this.handleRun}
+                onDelete={this.handleDelete}
+                loadingStates={this.loadingStates}
+              />
+            ))}
+          </div>
         </div>
-        {renderPagination()}
+        <div class='flex-shrink-0 px-6 py-3.5 bg-slate-50/50 border-t border-slate-200 flex items-center justify-center'>
+          {renderCompactPagination()}
+        </div>
       </div>
     )
 
     return (
-      <div class='h-full flex flex-col overflow-hidden'>
-        {renderSearchBar()}
-        {renderStatCards()}
-        <div style='flex: 1; overflow: hidden;'>
-          {this.viewMode === 'table' ? renderTableView() : renderCardView()}
-        </div>
+      <div class='h-full flex flex-col overflow-hidden pb-6 gap-4'>
+        <div class='flex-shrink-0'>{renderStatCards()}</div>
+        <div class='flex-shrink-0'>{renderSearchBar()}</div>
+        {this.viewMode === 'table' ? renderTableView() : renderCardView()}
         <TaskModal
           showModalRef={this.showModalRef}
           onCancelModal={this.onCancelModal}

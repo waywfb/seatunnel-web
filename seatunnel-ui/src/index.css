@@ -637,6 +637,47 @@ body {
   transition: background-color var(--duration-150) ease-in-out;
 }
 
+/* Offline sync task table - reference page style (compact header + rows) */
+/* max-height: 表头(~41px) + 10 行 × ~59px ≈ 631px，一屏正好显示 10 个任务；超出内部滚动 */
+.st-offline-table .n-data-table {
+  height: 100%;
+}
+
+/* 行高自适应：由 index.tsx 动态计算 --st-row-h 填充可用空间 */
+.st-offline-table .n-data-table .n-data-table-td {
+  height: var(--st-row-h, auto);
+}
+
+.st-offline-table .n-data-table-thead .n-data-table-th {
+  background-color: #f8fafc;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.st-offline-table .n-data-table .n-data-table-td {
+  font-size: 12px;
+  color: #334155;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.st-offline-table .n-data-table .n-data-table-tr:last-child .n-data-table-td {
+  border-bottom: none;
+}
+
+.st-offline-table .n-data-table .n-data-table-tbody .n-data-table-tr:hover {
+  background-color: transparent;
+}
+
+.st-offline-table .n-data-table .n-data-table-tbody .n-data-table-tr:hover > .n-data-table-td {
+  background-color: rgba(248, 250, 252, 0.7);
+}
+
 /* AI Chat loading pulse animation */
 @keyframes pulse {
   0%, 100% { opacity: 0.3; }

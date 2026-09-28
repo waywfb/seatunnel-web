@@ -37,6 +37,8 @@ export interface Task {
 export interface TaskStats {
   total: number
   running: number
-  success: number
-  failed: number
+  success?: number
+  failed?: number
+  structSync?: number
+  dataIntegration?: number
 }

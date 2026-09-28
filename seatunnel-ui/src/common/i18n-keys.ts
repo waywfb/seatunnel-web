@@ -28,7 +28,17 @@ export const I18N_KEYS = {
     CREATE_TIME: 'project.synchronization_definition.create_time',
     UPDATE_TIME: 'project.synchronization_definition.update_time',
     WHOLE_LIBRARY_SYNC: 'project.synchronization_definition.whole_library_sync',
-    DATA_INTEGRATION: 'project.synchronization_definition.data_integration'
+    DATA_INTEGRATION: 'project.synchronization_definition.data_integration',
+    ALL_TASK_TYPES: 'project.synchronization_definition.all_task_types',
+    RESET: 'project.synchronization_definition.reset',
+    REFRESH: 'project.synchronization_definition.refresh',
+    PAGINATION_SUMMARY: 'project.synchronization_definition.pagination_summary',
+    TOTAL_TASKS: 'project.synchronization_definition.total_tasks',
+    RUNNING_TASKS: 'project.synchronization_definition.running_tasks',
+    PER_PAGE: 'project.synchronization_definition.per_page',
+    ITEMS_PER_PAGE: 'project.synchronization_definition.items_per_page',
+    JUMP_TO: 'project.synchronization_definition.jump_to',
+    PAGE_UNIT: 'project.synchronization_definition.page_unit'
   },
   // 同步实例相关
   SYNCHRONIZATION_INSTANCE: {

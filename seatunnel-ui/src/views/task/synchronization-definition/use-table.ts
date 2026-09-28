@@ -40,7 +40,7 @@ import type { Router } from 'vue-router'
 import type { JobType } from './dag/types'
 import { useMessage } from 'naive-ui'
 import { tasksState } from '@/common/common'
-import { NTooltip, NSpin, NIcon, NTag, NSwitch } from 'naive-ui'
+import { NTooltip, NTag, NSwitch } from 'naive-ui'
 import TimeAgo from '@/components/time-ago'
 import { getDatasourceDisplayName } from './dag/sidebar/use-sidebar'
 import type { Task } from '@/types/task'
@@ -56,6 +56,7 @@ export function useTable() {
     pageSize: ref(10),
     searchName: ref(''),
     totalPage: ref(1),
+    totalCount: ref(0),
     showModalRef: ref(false),
     scheduleModalRef: ref(false),
     statusRef: ref(0),
@@ -86,39 +87,30 @@ export function useTable() {
     if (!state) return ''
     const stateOption = tasksState(t)[state]
     if (!stateOption) return ''
-    const Icon = h(
-      NIcon,
-      {
-        color: stateOption.color,
-        class: stateOption.classNames,
-        style: { display: 'flex' },
-        size: 18
-      },
-      () => h(stateOption.icon)
-    )
     return h(NTooltip, null, {
-      trigger: () => {
-        if (!stateOption.isSpin)
-          return h(
-            'span',
-            {
-              style: {
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }
-            },
-            [
-              Icon,
-              h(
-                'span',
-                { style: { color: stateOption.color, fontSize: '13px' } },
-                stateOption.desc
-              )
-            ]
-          )
-        return h(NSpin, { size: 18 }, { icon: () => Icon })
-      },
+      trigger: () =>
+        h(
+          'span',
+          {
+            class: 'inline-flex items-center',
+            style: {
+              gap: '6px',
+              fontWeight: 500,
+              fontSize: '12px'
+            }
+          },
+          [
+            h('span', {
+              class: `w-2 h-2 rounded-full ${stateOption.isSpin ? 'animate-ping' : ''}`,
+              style: { backgroundColor: stateOption.color }
+            }),
+            h(
+              'span',
+              { style: { color: stateOption.color } },
+              stateOption.desc
+            )
+          ]
+        ),
       default: () => stateOption.desc
     })
   }
@@ -128,21 +120,17 @@ export function useTable() {
     const isReplica =
       jobType === 'DATA_REPLICA' || jobType === 'whole_library_sync'
     return h(
-      NTag,
+      'span',
       {
-        size: 'small',
-        type: isReplica ? 'info' : 'success',
-        bordered: false,
-        round: false
+        class: isReplica
+          ? 'inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100'
+          : 'inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100'
       },
-      {
-        default: () =>
-          t(
-            isReplica
-              ? 'project.synchronization_definition.whole_library_sync'
-              : 'project.synchronization_definition.data_integration'
-          )
-      }
+      t(
+        isReplica
+          ? 'project.synchronization_definition.whole_library_sync'
+          : 'project.synchronization_definition.data_integration'
+      )
     )
   }
 
@@ -177,7 +165,7 @@ export function useTable() {
                 'span',
                 {
                   style: {
-                    color: '#999',
+                    color: '#94a3b8',
                     fontStyle: 'italic',
                     fontSize: '12px'
                   }
@@ -185,29 +173,67 @@ export function useTable() {
                 t('project.synchronization_definition.unconfigured_pipeline')
               )
             : h(
-                NTag,
+                'div',
                 {
-                  size: 'tiny',
-                  color: {
-                    textColor: '#6b7280',
-                    borderColor: '#e5e7eb',
-                    color: '#f3f4f6'
-                  },
-                  bordered: false,
-                  round: false,
-                  style: { fontSize: '11px', padding: '0 6px' }
+                  style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }
                 },
-                { default: () => pipelineNodes.join(' → ') }
+                pipelineNodes.map((node, idx) => [
+                  idx > 0
+                    ? h(
+                        'span',
+                        {
+                          style: {
+                            fontSize: '9px',
+                            color: '#94a3b8',
+                            margin: '0 1px'
+                          }
+                        },
+                        '→'
+                      )
+                    : null,
+                  h(
+                    'span',
+                    {
+                      class:
+                        'bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-mono text-slate-600 text-[11px]'
+                    },
+                    node
+                  )
+                ])
               )
 
-          return h('div', { style: { lineHeight: '1.7' } }, [
-            h(
-              'div',
-              { style: { fontSize: '14px', color: '#1a1a1a' } },
-              row.name || '-'
-            ),
-            h('div', { style: { marginTop: '2px' } }, pipelineContent)
-          ])
+          const isRunning = isRunningStatus(row.status || row.jobStatus)
+          return h(
+            'div',
+            { style: { lineHeight: '1.7' } },
+            [
+              h(
+                'div',
+                {
+                  class: 'font-medium text-slate-800 text-sm',
+                  style: { display: 'flex', alignItems: 'center', gap: '8px' }
+                },
+                [
+                  row.name || '-',
+                  isRunning
+                    ? h(
+                        'span',
+                        {
+                          class:
+                            'px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] rounded font-medium'
+                        },
+                        t('project.synchronization_definition.running')
+                      )
+                    : null
+                ]
+              ),
+              h('div', { style: { marginTop: '2px' } }, pipelineContent)
+            ]
+          )
         }
       },
       {
@@ -216,36 +242,42 @@ export function useTable() {
         width: 120,
         render: (row: any) => renderJobTypeTag(row.jobType)
       },
-      {
-        title: t('project.synchronization_definition.job_mode'),
-        key: 'jobMode',
-        width: 100,
-        render: (row: any) => {
-          if (!row.jobMode) return ''
-          const label = row.jobMode === 'STREAMING' ? '实时同步' : '离线同步'
-          return h(
-            NTag,
+      // 离线（BATCH）页面作业模式恒为离线同步，列冗余，按参考页隐藏
+      ...((route.meta.jobMode as string) === 'BATCH'
+        ? []
+        : [
             {
-              size: 'small',
-              color:
-                row.jobMode === 'STREAMING'
-                  ? {
-                      textColor: '#7c3aed',
-                      borderColor: '#ddd6fe',
-                      color: '#f5f3ff'
-                    }
-                  : {
-                      textColor: '#1a5c8a',
-                      borderColor: '#b8dff5',
-                      color: '#e8f4fd'
-                    },
-              bordered: false,
-              round: false
-            },
-            { default: () => label }
-          )
-        }
-      },
+              title: t('project.synchronization_definition.job_mode'),
+              key: 'jobMode',
+              width: 100,
+              render: (row: any) => {
+                if (!row.jobMode) return ''
+                const label =
+                  row.jobMode === 'STREAMING' ? '实时同步' : '离线同步'
+                return h(
+                  NTag,
+                  {
+                    size: 'small',
+                    color:
+                      row.jobMode === 'STREAMING'
+                        ? {
+                            textColor: '#7c3aed',
+                            borderColor: '#ddd6fe',
+                            color: '#f5f3ff'
+                          }
+                        : {
+                            textColor: '#1a5c8a',
+                            borderColor: '#b8dff5',
+                            color: '#e8f4fd'
+                          },
+                    bordered: false,
+                    round: false
+                  },
+                  { default: () => label }
+                )
+              }
+            }
+          ]),
       {
         title: t('project.synchronization_definition.schedule_status'),
         key: 'scheduleStatus',
@@ -255,21 +287,9 @@ export function useTable() {
           const schedule = variables.scheduleMap[row.id]
           if (!schedule) {
             return h(
-              NTag,
-              {
-                size: 'small',
-                color: {
-                  textColor: '#6b7280',
-                  borderColor: '#e5e7eb',
-                  color: '#f3f4f6'
-                },
-                bordered: false,
-                round: false
-              },
-              {
-                default: () =>
-                  t('project.synchronization_definition.schedule_unconfigured')
-              }
+              'span',
+              { style: { color: '#94a3b8', fontStyle: 'italic', fontSize: '12px' } },
+              t('project.synchronization_definition.schedule_unconfigured')
             )
           }
           const loading = !!scheduleLoadingStates.value.get(schedule.id)
@@ -305,19 +325,15 @@ export function useTable() {
             CUSTOM_PROCESSING: '自定义处理',
             ERROR_WHEN_DATA_EXISTS: '数据已存在时报错'
           }
+          const isDrop = row.dataSaveMode === 'DROP_DATA'
           return h(
-            NTag,
+            'span',
             {
-              size: 'small',
-              color: {
-                textColor: '#555',
-                borderColor: '#d0d0d0',
-                color: '#f0f0f0'
-              },
-              bordered: false,
-              round: false
+              class: isDrop
+                ? 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-100'
+                : 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium text-slate-600 bg-slate-100'
             },
-            { default: () => labels[row.dataSaveMode] || row.dataSaveMode }
+            labels[row.dataSaveMode] || row.dataSaveMode
           )
         }
       },
@@ -335,12 +351,12 @@ export function useTable() {
           h('div', { style: { lineHeight: '1.6' } }, [
             h(
               'div',
-              { style: { fontSize: '13px', fontWeight: 500, color: '#333' } },
+              { style: { fontWeight: 500, color: '#1e293b', fontSize: '13px' } },
               row.createUserName || '-'
             ),
             h(
               'div',
-              { style: { fontSize: '12px', color: '#999' } },
+              { style: { fontSize: '11px', color: '#94a3b8', marginTop: '2px' } },
               row.createTime ? h(TimeAgo, { date: row.createTime }) : '-'
             )
           ])
@@ -353,12 +369,12 @@ export function useTable() {
           h('div', { style: { lineHeight: '1.6' } }, [
             h(
               'div',
-              { style: { fontSize: '13px', fontWeight: 500, color: '#333' } },
+              { style: { fontWeight: 500, color: '#1e293b', fontSize: '13px' } },
               row.updateUserName || '-'
             ),
             h(
               'div',
-              { style: { fontSize: '12px', color: '#999' } },
+              { style: { fontSize: '11px', color: '#94a3b8', marginTop: '2px' } },
               row.updateTime ? h(TimeAgo, { date: row.updateTime }) : '-'
             )
           ])
@@ -454,6 +470,7 @@ export function useTable() {
       .then((res: any) => {
         variables.tableData = res.data
         variables.totalPage = res.totalPage
+        variables.totalCount = res.totalCount
         variables.loadingRef = false
         loadScheduleMap()
       })
