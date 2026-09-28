@@ -37,7 +37,7 @@ import {
 } from '@/common/column-width-config'
 import { useRoute, useRouter } from 'vue-router'
 import { ITaskState } from '@/common/types'
-import { tasksState } from '@/common/common'
+import { isJobEndState, tasksState } from '@/common/common'
 import { NButton, NIcon, NPopover, NSpin, NTooltip } from 'naive-ui'
 import { useMessage } from 'naive-ui'
 import {
@@ -102,16 +102,6 @@ export function useSyncTask(syncTaskType = 'BATCH') {
   const isRunning = (jobStatus?: string) =>
     !!jobStatus &&
     ['RUNNING', 'RUNNING_EXECUTION', 'SUBMITTED_SUCCESS'].includes(jobStatus)
-
-  // 引擎终态全集（与 Seatunnel JobStatus.EndState.GLOBALLY 对齐）：
-  // FAILED / SAVEPOINT_DONE / CANCELED / FINISHED / UNKNOWABLE；缺失任一会被误当运行中
-  const endStates = [
-    'FINISHED',
-    'SAVEPOINT_DONE',
-    'CANCELED',
-    'FAILED',
-    'UNKNOWABLE'
-  ]
 
   // 每秒跳动驱动：每行锁定锚点毫秒（snapshotAt - runningTime*1000 ≈ 真实开始时刻），
   // 非终态统一基于 floor((nowTick - anchor)/1000) 单源计时，跨轮询持久，避免双时间基准对账抖动
@@ -225,7 +215,7 @@ export function useSyncTask(syncTaskType = 'BATCH') {
         title: t('project.synchronization_instance.run_time'),
         key: 'runningTime',
         render: (row: any) => {
-          if (endStates.includes(row.jobStatus)) {
+          if (isJobEndState(row.jobStatus)) {
             return getRemainTime(row.runningTime)
           }
           const anchor = rowAnchors.get(row.id)
@@ -297,7 +287,7 @@ export function useSyncTask(syncTaskType = 'BATCH') {
       })
       const snapshotAt = Date.now()
       variables.tableData = (res.totalList as any[]).map((row: any) => {
-        if (endStates.includes(row.jobStatus)) {
+        if (isJobEndState(row.jobStatus)) {
           rowAnchors.delete(row.id)
           return { ...row }
         }

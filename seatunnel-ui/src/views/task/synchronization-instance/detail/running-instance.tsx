@@ -21,6 +21,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useRunningInstance } from './use-running-instance'
 import { useSse } from '@/composables/use-sse'
+import { isMetricsAllEnd } from '@/common/common'
 
 const RunningInstance = defineComponent({
   name: 'RunningInstance',
@@ -29,20 +30,32 @@ const RunningInstance = defineComponent({
     const route = useRoute()
     const { variables, getTableData, createColumns } = useRunningInstance()
 
-    useSse(
+    const { connect, stop } = useSse(
       'job-instance/metrics',
       { jobInstanceId: String(route.query.jobInstanceId) },
       {
+        autoConnect: false,
+        // 各 pipeline 指标全部为终态时任务已结束，无需继续实时监控
+        stopWhen: (data: any) => isMetricsAllEnd(data),
         onMessage: (data: any) => {
           variables.tableData = data
         },
-        fallback: () => getTableData(true)
+        fallback: () => {
+          getTableData(true).then((res: any) => {
+            // 轮询兜底同样遵守终态判定：任务已结束后停止轮询
+            if (isMetricsAllEnd(res)) stop()
+          })
+        }
       }
     )
 
-    onMounted(() => {
+    onMounted(async () => {
       createColumns(variables)
-      getTableData()
+      const res = await getTableData()
+      // 已完成（终态）的任务实例不再建立 SSE 监控，仅展示静态数据
+      if (!isMetricsAllEnd(res)) {
+        connect()
+      }
     })
 
     watch(useI18n().locale, () => {

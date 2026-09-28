@@ -28,11 +28,16 @@ interface UseSseOptions {
   fallbackIntervalMs?: number
   /** 触发兜底前的连续失败次数，默认 3 */
   fallbackThreshold?: number
+  /** 收到推送后若返回 true，则彻底停止监控（关闭 SSE、停止轮询、不再重连） */
+  stopWhen?: (data: any) => boolean
+  /** 是否在挂载后自动建立连接，默认 true；false 时由调用方在适当时机手动 connect() */
+  autoConnect?: boolean
 }
 
 /**
  * 订阅后端 SSE 推送的 Vue 组合式封装。
  * 组件挂载时建立连接，卸载时关闭；断线自动重连，连续失败后降级为轮询兜底。
+ * stopWhen 用于任务进入终态后不再监控的场景：命中后彻底停止，避免已完成任务仍持续占用连接。
  */
 export function useSse(path: string, params: Record<string, string | number>, options: UseSseOptions) {
   const {
@@ -40,13 +45,16 @@ export function useSse(path: string, params: Record<string, string | number>, op
     retryDelayMs = 3000,
     fallback,
     fallbackIntervalMs = 5000,
-    fallbackThreshold = 3
+    fallbackThreshold = 3,
+    stopWhen,
+    autoConnect = true
   } = options
 
   let eventSource: EventSource | null = null
   let retryTimer: number | null = null
   let fallbackTimer: number | null = null
   let consecutiveErrors = 0
+  let stopped = false
 
   const stopPollingFallback = () => {
     if (fallbackTimer !== null) {
@@ -56,6 +64,7 @@ export function useSse(path: string, params: Record<string, string | number>, op
   }
 
   const startPollingFallback = () => {
+    if (stopped) return
     if (fallback && fallbackTimer === null) {
       fallback()
       fallbackTimer = window.setInterval(fallback, fallbackIntervalMs)
@@ -69,19 +78,37 @@ export function useSse(path: string, params: Record<string, string | number>, op
     }
   }
 
+  /** 彻底停止监控：关闭 SSE、停止轮询兜底、清除重连定时器，后续不再恢复 */
+  const stop = () => {
+    stopped = true
+    closeEventSource()
+    stopPollingFallback()
+    if (retryTimer !== null) {
+      window.clearTimeout(retryTimer)
+      retryTimer = null
+    }
+  }
+
   const connect = () => {
+    if (stopped) return
     closeEventSource()
     eventSource = createEventSource(path, params)
     eventSource.onmessage = (event: MessageEvent) => {
       consecutiveErrors = 0
       stopPollingFallback()
+      let data: any
       try {
-        onMessage(JSON.parse(event.data))
+        data = JSON.parse(event.data)
       } catch {
-        onMessage(event.data)
+        data = event.data
+      }
+      onMessage(data)
+      if (stopWhen && stopWhen(data)) {
+        stop()
       }
     }
     eventSource.onerror = () => {
+      if (stopped) return
       consecutiveErrors++
       if (eventSource?.readyState === EventSource.CLOSED) {
         closeEventSource()
@@ -95,17 +122,12 @@ export function useSse(path: string, params: Record<string, string | number>, op
   }
 
   onMounted(() => {
-    connect()
+    if (autoConnect) connect()
   })
 
   onUnmounted(() => {
-    closeEventSource()
-    stopPollingFallback()
-    if (retryTimer !== null) {
-      window.clearTimeout(retryTimer)
-      retryTimer = null
-    }
+    stop()
   })
 
-  return { close: closeEventSource }
+  return { connect, close: stop, stop }
 }

@@ -161,6 +161,23 @@ export const stateType = (t: any) => [
  * @icon icon
  * @isSpin is loading (Need to execute the code block to write if judgment)
  */
+// 引擎终态全集（与 Seatunnel JobStatus.EndState.GLOBALLY 对齐）：
+// FAILED / SAVEPOINT_DONE / CANCELED / FINISHED / UNKNOWABLE；缺失任一会被误当运行中
+export const jobEndStates = [
+  'FINISHED',
+  'SAVEPOINT_DONE',
+  'CANCELED',
+  'FAILED',
+  'UNKNOWABLE'
+]
+
+export const isJobEndState = (status?: string | null) =>
+  !!status && jobEndStates.includes(status)
+
+/** 指标列表（detail/summary 的 pipeline 行）是否全部处于终态；空列表视为未结束，避免误停运行中的任务 */
+export const isMetricsAllEnd = (rows: any[] | null | undefined) =>
+  !!rows && rows.length > 0 && rows.every((row) => isJobEndState(row?.status))
+
 export const tasksState = (t: any): ITaskStateConfig => ({
   SUBMITTED_SUCCESS: {
     id: 0,

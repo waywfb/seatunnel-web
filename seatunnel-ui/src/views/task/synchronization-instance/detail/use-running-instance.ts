@@ -175,18 +175,20 @@ export function useRunningInstance() {
   }
 
   const getTableData = (silent = false) => {
-    if (variables.loadingRef) return
+    if (variables.loadingRef) return Promise.resolve(variables.tableData)
     if (!silent) variables.loadingRef = true
 
-    queryRunningInstancePaging({
+    return queryRunningInstancePaging({
       jobInstanceId: route.query.jobInstanceId
     })
       .then((res: any) => {
         variables.tableData = res
         variables.loadingRef = false
+        return res
       })
       .catch(() => {
         variables.loadingRef = false
+        return []
       })
   }
 

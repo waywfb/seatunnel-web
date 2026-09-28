@@ -29,6 +29,7 @@ import { useTaskDefinition } from './use-task-definition'
 import { updateDagNodeTools } from './dag/use-dag-add-shape'
 import { querySyncTaskInstanceDetail } from '@/service/sync-task-instance'
 import { useSse } from '@/composables/use-sse'
+import { isMetricsAllEnd } from '@/common/common'
 import styles from './task-definition.module.scss'
 import { useDagNode } from './dag/use-dag-node'
 import { useCanvasTheme } from './dag/theme-manager'
@@ -58,16 +59,21 @@ const TaskDefinition = defineComponent({
       }
     }
 
-    useSse(
+    const { connect, stop } = useSse(
       'job-instance/summary',
       { jobInstanceId: String(route.query.jobInstanceId) },
       {
+        autoConnect: false,
+        // 各 pipeline 概要全部为终态时任务已结束，无需继续实时监控
+        stopWhen: (data: any) => isMetricsAllEnd(data),
         onMessage: updateDagSummary,
         fallback: async () => {
           const data = await querySyncTaskInstanceDetail({
             jobInstanceId: route.query.jobInstanceId
           })
           updateDagSummary(data)
+          // 轮询兜底同样遵守终态判定：任务已结束后停止轮询
+          if (isMetricsAllEnd(data)) stop()
         }
       }
     )
@@ -115,6 +121,16 @@ const TaskDefinition = defineComponent({
       jobConfig.value = (await getJobConfig()) || {}
 
       await getJobDag(graph.value as Graph)
+
+      // 先通过 REST 拉取一次概要数据并渲染 DAG 节点状态；
+      // 任务已终态则不建立 SSE 监控，仅展示静态概要
+      const summary = await querySyncTaskInstanceDetail({
+        jobInstanceId: route.query.jobInstanceId
+      })
+      updateDagSummary(summary)
+      if (!isMetricsAllEnd(summary)) {
+        connect()
+      }
     })
 
     return {
