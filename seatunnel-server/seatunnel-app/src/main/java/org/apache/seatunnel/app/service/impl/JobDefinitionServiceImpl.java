@@ -221,7 +221,7 @@ public class JobDefinitionServiceImpl extends SeatunnelBaseServiceImpl
         jobs.setData(filteredJobs);
         jobs.setPageSize(pageSize);
         jobs.setPageNo(pageNo);
-        jobs.setTotalCount(filteredJobs.size());
+        jobs.setTotalCount(job.getTotalCount());
         return jobs;
     }
 
