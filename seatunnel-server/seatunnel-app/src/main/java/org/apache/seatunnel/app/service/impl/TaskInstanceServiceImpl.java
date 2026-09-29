@@ -125,7 +125,7 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
         for (SeaTunnelJobInstanceDto jobInstanceDto : records) {
             long runningTime = 0l;
             Date createTime = jobInstanceDto.getCreateTime();
-            long createTimeSecond = createTime.toInstant().getEpochSecond();
+            long createTimeMillis = createTime.toInstant().toEpochMilli();
             Date endTime = jobInstanceDto.getEndTime();
             if (endTime == null) {
                 Date referenceTime;
@@ -142,12 +142,12 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
                 } else {
                     referenceTime = new Date();
                 }
-                long referenceTimeSecond = referenceTime.toInstant().getEpochSecond();
-                runningTime = Math.abs(referenceTimeSecond - createTimeSecond);
+                long referenceTimeMillis = referenceTime.toInstant().toEpochMilli();
+                runningTime = Math.abs(referenceTimeMillis - createTimeMillis);
                 jobInstanceDto.setRunningTime(runningTime);
             } else {
-                long endTimeSecond = jobInstanceDto.getEndTime().toInstant().getEpochSecond();
-                runningTime = Math.abs(endTimeSecond - createTimeSecond);
+                long endTimeMillis = jobInstanceDto.getEndTime().toInstant().toEpochMilli();
+                runningTime = Math.abs(endTimeMillis - createTimeMillis);
                 jobInstanceDto.setRunningTime(runningTime);
             }
         }
