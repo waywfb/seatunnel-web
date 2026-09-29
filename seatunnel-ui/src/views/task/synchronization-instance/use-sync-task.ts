@@ -38,7 +38,7 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { ITaskState } from '@/common/types'
 import { isJobEndState, tasksState } from '@/common/common'
-import { NButton, NIcon, NPopover, NSpin, NTooltip } from 'naive-ui'
+import { NButton, NIcon, NPopover } from 'naive-ui'
 import { useMessage } from 'naive-ui'
 import {
   querySyncTaskInstancePaging,
@@ -68,6 +68,7 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     page: ref(1),
     pageSize: ref(10),
     totalPage: ref(1),
+    total: ref(0),
     loadingRef: ref(false),
     logRef: '',
     logLoadingRef: ref(true),
@@ -103,13 +104,14 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     !!jobStatus &&
     ['RUNNING', 'RUNNING_EXECUTION', 'SUBMITTED_SUCCESS'].includes(jobStatus)
 
-  // 每秒跳动驱动：每行锁定锚点毫秒（snapshotAt - runningTime*1000 ≈ 真实开始时刻），
-  // 非终态统一基于 floor((nowTick - anchor)/1000) 单源计时，跨轮询持久，避免双时间基准对账抖动
+  // 高频跳动驱动：每行锁定锚点毫秒（snapshotAt - runningTime ≈ 真实开始时刻，runningTime 为毫秒），
+  // 非终态统一基于 nowTick - anchor 毫秒级单源计时，跨轮询持久，避免双时间基准对账抖动；
+  // 100ms 跳动让不足 1 秒的耗时能实时显示毫秒位
   const nowTick = ref(Date.now())
   const rowAnchors = new Map<number, number>()
   const tickTimer = setInterval(() => {
     nowTick.value = Date.now()
-  }, 1000)
+  }, 100)
   onUnmounted(() => clearInterval(tickTimer))
 
   const creatInstanceButtons = (variables: any) => {
@@ -222,9 +224,7 @@ export function useSyncTask(syncTaskType = 'BATCH') {
           if (anchor === undefined) {
             return getRemainTime(row.runningTime)
           }
-          return getRemainTime(
-            Math.max(0, Math.floor((nowTick.value - anchor) / 1000))
-          )
+          return getRemainTime(Math.max(0, nowTick.value - anchor))
         },
         ...COLUMN_WIDTH_CONFIG['duration']
       },
@@ -291,7 +291,7 @@ export function useSyncTask(syncTaskType = 'BATCH') {
           rowAnchors.delete(row.id)
           return { ...row }
         }
-        const anchor = snapshotAt - (row.runningTime || 0) * 1000
+        const anchor = snapshotAt - (row.runningTime || 0)
         const prevAnchor = rowAnchors.get(row.id)
         if (prevAnchor === undefined || Math.abs(anchor - prevAnchor) > 2000) {
           rowAnchors.set(row.id, anchor)
@@ -299,6 +299,7 @@ export function useSyncTask(syncTaskType = 'BATCH') {
         return { ...row }
       })
       variables.totalPage = res.totalPage
+      variables.total = res.total ?? 0
     } catch (error: any) {
       // 仅处理非取消异常；AbortError 为主动取消，静默忽略
       if (error?.name !== 'AbortError') {
@@ -421,28 +422,71 @@ export function useSyncTask(syncTaskType = 'BATCH') {
   }
 }
 
+// tasksState 里的 color 是给 20px 图标用的浅色，直接当 11px 文字色会看不清；
+// pill 文字统一映射到可读的深色系（语义对齐 design tokens）
+const STATE_PILL_TEXT_COLORS: Record<string, string> = {
+  SUBMITTED_SUCCESS: '#64748B',
+  INITIALIZING: '#64748B',
+  CREATED: '#64748B',
+  RUNNING_EXECUTION: '#2563EB',
+  RUNNING: '#2563EB',
+  READY_PAUSE: '#0F766E',
+  PAUSE: '#0F766E',
+  PAUSE_BY_ISOLATION: '#0F766E',
+  PAUSE_BY_CORONATION: '#0F766E',
+  DOING_SAVEPOINT: '#0F766E',
+  READY_STOP: '#E11D48',
+  STOP: '#E11D48',
+  FAILURE: '#E11D48',
+  FAILED: '#E11D48',
+  FAILING: '#E11D48',
+  KILL: '#E11D48',
+  KILL_BY_ISOLATION: '#E11D48',
+  SUCCESS: '#059669',
+  FORCED_SUCCESS: '#059669',
+  FINISHED: '#059669',
+  SAVEPOINT_DONE: '#059669',
+  CANCELING: '#E11D48',
+  CANCELED: '#E11D48',
+  UNKNOWABLE: '#64748B',
+  NEED_FAULT_TOLERANCE: '#D97706',
+  WAITING_THREAD: '#7C3AED',
+  PENDING: '#7C3AED',
+  WAITING_DEPEND: '#7C3AED',
+  DELAY_EXECUTION: '#7C3AED',
+  SERIAL_WAIT: '#7C3AED',
+  FORBIDDEN_BY_CORONATION: '#7C3AED',
+  DISPATCH: '#7C3AED',
+  SCHEDULED: '#7C3AED'
+}
+
 const renderStateCell = (state: ITaskState, t: Function) => {
   if (!state) return ''
 
   const stateOption = tasksState(t)[state]
   if (!stateOption) return ''
-  const Icon = h(
-    NIcon,
+  const color = STATE_PILL_TEXT_COLORS[state] || '#64748B'
+  return h(
+    'span',
     {
-      color: stateOption.color,
-      class: stateOption.classNames,
+      class:
+        'inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border leading-none whitespace-nowrap',
       style: {
-        display: 'flex'
-      },
-      size: 20
+        color,
+        backgroundColor: `${color}14`,
+        borderColor: `${color}33`
+      }
     },
-    () => h(stateOption.icon)
+    [
+      h(
+        NIcon,
+        {
+          size: 11,
+          class: stateOption.isSpin ? 'animate-spin' : ''
+        },
+        () => h(stateOption.icon)
+      ),
+      h('span', null, stateOption.desc)
+    ]
   )
-  return h(NTooltip, null, {
-    trigger: () => {
-      if (!stateOption.isSpin) return Icon
-      return h(NSpin, { size: 20 }, { icon: () => Icon })
-    },
-    default: () => stateOption.desc
-  })
 }

@@ -17,7 +17,6 @@
 
 import { defineComponent, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import STabs from '@/components/tabs'
 import PageLayout from '@/components/page-layout'
 import { useI18n } from 'vue-i18n'
 import { SyncTask } from './sync-task'
@@ -42,20 +41,12 @@ const SynchronizationInstance = defineComponent({
 
     return () => (
       <PageLayout>
-        {{
-          tabs: () => (
-            <STabs
-              value={syncTaskType.value}
-              onUpdate:value={(val: string) => (syncTaskType.value = val)}
-              tabs={tabs}
-            >
-              {{
-                'pane:BATCH': () => <SyncTask syncTaskType='BATCH' />,
-                'pane:STREAMING': () => <SyncTask syncTaskType='STREAMING' />
-              }}
-            </STabs>
-          )
-        }}
+        <SyncTask
+          key={syncTaskType.value}
+          syncTaskType={syncTaskType.value}
+          tabs={tabs}
+          onSwitchType={(val: string) => (syncTaskType.value = val)}
+        />
       </PageLayout>
     )
   }

@@ -1204,6 +1204,8 @@ export default {
   },
   synchronization_instance: {
     total: '总计',
+    total_items: '共{total}条',
+    query: '查询',
     pipeline_id: '管道 ID',
     source: '来源',
     sink: '目标',

@@ -1234,6 +1234,8 @@ export default {
   },
   synchronization_instance: {
     total: 'Total',
+    total_items: 'Total {total} items',
+    query: 'Query',
     pipeline_id: 'Pipeline Id',
     source: 'Source',
     sink: 'Sink',

@@ -17,12 +17,21 @@
 
 import i18n from '@/locales'
 const { t } = i18n.global
+/**
+ * 耗时格式化，入参为毫秒。
+ * 不足 1 秒时显示为小数秒（如 0.123秒）；≥1 秒按 天/时/分/秒 显示（毫秒位截断，避免秒级跳动被毫秒噪音干扰）。
+ */
 export const getRemainTime = (remain: number): any => {
   if (!remain) return
-  const d = parseInt(remain / 60 / 60 / 24 + '')
-  const h = parseInt(((remain / 60 / 60) % 24) + '')
-  const m = parseInt(((remain / 60) % 60) + '')
-  const s = parseInt((remain % 60) + '')
+  const ms = Math.max(0, remain)
+  if (ms < 1000) {
+    return `${(ms / 1000).toFixed(3)}${t('common.second')}`
+  }
+  const totalSeconds = Math.floor(ms / 1000)
+  const d = Math.floor(totalSeconds / 60 / 60 / 24)
+  const h = Math.floor((totalSeconds / 60 / 60) % 24)
+  const m = Math.floor((totalSeconds / 60) % 60)
+  const s = totalSeconds % 60
   const dText = d > 0 ? `${d}${t('common.day')}` : ''
   const hText = h > 0 ? `${h}${t('common.hour')}` : ''
   const mText = m > 0 ? `${m}${t('common.min')}` : ''

@@ -24,8 +24,7 @@ import {
   watch,
   ref,
   reactive,
-  computed,
-  h
+  computed
 } from 'vue'
 import { useSyncTask } from './use-sync-task'
 import {
@@ -38,7 +37,8 @@ import {
   NDatePicker,
   NIcon,
   NButton,
-  NDropdown
+  NDropdown,
+  NSkeleton
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import { stateType } from '@/common/common'
@@ -53,18 +53,30 @@ import { getRangeShortCuts } from '@/utils/timePickeroption'
 import { useRoute, useRouter } from 'vue-router'
 import isEmpty from 'lodash/isEmpty'
 import { DownOutlined } from '@vicons/antd'
-import StatCard from '@/components/stat-card'
+import {
+  UnorderedListOutlined,
+  LoadingOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  CalendarOutlined,
+  ThunderboltOutlined
+} from '@vicons/antd'
 
 const props = {
   syncTaskType: {
     type: String as PropType<string>,
     default: 'BATCH'
+  },
+  tabs: {
+    type: Array as PropType<Array<{ name: string; label: string }>>,
+    default: () => []
   }
 }
 
 const SyncTask = defineComponent({
   name: 'SyncTask',
   props,
+  emits: ['switchType'],
   setup(props) {
     let logTimer: ReturnType<typeof setTimeout>
     let pollTimer: ReturnType<typeof setTimeout> | null = null
@@ -95,7 +107,7 @@ const SyncTask = defineComponent({
         else if (s === 'FAILURE' || s === 'FAILED') failed++
       }
       return {
-        total: variables.totalPage * variables.pageSize || data.length,
+        total: variables.total,
         running,
         success,
         failed
@@ -129,7 +141,9 @@ const SyncTask = defineComponent({
           startDate: variables.datePickerRange
             ? variables.datePickerRange[0]
             : '',
-          endDate: variables.datePickerRange ? variables.datePickerRange[1] : '',
+          endDate: variables.datePickerRange
+            ? variables.datePickerRange[1]
+            : '',
           syncTaskType: variables.syncTaskType
         },
         true
@@ -310,29 +324,31 @@ const SyncTask = defineComponent({
   render() {
     const { t } = this
     const renderSearchBar = () => (
-      <div class='bg-white rounded-xl border border-[#E5E7EB] px-5 py-4 flex flex-wrap items-center justify-between gap-3'>
-        <div class='flex flex-wrap items-center gap-3'>
-          <NInput
-            v-model={[this.taskName, 'value']}
-            placeholder={t('project.synchronization_instance.task_name')}
-            onKeyup={this.handleKeyup}
-            clearable
-            style={{ width: '180px' }}
-          />
-          <NInput
-            v-model={[this.executeUser, 'value']}
-            placeholder={t('project.synchronization_instance.execute_user')}
-            onKeyup={this.handleKeyup}
-            clearable
-            style={{ width: '150px' }}
-          />
-          <NSelect
-            v-model={[this.stateType, 'value']}
-            options={stateType(t).slice(1)}
-            placeholder={t('project.synchronization_instance.state')}
-            clearable
-            style={{ width: '150px' }}
-          />
+      <div class='bg-white rounded-xl border border-[#E5E7EB] p-3 space-y-3 shadow-sm'>
+        <div class='flex items-center justify-between'>
+          <div class='flex items-center gap-1 p-0.5 rounded-lg border border-[#E5E7EB] bg-[#F3F4F6]'>
+            {this.tabs.map((tab) => (
+              <button
+                key={tab.name}
+                class={[
+                  'flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition active:scale-95',
+                  tab.name === this.syncTaskType
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-[#6B7280] hover:text-[#111827]'
+                ]}
+                onClick={() => this.$emit('switchType', tab.name)}
+              >
+                <NIcon size={12}>
+                  {tab.name === 'BATCH' ? (
+                    <CalendarOutlined />
+                  ) : (
+                    <ThunderboltOutlined />
+                  )}
+                </NIcon>
+                {tab.label}
+              </button>
+            ))}
+          </div>
           <NDatePicker
             v-model={[this.datePickerRange, 'formattedValue']}
             type='datetimerange'
@@ -342,56 +358,140 @@ const SyncTask = defineComponent({
             style={{ width: '320px' }}
           />
         </div>
-        <div class='flex items-center gap-2'>
-          <NButton onClick={this.onReset}>
-            <NIcon>
-              <ReloadOutlined />
-            </NIcon>
-          </NButton>
-          <NButton type='primary' onClick={this.handleSearch}>
-            <NIcon>
-              <SearchOutlined />
-            </NIcon>
-          </NButton>
+        <div class='grid grid-cols-12 gap-2 pt-3 border-t border-[#F3F4F6]'>
+          <div class='col-span-3'>
+            <NInput
+              v-model={[this.taskName, 'value']}
+              placeholder={t('project.synchronization_instance.task_name')}
+              onKeyup={this.handleKeyup}
+              clearable
+              class='w-full'
+            />
+          </div>
+          <div class='col-span-3'>
+            <NInput
+              v-model={[this.executeUser, 'value']}
+              placeholder={t('project.synchronization_instance.execute_user')}
+              onKeyup={this.handleKeyup}
+              clearable
+              class='w-full'
+            />
+          </div>
+          <div class='col-span-3'>
+            <NSelect
+              v-model={[this.stateType, 'value']}
+              options={stateType(t).slice(1)}
+              placeholder={t('project.synchronization_instance.state')}
+              clearable
+              class='w-full'
+            />
+          </div>
+          <div class='col-span-3 flex items-center gap-2'>
+            <NButton type='primary' class='flex-1' onClick={this.handleSearch}>
+              <NIcon>
+                <SearchOutlined />
+              </NIcon>
+              <span class='ml-1'>
+                {t('project.synchronization_instance.query')}
+              </span>
+            </NButton>
+            <NButton onClick={this.onReset}>
+              <NIcon>
+                <ReloadOutlined />
+              </NIcon>
+            </NButton>
+          </div>
         </div>
       </div>
     )
 
-    const renderStatCards = () => (
-      <div class='flex gap-3'>
-        <StatCard
-          label={t('project.synchronization_instance.total')}
-          value={this.stats.total}
-          color='#3B82F6'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '📦')}
-        />
-        <StatCard
-          label={t('project.synchronization_instance.running')}
-          value={this.stats.running}
-          color='#F59E0B'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '⚡')}
-        />
-        <StatCard
-          label={t('project.synchronization_instance.success')}
-          value={this.stats.success}
-          color='#16A34A'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '✅')}
-        />
-        <StatCard
-          label={t('project.synchronization_instance.fail')}
-          value={this.stats.failed}
-          color='#DC2626'
-          loading={this.loadingRef}
-          icon={h('span', { class: 'text-lg' }, '⚠️')}
-        />
-      </div>
-    )
+    const renderStatCards = () => {
+      const items = [
+        {
+          label: t('project.synchronization_instance.total'),
+          value: this.stats.total,
+          color: '#2563EB',
+          valueColor: '#111827',
+          pulse: false,
+          spin: false,
+          icon: <UnorderedListOutlined />
+        },
+        {
+          label: t('project.synchronization_instance.running'),
+          value: this.stats.running,
+          color: '#2563EB',
+          valueColor: '#2563EB',
+          pulse: true,
+          spin: true,
+          icon: <LoadingOutlined />
+        },
+        {
+          label: t('project.synchronization_instance.success'),
+          value: this.stats.success,
+          color: '#059669',
+          valueColor: '#059669',
+          pulse: false,
+          spin: false,
+          icon: <CheckCircleOutlined />
+        },
+        {
+          label: t('project.synchronization_instance.fail'),
+          value: this.stats.failed,
+          color: '#E11D48',
+          valueColor: '#E11D48',
+          pulse: false,
+          spin: false,
+          icon: <CloseCircleOutlined />
+        }
+      ]
+      return (
+        <div class='grid grid-cols-4 gap-2'>
+          {items.map((item, idx) => (
+            <div
+              key={idx}
+              class='flex items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-3 py-1.5 shadow-sm'
+            >
+              <div class='flex items-center gap-2 min-w-0'>
+                <div
+                  class='w-7 h-7 rounded-md flex items-center justify-center shrink-0'
+                  style={{
+                    color: item.color,
+                    background: `${item.color}1A`,
+                    border: `1px solid ${item.color}33`
+                  }}
+                >
+                  <NIcon size={13} class={item.spin && 'animate-spin'}>
+                    {item.icon}
+                  </NIcon>
+                </div>
+                <span class='text-xs font-medium text-[#6B7280] truncate'>
+                  {item.label}
+                </span>
+              </div>
+              <div
+                class='flex items-center gap-1.5 text-lg font-bold font-mono leading-none shrink-0'
+                style={{ color: item.valueColor }}
+              >
+                {this.loadingRef ? (
+                  <NSkeleton text style={{ width: '28px' }} />
+                ) : (
+                  <span>{item.value}</span>
+                )}
+                {item.pulse && (
+                  <span
+                    class='w-1.5 h-1.5 rounded-full animate-pulse shrink-0'
+                    style={{ background: item.color }}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )
+    }
 
     return (
-      <div class='h-full flex flex-col overflow-hidden'>
+      <div class='h-full flex flex-col gap-2.5 overflow-hidden'>
         {renderSearchBar()}
         {renderStatCards()}
         <NCard
@@ -421,18 +521,24 @@ const SyncTask = defineComponent({
                     v-model:checked-row-keys={this.checkedRowKeys}
                   />
                 </div>
-                <NSpace justify='center' style='padding: 12px 0;'>
+                <div class='flex items-center justify-between px-1 pt-3 text-xs text-[#6B7280]'>
+                  <span>
+                    {t('project.synchronization_instance.total_items', {
+                      total: this.total
+                    })}
+                  </span>
                   <NPagination
                     v-model:page={this.page}
                     v-model:page-size={this.pageSize}
                     page-count={this.totalPage}
+                    item-count={this.total}
                     show-size-picker
                     page-sizes={[10, 30, 50]}
                     show-quick-jumper
                     onUpdatePage={this.requestData}
                     onUpdatePageSize={this.onUpdatePageSize}
                   />
-                </NSpace>
+                </div>
               </div>
             )
           }}
