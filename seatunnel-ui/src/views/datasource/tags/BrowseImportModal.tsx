@@ -5,7 +5,8 @@ import { useBrowseStore } from './use-browse-store'
 import { useTagImport } from './use-tag-import'
 import { FolderList } from './FolderList'
 import { BrowseTable } from './BrowseTable'
-import { Compass, X, RefreshCw } from 'lucide-vue-next'
+import { ManualPointEntry } from './ManualPointEntry'
+import { Compass, Table2, X, RefreshCw } from 'lucide-vue-next'
 
 export const BrowseImportModal = defineComponent({
   props: {
@@ -90,6 +91,11 @@ export const BrowseImportModal = defineComponent({
 
     const isBrowsing = computed(() => selectedFolderId.value !== null)
 
+    // Modbus does not support browsing; show manual point entry instead
+    const isManualEntry = computed(
+      () => (props.pluginName || '').toLowerCase() === 'modbus'
+    )
+
     const autoDiscover = async () => {
       await loadDsDetail()
       await handleDiscover()
@@ -98,7 +104,7 @@ export const BrowseImportModal = defineComponent({
     watch(
       () => props.show,
       async (val) => {
-        if (val) await autoDiscover()
+        if (val && !isManualEntry.value) await autoDiscover()
       },
       { immediate: true }
     )
@@ -112,9 +118,13 @@ export const BrowseImportModal = defineComponent({
             {/* Modal header */}
             <div class='flex items-center justify-between px-tide-gap-md py-tide-gap-sm border-b border-tide-outline-variant bg-tide-surface flex-shrink-0'>
               <div class='flex items-center gap-2'>
-                <Compass size={20} class='text-tide-primary' />
+                {isManualEntry.value ? (
+                  <Table2 size={20} class='text-tide-primary' />
+                ) : (
+                  <Compass size={20} class='text-tide-primary' />
+                )}
                 <h3 class='font-tide-label-md text-tide-label-md text-tide-on-surface'>
-                  浏览节点导入测点
+                  {isManualEntry.value ? '录入测点' : '浏览节点导入测点'}
                 </h3>
               </div>
               <div class='flex items-center gap-2'>
@@ -132,8 +142,13 @@ export const BrowseImportModal = defineComponent({
             </div>
 
             <div class='flex-1 min-h-0 p-tide-gap-md'>
-              {/* Loading state */}
-              {browseLoading.value ? (
+              {isManualEntry.value ? (
+                <ManualPointEntry
+                  datasourceId={props.datasourceId}
+                  groupPath={props.groupPath}
+                  onImported={handleImportSuccess}
+                />
+              ) : browseLoading.value ? (
                 <div class='flex-1 h-full flex items-center justify-center text-tide-outline gap-2'>
                   <RefreshCw size={24} class='animate-spin' />
                   <span class='font-tide-body-sm'>加载设备层级...</span>

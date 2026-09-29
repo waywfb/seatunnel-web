@@ -16,11 +16,7 @@
  */
 
 import { axios } from '@/service/service'
-import {
-  DatasourceListParameters,
-  DataSourceDetail,
-  DatasourceTestConnectParameters
-} from './types'
+import { DatasourceListParameters, DataSourceDetail } from './types'
 
 const DATASOURCE_BASE_URL = '/datasource'
 
@@ -196,6 +192,24 @@ export function discoverTags(data: {
     url: PLC_BASE_URL + '/tags/discover',
     method: 'post',
     data
+  })
+}
+
+export function readTagValues(data: {
+  datasourceId: string
+  points: Array<{
+    unitId: number
+    functionCode: number
+    offset: number
+    dataType: string
+    byteOrder: string
+  }>
+}): any {
+  return axios({
+    url: PLC_BASE_URL + '/tags/read',
+    method: 'post',
+    data,
+    timeout: 60000
   })
 }
 
