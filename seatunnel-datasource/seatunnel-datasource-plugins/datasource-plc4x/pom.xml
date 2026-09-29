@@ -67,4 +67,21 @@
             <version>${milo.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                Required: the PLC4J drivers are discovered at runtime through
+                META-INF/services/org.apache.plc4x.java.api.PlcDriver. Without shading,
+                this jar ships only its own classes and ServiceLoader finds no driver,
+                which surfaces as "Unable to find driver for protocol 'modbus'".
+                The root pom pluginManagement supplies the ServicesResourceTransformer
+                that merges the per-driver service files.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 </project>

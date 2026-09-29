@@ -101,6 +101,12 @@
             <excludes>
                 <exclude>org.apache.seatunnel:datasource-*:jar</exclude>
                 <exclude>org.apache.logging.log4j:*:jar</exclude>
+                <!--
+                    Shaded into datasource-plc4x-*.jar under /datasource; a second copy here lets
+                    the SPI interface and its implementations land in two different classloaders.
+                -->
+                <exclude>org.apache.plc4x:*:jar</exclude>
+                <exclude>org.eclipse.milo:*:jar</exclude>
             </excludes>
             <outputDirectory>/libs</outputDirectory>
             <scope>provided</scope>
@@ -116,6 +122,12 @@
             <excludes>
                 <exclude>org.apache.seatunnel:datasource-*:jar</exclude>
                 <exclude>org.apache.logging.log4j:*:jar</exclude>
+                <!--
+                    Shaded into datasource-plc4x-*.jar under /datasource; a second copy here lets
+                    the SPI interface and its implementations land in two different classloaders.
+                -->
+                <exclude>org.apache.plc4x:*:jar</exclude>
+                <exclude>org.eclipse.milo:*:jar</exclude>
             </excludes>
             <outputDirectory>/libs</outputDirectory>
         </dependencySet>

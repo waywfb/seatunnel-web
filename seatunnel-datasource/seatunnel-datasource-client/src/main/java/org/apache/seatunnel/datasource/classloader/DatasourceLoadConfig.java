@@ -39,7 +39,9 @@ public class DatasourceLoadConfig {
                 "org.slf4j",
                 "org.apache.log4j",
                 "org.apache.seatunnel.api",
-                "org.apache.seatunnel.datasource.plugin.plc4x",
+                // "org.apache.seatunnel.datasource.plugin.plc4x" must NOT be listed here: its
+                // drivers are shaded into the plugin jar, so a parent-first hit splits PlcDriver
+                // from its implementations and ServiceLoader fails with "not a subtype".
                 "org.apache.logging",
                 "org.apache.commons",
                 "com.fasterxml.jackson"

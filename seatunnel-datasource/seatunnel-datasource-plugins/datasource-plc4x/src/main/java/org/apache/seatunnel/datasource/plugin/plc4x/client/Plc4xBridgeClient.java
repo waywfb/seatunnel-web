@@ -1,5 +1,8 @@
 package org.apache.seatunnel.datasource.plugin.plc4x.client;
 
+import org.apache.seatunnel.datasource.plugin.plc4x.Plc4xDataSourceConfig;
+
+import org.apache.plc4x.java.DefaultPlcDriverManager;
 import org.apache.plc4x.java.api.PlcConnection;
 import org.apache.plc4x.java.api.PlcDriverManager;
 import org.apache.plc4x.java.api.messages.PlcBrowseItem;
@@ -12,6 +15,8 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -32,8 +37,52 @@ import java.util.concurrent.TimeUnit;
 public class Plc4xBridgeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(Plc4xBridgeClient.class);
-    private static final PlcDriverManager DRIVER_MANAGER = PlcDriverManager.getDefault();
+
+    private static final String DRIVER_SERVICE =
+            "META-INF/services/org.apache.plc4x.java.api.PlcDriver";
+
+    /**
+     * Deliberately not {@code PlcDriverManager.getDefault()}, and deliberately not pinned to {@code
+     * Plc4xBridgeClient.class.getClassLoader()} either: DatasourceClassLoader delegates {@code
+     * org.apache.seatunnel.datasource.plugin.*} to its parent first, so when this class itself
+     * comes from the application loader (an IDE run) that loader carries the plugin's own classes
+     * but not the shaded PLC4X drivers, and ServiceLoader comes up empty. Probing keeps the {@code
+     * PlcDriver} interface and its implementations in one loader either way.
+     */
+    private static final PlcDriverManager DRIVER_MANAGER = createDriverManager();
+
     private static final long TIMEOUT_MS = 10_000;
+
+    private static PlcDriverManager createDriverManager() {
+        List<ClassLoader> candidates = new ArrayList<>();
+        addCandidate(candidates, Thread.currentThread().getContextClassLoader());
+        addCandidate(candidates, Plc4xBridgeClient.class.getClassLoader());
+        for (ClassLoader candidate : candidates) {
+            if (seesDriverRegistrations(candidate)) {
+                LOG.info("PLC4X drivers loaded from class loader {}", candidate);
+                return new DefaultPlcDriverManager(candidate);
+            }
+            LOG.warn("Class loader {} exposes no {}", candidate, DRIVER_SERVICE);
+        }
+        return new DefaultPlcDriverManager(candidates.get(candidates.size() - 1));
+    }
+
+    private static void addCandidate(List<ClassLoader> candidates, ClassLoader loader) {
+        if (loader != null && !candidates.contains(loader)) {
+            candidates.add(loader);
+        }
+    }
+
+    private static boolean seesDriverRegistrations(ClassLoader loader) {
+        try {
+            List<URL> registrations = Collections.list(loader.getResources(DRIVER_SERVICE));
+            registrations.forEach(url -> LOG.info("  PLC4X driver registration: {}", url));
+            return !registrations.isEmpty();
+        } catch (IOException e) {
+            LOG.warn("Failed to read {} from {}", DRIVER_SERVICE, loader, e);
+            return false;
+        }
+    }
 
     public Plc4xBridgeClient() {
         LOG.info("Plc4xBridgeClient initialized in direct mode (no Bridge service)");
@@ -51,26 +100,16 @@ public class Plc4xBridgeClient {
 
     public boolean testConnection(
             String protocol, String host, int port, Map<String, String> params) {
+        String connectionString = buildConnectionString(protocol, host, port, params);
         try {
-            String connectionString = buildConnectionString(protocol, host, port, params);
             PlcConnection connection =
                     DRIVER_MANAGER.getConnectionManager().getConnection(connectionString);
             boolean connected = connection.isConnected();
             connection.close();
-            LOG.info(
-                    "Connection test {} for {}://{}:{}",
-                    connected ? "OK" : "FAILED",
-                    protocol,
-                    host,
-                    port);
+            LOG.info("Connection test {} for {}", connected ? "OK" : "FAILED", connectionString);
             return connected;
         } catch (Exception e) {
-            LOG.warn(
-                    "Connection test failed for {}://{}:{}: {}",
-                    protocol,
-                    host,
-                    port,
-                    e.getMessage());
+            LOG.warn("Connection test failed for {}: {}", connectionString, e.getMessage());
             return false;
         }
     }
@@ -218,9 +257,17 @@ public class Plc4xBridgeClient {
     // Helpers
     // ========================================================================
 
+    static String toPlc4xProtocol(String protocol) {
+        String normalized = protocol.toLowerCase().replaceAll("[\\s_]", "");
+        if (normalized.equals(Plc4xDataSourceConfig.MODBUS_PROTOCOL.toLowerCase())) {
+            return "modbus-tcp";
+        }
+        return normalized;
+    }
+
     static String buildConnectionString(
             String protocol, int defaultPort, String host, int port, Map<String, String> params) {
-        String base = protocol.toLowerCase().replaceAll("[\\s-]", "") + "://" + host + ":" + port;
+        String base = toPlc4xProtocol(protocol) + "://" + host + ":" + port;
         if (params != null && !params.isEmpty()) {
             StringBuilder query = new StringBuilder("?");
             for (Map.Entry<String, String> e : params.entrySet()) {
