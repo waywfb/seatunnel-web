@@ -1,4 +1,11 @@
-import { defineComponent, ref, onMounted, watch, computed } from 'vue'
+import {
+  defineComponent,
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  watch,
+  computed
+} from 'vue'
 import { useMessage, useDialog, NModal, NInput } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
 import {
@@ -6,7 +13,8 @@ import {
   getTagList,
   deleteTag,
   createGroup,
-  deleteGroup
+  deleteGroup,
+  readTagValues
 } from '@/service/data-source'
 import { TagGroupTree } from './TagGroupTree'
 import type { GroupNode } from './TagGroupTree'
@@ -66,6 +74,85 @@ export default defineComponent({
 
     const isPlcType = () => PLC_TYPES.includes(props.pluginName)
 
+    // 读值接口目前只实现 Modbus（app 侧 BridgeClient 直连 PLC4X）
+    const valueVisible = computed(() => props.pluginName === 'Modbus')
+    const values = ref<Record<string, { value: string; error: string }>>({})
+    const live = ref(true)
+    const reading = ref(false)
+    let valueTimer: number | null = null
+
+    const readableTags = computed(() =>
+      pagedTags.value.filter(
+        (t) =>
+          t.properties &&
+          t.properties.registerOffset != null &&
+          t.properties.functionCode != null
+      )
+    )
+
+    const pollValues = async () => {
+      if (!valueVisible.value || reading.value) return
+      const targets = readableTags.value
+      if (targets.length === 0) return
+      reading.value = true
+      try {
+        const list: any[] = await readTagValues({
+          datasourceId: props.datasourceId,
+          points: targets.map((t) => ({
+            unitId: Number(t.properties?.unitId ?? 1),
+            functionCode: Number(t.properties?.functionCode),
+            offset: Number(t.properties?.registerOffset),
+            dataType: String(t.properties?.dataType || 'UINT16'),
+            byteOrder: String(t.properties?.byteOrder || 'ABCD')
+          }))
+        })
+        const next: Record<string, { value: string; error: string }> = {}
+        for (const item of Array.isArray(list) ? list : []) {
+          const row = targets[item.index]
+          if (!row) continue
+          next[row.id] = { value: item.value || '', error: item.error || '' }
+        }
+        values.value = next
+      } catch {
+        // 实时轮询失败不弹全局提示，保持上一次的值
+      } finally {
+        reading.value = false
+      }
+    }
+
+    const startValuePolling = () => {
+      if (valueTimer !== null || !valueVisible.value) return
+      void pollValues()
+      valueTimer = window.setInterval(() => {
+        if (live.value) void pollValues()
+      }, 1000)
+    }
+    const stopValuePolling = () => {
+      if (valueTimer === null) return
+      window.clearInterval(valueTimer)
+      valueTimer = null
+    }
+
+    onMounted(startValuePolling)
+    onBeforeUnmount(stopValuePolling)
+
+    // 切换数据源或翻页时清掉旧值
+    watch([() => props.datasourceId, () => props.pluginName], () => {
+      values.value = {}
+    })
+    watch(page, () => {
+      values.value = {}
+    })
+    // 非 Modbus 数据源不展示当前值，切换时同步启停轮询
+    watch(valueVisible, (visible) => {
+      if (visible) {
+        startValuePolling()
+      } else {
+        stopValuePolling()
+        values.value = {}
+      }
+    })
+
     const loadData = async (keepSelection = false) => {
       if (!props.datasourceId) return
       if (!hasLoaded.value) loading.value = true
@@ -85,6 +172,7 @@ export default defineComponent({
           unit: t.unit,
           precision: t.precision,
           dataType: t.dataType || t.properties?.dataType || '',
+          properties: t.properties || {},
           groupId: t.groupId != null ? String(t.groupId) : '',
           groupPath: t.groupPath || ''
         }))
@@ -338,6 +426,14 @@ export default defineComponent({
               selectedGroupName={selectedGroupName.value}
               totalTagCount={filteredTags.value.length}
               canAdd={groupTree.value.length > 0}
+              values={values.value}
+              valueVisible={valueVisible.value}
+              live={live.value}
+              onRefresh={() => void pollValues()}
+              onUpdate:live={(v: boolean) => {
+                live.value = v
+                if (v) void pollValues()
+              }}
               onEdit={(id: string) => {
                 // TODO: open edit modal
               }}

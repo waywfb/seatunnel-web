@@ -16,6 +16,14 @@ interface TagRow {
   nativeId: string
   tagName: string
   tagAddress: string
+  /** 读值所需坐标（Modbus 测点导入时写入） */
+  properties?: {
+    dataType?: string
+    functionCode?: number
+    registerOffset?: number
+    unitId?: number
+    byteOrder?: string
+  }
   readOnly?: boolean
   status?: string
   unit?: string
@@ -33,9 +41,15 @@ export const TagManageTable = defineComponent({
     totalPages: { type: Number, default: 1 },
     selectedGroupName: { type: String, default: '' },
     totalTagCount: { type: Number, default: 0 },
-    canAdd: { type: Boolean, default: true }
+    canAdd: { type: Boolean, default: true },
+    values: {
+      type: Object as () => Record<string, { value: string; error: string }>,
+      default: () => ({})
+    },
+    valueVisible: { type: Boolean, default: false },
+    live: { type: Boolean, default: true }
   },
-  emits: ['edit', 'delete', 'add', 'update:page'],
+  emits: ['edit', 'delete', 'add', 'update:page', 'refresh', 'update:live'],
   setup(props, { emit }) {
     const statusLabel = (status?: string) => {
       if (status === 'ACTIVE' || !status)
@@ -111,6 +125,27 @@ export const TagManageTable = defineComponent({
             )}
           </div>
           <div class='flex items-center gap-2'>
+            {props.valueVisible && (
+              <>
+                <button
+                  class={`px-3 py-1.5 rounded-tide transition-colors font-tide-label-md text-tide-label-md text-xs flex items-center gap-1 border ${
+                    props.live
+                      ? 'bg-tide-primary text-white border-tide-primary'
+                      : 'bg-white text-tide-on-surface border-tide-outline-variant hover:bg-tide-surface-container'
+                  }`}
+                  onClick={() => emit('update:live', !props.live)}
+                >
+                  实时
+                </button>
+                <button
+                  class='p-1.5 rounded-tide bg-white border border-tide-outline-variant text-tide-on-surface hover:bg-tide-surface-container transition-colors'
+                  title='刷新值'
+                  onClick={() => emit('refresh')}
+                >
+                  <RefreshCw size={16} />
+                </button>
+              </>
+            )}
             <button class='bg-white text-tide-on-surface border border-tide-outline-variant px-3 py-1.5 rounded-tide hover:bg-tide-surface-container transition-colors font-tide-label-md text-tide-label-md flex items-center gap-1 text-xs'>
               <Upload size={16} />
               导入CSV
@@ -140,6 +175,9 @@ export const TagManageTable = defineComponent({
                 <th class='p-tide-gap-sm font-bold'>数据类型</th>
                 <th class='p-tide-gap-sm font-bold'>读写权限</th>
                 <th class='p-tide-gap-sm font-bold'>在线状态</th>
+                {props.valueVisible && (
+                  <th class='p-tide-gap-sm font-bold'>当前值</th>
+                )}
                 <th class='p-tide-gap-sm pr-tide-gap-md font-bold text-right'>
                   操作
                 </th>
@@ -148,7 +186,10 @@ export const TagManageTable = defineComponent({
             <tbody class='font-tide-body-sm text-tide-body-sm text-tide-on-surface divide-y divide-tide-outline-variant/30'>
               {props.loading ? (
                 <tr>
-                  <td colspan='6' class='p-8 text-center text-tide-outline'>
+                  <td
+                    colspan={props.valueVisible ? 7 : 6}
+                    class='p-8 text-center text-tide-outline'
+                  >
                     <RefreshCw
                       size={24}
                       class='animate-spin inline-block mr-2'
@@ -159,7 +200,7 @@ export const TagManageTable = defineComponent({
               ) : props.tags.length === 0 ? (
                 <tr>
                   <td
-                    colspan='6'
+                    colspan={props.valueVisible ? 7 : 6}
                     class='p-8 text-center text-tide-outline font-tide-body-sm'
                   >
                     <Database size={32} class='block mx-auto mb-2' />
@@ -170,6 +211,7 @@ export const TagManageTable = defineComponent({
                 props.tags.map((tag) => {
                   const badge = typeBadge(tag)
                   const st = statusLabel(tag.status)
+                  const val = props.values[tag.id]
                   return (
                     <tr class='hover:bg-tide-surface-container-low transition-colors group/row'>
                       <td class='p-tide-gap-sm pl-tide-gap-md font-tide-mono-data text-tide-mono-data text-tide-on-surface-variant'>
@@ -202,6 +244,34 @@ export const TagManageTable = defineComponent({
                           {st.label}
                         </span>
                       </td>
+                      {props.valueVisible && (
+                        <td class='p-tide-gap-sm font-tide-mono-data text-tide-mono-data max-w-[220px]'>
+                          {!val ? (
+                            <span class='text-tide-outline'>—</span>
+                          ) : val.error ? (
+                            <span
+                              class='text-tide-error truncate inline-block align-bottom'
+                              title={val.error}
+                            >
+                              {val.error}
+                            </span>
+                          ) : (
+                            <span
+                              class={
+                                val.value
+                                  ? 'text-tide-on-surface'
+                                  : 'text-tide-outline'
+                              }
+                            >
+                              {val.value === 'true'
+                                ? '1'
+                                : val.value === 'false'
+                                ? '0'
+                                : val.value || '—'}
+                            </span>
+                          )}
+                        </td>
+                      )}
                       <td class='p-tide-gap-sm pr-tide-gap-md text-right'>
                         <div class='flex justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity'>
                           <button
