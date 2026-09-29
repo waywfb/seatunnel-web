@@ -8,12 +8,14 @@ import org.apache.seatunnel.app.domain.request.group.GroupCreateDTO;
 import org.apache.seatunnel.app.domain.request.group.GroupUpdateDTO;
 import org.apache.seatunnel.app.domain.request.tag.DiscoverRequestDTO;
 import org.apache.seatunnel.app.domain.request.tag.ImportTagsRequest;
+import org.apache.seatunnel.app.domain.request.tag.ReadTagsRequest;
 import org.apache.seatunnel.app.domain.request.tag.RefreshTagsRequest;
 import org.apache.seatunnel.app.domain.request.tag.TagCreateDTO;
 import org.apache.seatunnel.app.domain.request.tag.TagUpdateDTO;
 import org.apache.seatunnel.app.domain.response.group.GroupResponse;
 import org.apache.seatunnel.app.domain.response.tag.DiscoverResponseDTO;
 import org.apache.seatunnel.app.domain.response.tag.TagResponse;
+import org.apache.seatunnel.app.domain.response.tag.TagValueDTO;
 import org.apache.seatunnel.app.service.bridge.BridgeClient;
 import org.apache.seatunnel.app.service.sync.SyncService;
 import org.apache.seatunnel.app.service.sync.impl.AsyncSyncTrigger;
@@ -62,6 +64,11 @@ public class TagController extends BaseController {
     public Result<DiscoverResponseDTO> discover(@Valid @RequestBody DiscoverRequestDTO request) {
         DiscoverResponseDTO response = bridgeClient.discover(request);
         return success(response);
+    }
+
+    @PostMapping("/tags/read")
+    public Result<List<TagValueDTO>> readValues(@Valid @RequestBody ReadTagsRequest request) {
+        return success(bridgeClient.read(request));
     }
 
     @PostMapping("/{id}/tags/import")
