@@ -25,26 +25,46 @@ import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.types.PlcValueType;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.modbus.base.tag.ModbusTag;
-import org.apache.plc4x.java.opcua.tag.OpcuaTag;
 import org.apache.plc4x.java.s7.readwrite.MemoryArea;
 import org.apache.plc4x.java.s7.readwrite.tag.S7Tag;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaVariableNode;
+import org.eclipse.milo.opcua.stack.core.AttributeId;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
+import org.eclipse.milo.opcua.stack.core.StatusCodes;
 import org.eclipse.milo.opcua.stack.core.UaException;
+import org.eclipse.milo.opcua.stack.core.types.builtin.ByteString;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DateTime;
 import org.eclipse.milo.opcua.stack.core.types.builtin.ExpandedNodeId;
+import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
+import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReadResponse;
+import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Array;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -78,6 +98,15 @@ public class BridgeClientImpl implements BridgeClient {
      * 如果每次读值都建连-断连，一次读取固定多花 2 秒，实时轮询也无法达到秒级。 因此按连接串缓存 连接并复用，连接失效（设备重启/网络中断）时重建并重试一次。
      */
     private static final ConcurrentMap<String, PlcConnection> READ_CONNECTIONS =
+            new ConcurrentHashMap<>();
+
+    /**
+     * OPC UA 在线读值的长连接缓存（Eclipse Milo）。
+     *
+     * <p>OPC UA 读值不走 PLC4X：实测 PLC4X OPC UA 驱动与部分服务端握手后 session 失效（{@code BadSessionIdInvalid}），而
+     * Milo 与节点浏览走的是同一条已验证可用的链路，因此读值统一用 Milo 并按 endpoint 缓存 client。 任何异常都会由上层移除缓存并重建一次。
+     */
+    private static final ConcurrentMap<String, OpcUaClient> OPCUA_CLIENTS =
             new ConcurrentHashMap<>();
 
     private static final Map<String, String> PLUGIN_TO_BRIDGE_PROTOCOL =
@@ -158,18 +187,24 @@ public class BridgeClientImpl implements BridgeClient {
 
         String connectionId = resolveConnectionId(String.valueOf(request.getDatasourceId()));
         ConnInfo conn = parseConnectionId(connectionId);
-        String connectionString = readConnectionString(conn);
+        // OPC UA 全部走 Milo（见 readOpcUaPoints），不经过 PLC4X 连接串。
+        boolean opcUa = "opcua".equals(conn.protocol);
+        String connectionString = opcUa ? null : readConnectionString(conn);
         PlcConnection connection = null;
         String failure = null;
         // 第一次失败后重建连接重试一次：长连接可能被设备/网络单方面断开。
         for (int attempt = 0; attempt < 2 && failure == null; attempt++) {
             try {
-                connection = acquireReadConnection(connectionString);
-                int start = 0;
-                while (start < points.size()) {
-                    int end = Math.min(start + READ_BATCH_SIZE, points.size());
-                    readBatch(connection, conn.protocol, points, results, start, end);
-                    start = end;
+                if (opcUa) {
+                    readOpcUaPoints(conn, points, results);
+                } else {
+                    connection = acquireReadConnection(connectionString);
+                    int start = 0;
+                    while (start < points.size()) {
+                        int end = Math.min(start + READ_BATCH_SIZE, points.size());
+                        readBatch(connection, conn.protocol, points, results, start, end);
+                        start = end;
+                    }
                 }
             } catch (SeatunnelException e) {
                 throw e;
@@ -181,8 +216,12 @@ public class BridgeClientImpl implements BridgeClient {
                         conn.host,
                         conn.port,
                         e.getMessage());
-                invalidateReadConnection(connectionString, connection);
-                connection = null;
+                if (opcUa) {
+                    invalidateOpcUaClient(conn);
+                } else {
+                    invalidateReadConnection(connectionString, connection);
+                    connection = null;
+                }
                 failure = e.getMessage() != null ? e.getMessage() : e.toString();
                 for (TagValueDTO dto : results) {
                     dto.setValue(null);
@@ -254,8 +293,6 @@ public class BridgeClientImpl implements BridgeClient {
                 return "modbus-tcp://" + hostPort;
             case "s7":
                 return "s7://" + hostPort;
-            case "opcua":
-                return "opcua://" + hostPort;
             default:
                 throw new SeatunnelException(
                         SeatunnelErrorEnum.UNKNOWN, "在线读值暂不支持协议: " + conn.protocol);
@@ -331,8 +368,6 @@ public class BridgeClientImpl implements BridgeClient {
                 return ModbusTag.of(buildModbusAddress(point));
             case "s7":
                 return S7Tag.of(normalizeS7Address(point.getAddress(), point.getDataType()));
-            case "opcua":
-                return OpcuaTag.of(normalizeOpcUaAddress(point.getAddress()));
             default:
                 throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "在线读值暂不支持协议: " + protocol);
         }
@@ -408,7 +443,7 @@ public class BridgeClientImpl implements BridgeClient {
      * 归一化 OPC UA 节点地址。
      *
      * <p>Milo 的 {@code NodeId.toParseableString()} 可能返回 {@code nsu=http://...;ns=2;s=Foo}，而 {@link
-     * OpcuaTag} 只识别 {@code ns=2;s=Foo} 形式，因此这里丢掉 nsu 前缀。
+     * #parseOpcUaNodeId(String)} 只识别 {@code ns=2;s=Foo} 形式，因此这里丢掉 nsu 前缀。
      */
     static String normalizeOpcUaAddress(String rawAddress) {
         if (rawAddress == null || rawAddress.trim().isEmpty()) {
@@ -700,7 +735,7 @@ public class BridgeClientImpl implements BridgeClient {
         return idx >= 0 ? s.substring(idx + 1) : s;
     }
 
-    private NodeId parseOpcUaNodeId(String nativeId) {
+    static NodeId parseOpcUaNodeId(String nativeId) {
         if (nativeId == null || !nativeId.startsWith("ns=")) {
             return null;
         }
@@ -721,6 +756,216 @@ public class BridgeClientImpl implements BridgeClient {
             LOG.warn("Failed to parse OPC UA nodeId: {}", nativeId, e);
         }
         return null;
+    }
+
+    /**
+     * OPC UA 在线读值：复用浏览节点同一条 Milo 链路，按 endpoint 缓存 client，异常时由上层移除缓存并重建重试一次。
+     *
+     * <p>地址无法解析属于单点问题，逐点写错误；读请求本身失败（连接断开/session 失效）则抛出，交给上层重建连接。
+     */
+    private void readOpcUaPoints(
+            ConnInfo conn, List<ReadTagsRequest.PointRead> points, List<TagValueDTO> results)
+            throws Exception {
+        Map<Integer, NodeId> nodeIds = new LinkedHashMap<>();
+        for (int i = 0; i < points.size(); i++) {
+            ReadTagsRequest.PointRead point = points.get(i);
+            TagValueDTO dto = results.get(i);
+            try {
+                NodeId nodeId = parseOpcUaNodeId(normalizeOpcUaAddress(point.getAddress()));
+                if (nodeId == null) {
+                    throw new SeatunnelException(
+                            SeatunnelErrorEnum.UNKNOWN, "无法解析 OPC UA 节点: " + point.getAddress());
+                }
+                nodeIds.put(i, nodeId);
+            } catch (Exception e) {
+                dto.setValue(null);
+                dto.setError(e.getMessage() != null ? e.getMessage() : "地址无效");
+            }
+        }
+        if (nodeIds.isEmpty()) {
+            return;
+        }
+
+        OpcUaClient client = acquireOpcUaClient(conn);
+        List<Map.Entry<Integer, NodeId>> batch = new ArrayList<>(nodeIds.entrySet());
+        for (int start = 0; start < batch.size(); start += READ_BATCH_SIZE) {
+            int end = Math.min(start + READ_BATCH_SIZE, batch.size());
+            readOpcUaBatch(client, batch.subList(start, end), results);
+        }
+    }
+
+    private void readOpcUaBatch(
+            OpcUaClient client, List<Map.Entry<Integer, NodeId>> batch, List<TagValueDTO> results)
+            throws Exception {
+        List<ReadValueId> readValueIds = new ArrayList<>(batch.size());
+        for (Map.Entry<Integer, NodeId> entry : batch) {
+            readValueIds.add(
+                    ReadValueId.builder()
+                            .nodeId(entry.getValue())
+                            .attributeId(AttributeId.Value.uid())
+                            .build());
+        }
+        ReadResponse response =
+                client.read(0.0, TimestampsToReturn.Both, readValueIds)
+                        .get(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        DataValue[] values = response.getResults();
+        for (int i = 0; i < batch.size(); i++) {
+            TagValueDTO dto = results.get(batch.get(i).getKey());
+            if (values == null || i >= values.length || values[i] == null) {
+                dto.setValue(null);
+                dto.setError("服务器未返回该测点的数据");
+                continue;
+            }
+            DataValue dataValue = values[i];
+            StatusCode status = dataValue.getStatusCode();
+            if (status != null && status.isBad()) {
+                dto.setValue(null);
+                dto.setError(describeOpcUaStatus(status));
+                continue;
+            }
+            String value = opcUaValueToString(dataValue.getValue());
+            dto.setValue(value);
+            dto.setError(value == null ? "返回值为空" : null);
+        }
+    }
+
+    static String opcUaValueToString(Variant variant) {
+        return variant == null ? null : opcUaObjectToString(variant.getValue());
+    }
+
+    private static String opcUaObjectToString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        // 时间类型：直接 toString 会输出 DateTime{utcTime=..., javaDate=...} 这种内部结构。
+        if (value instanceof DateTime) {
+            DateTime dateTime = (DateTime) value;
+            return dateTime.isNull() ? null : formatInstant(dateTime.getJavaInstant());
+        }
+        if (value instanceof Date) {
+            return formatInstant(((Date) value).toInstant());
+        }
+        if (value instanceof Instant) {
+            return formatInstant((Instant) value);
+        }
+        if (value instanceof OffsetDateTime) {
+            return formatInstant(((OffsetDateTime) value).toInstant());
+        }
+        if (value instanceof ZonedDateTime) {
+            return formatInstant(((ZonedDateTime) value).toInstant());
+        }
+        if (value instanceof LocalDateTime) {
+            return LOCAL_DATE_TIME_FORMAT.format((LocalDateTime) value);
+        }
+        if (value instanceof LocalDate) {
+            return LOCAL_DATE_TIME_FORMAT.format(
+                    LocalDateTime.of((LocalDate) value, LocalTime.MIDNIGHT));
+        }
+        if (value instanceof LocalizedText) {
+            return ((LocalizedText) value).getText();
+        }
+        if (value instanceof byte[]) {
+            return toHex((byte[]) value);
+        }
+        if (value instanceof ByteString) {
+            ByteString byteString = (ByteString) value;
+            return byteString.isNullOrEmpty() ? "" : toHex(byteString.bytes());
+        }
+        if (value instanceof NodeId) {
+            return ((NodeId) value).toParseableString();
+        }
+        if (value instanceof ExpandedNodeId) {
+            return ((ExpandedNodeId) value).toParseableString();
+        }
+        if (value.getClass().isArray()) {
+            // 反射处理基本类型数组：int[]/double[] 等不是 Object[]，直接 toString 会得到 [I@1a2b3c。
+            int length = Array.getLength(value);
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < length; i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                sb.append(opcUaObjectToString(Array.get(value, i)));
+            }
+            return sb.append(']').toString();
+        }
+        return String.valueOf(value);
+    }
+
+    /** OPC UA DateTime 的原始值本身就是 UTC，按 ISO-8601 输出，便于与源系统对齐。 */
+    private static final DateTimeFormatter UTC_DATE_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").withZone(ZoneOffset.UTC);
+
+    /** 无时区信息的类型（LocalDateTime/LocalDate）按本地时间输出，不带 Z 后缀。 */
+    private static final DateTimeFormatter LOCAL_DATE_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+    private static String formatInstant(Instant instant) {
+        return UTC_DATE_TIME_FORMAT.format(instant);
+    }
+
+    private static String toHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            sb.append(Character.forDigit((b >> 4) & 0xF, 16));
+            sb.append(Character.forDigit(b & 0xF, 16));
+        }
+        return sb.toString();
+    }
+
+    static String describeOpcUaStatus(StatusCode status) {
+        String code = "0x" + String.format("%08X", status.getValue());
+        // StatusCodes.lookup 返回 {标识名, 描述}，描述是整句话，值列表里只展示标识名。
+        return StatusCodes.lookup(status.getValue())
+                .map(
+                        names ->
+                                (names.length > 0 && names[0] != null && !names[0].isEmpty()
+                                                ? names[0]
+                                                : code)
+                                        + " ("
+                                        + code
+                                        + ")")
+                .orElse("读取失败: " + code);
+    }
+
+    private OpcUaClient acquireOpcUaClient(ConnInfo conn) throws Exception {
+        String endpoint = opcUaEndpoint(conn);
+        OpcUaClient cached = OPCUA_CLIENTS.get(endpoint);
+        if (cached != null) {
+            return cached;
+        }
+        OpcUaClient fresh = OpcUaClient.create(endpoint);
+        fresh.connect().get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        OpcUaClient replaced = OPCUA_CLIENTS.put(endpoint, fresh);
+        closeOpcUaClient(replaced);
+        return fresh;
+    }
+
+    private void invalidateOpcUaClient(ConnInfo conn) {
+        closeOpcUaClient(OPCUA_CLIENTS.remove(opcUaEndpoint(conn)));
+    }
+
+    static String opcUaEndpoint(ConnInfo conn) {
+        return "opc.tcp://" + conn.host + ":" + conn.port;
+    }
+
+    private void closeOpcUaClient(OpcUaClient client) {
+        if (client == null) {
+            return;
+        }
+        // disconnect() 会等待服务端确认，放后台线程，避免拖慢当前读值请求。
+        Thread closer =
+                new Thread(
+                        () -> {
+                            try {
+                                client.disconnect().get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+                            } catch (Exception e) {
+                                LOG.debug("Disconnect opcua client failed: {}", e.getMessage());
+                            }
+                        },
+                        "opcua-read-client-closer");
+        closer.setDaemon(true);
+        closer.start();
     }
 
     // ========================================================================

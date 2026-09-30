@@ -621,11 +621,7 @@
             <artifactId>plc4j-driver-modbus</artifactId>
             <version>0.13.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.plc4x</groupId>
-            <artifactId>plc4j-driver-opcua</artifactId>
-            <version>0.13.1</version>
-        </dependency>
+        <!-- OPC UA 不使用 PLC4X：地址空间浏览、连接测试与在线读值统一走 Eclipse Milo。 -->
 
         <dependency>
             <groupId>com.google.code.findbugs</groupId>

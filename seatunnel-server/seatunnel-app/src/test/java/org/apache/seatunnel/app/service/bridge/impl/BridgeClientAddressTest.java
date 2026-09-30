@@ -2,15 +2,16 @@ package org.apache.seatunnel.app.service.bridge.impl;
 
 import org.apache.seatunnel.server.common.SeatunnelException;
 
-import org.apache.plc4x.java.opcua.tag.OpcuaTag;
 import org.apache.plc4x.java.s7.readwrite.tag.S7Tag;
 
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.UInteger;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/** 在线试读的地址归一化：S7 与 OPC UA 的地址必须能被 PLC4X 驱动解析。 */
+/** 在线试读的地址归一化：S7 走 PLC4X，OPC UA 走 Milo NodeId 解析。 */
 class BridgeClientAddressTest {
 
     @Test
@@ -66,11 +67,18 @@ class BridgeClientAddressTest {
     }
 
     @Test
-    void opcUaAddressIsAcceptedByDriver() {
-        OpcuaTag.of(BridgeClientImpl.normalizeOpcUaAddress("nsu=http://plc:4840;ns=2;s=Foo"));
-        OpcuaTag tag = OpcuaTag.of(BridgeClientImpl.normalizeOpcUaAddress("ns=3;i=42"));
-        assertEquals(3, tag.getNamespace());
-        assertEquals("42", tag.getIdentifier());
+    void opcUaAddressIsAcceptedByMiloNodeIdParser() {
+        NodeId named =
+                BridgeClientImpl.parseOpcUaNodeId(
+                        BridgeClientImpl.normalizeOpcUaAddress("nsu=http://plc:4840;ns=2;s=Foo"));
+        assertEquals(2, named.getNamespaceIndex().intValue());
+        assertEquals("Foo", named.getIdentifier());
+
+        NodeId numeric =
+                BridgeClientImpl.parseOpcUaNodeId(
+                        BridgeClientImpl.normalizeOpcUaAddress("ns=3;i=42"));
+        assertEquals(3, numeric.getNamespaceIndex().intValue());
+        assertEquals(42, ((UInteger) numeric.getIdentifier()).intValue());
     }
 
     @Test
