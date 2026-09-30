@@ -54,13 +54,7 @@
             <artifactId>plc4j-driver-modbus</artifactId>
             <version>${plc4x.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.plc4x</groupId>
-            <artifactId>plc4j-driver-opcua</artifactId>
-            <version>${plc4x.version}</version>
-        </dependency>
-
-        <!-- Eclipse Milo for OPC UA address space browsing -->
+        <!-- OPC UA 不走 PLC4X：地址空间浏览、连接测试统一由 Eclipse Milo 处理 -->
         <dependency>
             <groupId>org.eclipse.milo</groupId>
             <artifactId>sdk-client</artifactId>

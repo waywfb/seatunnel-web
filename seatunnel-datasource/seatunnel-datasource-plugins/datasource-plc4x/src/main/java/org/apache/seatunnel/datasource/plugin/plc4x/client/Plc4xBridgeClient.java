@@ -100,6 +100,9 @@ public class Plc4xBridgeClient {
 
     public boolean testConnection(
             String protocol, String host, int port, Map<String, String> params) {
+        if (isOpcUa(protocol)) {
+            return testOpcUaConnection(host, port);
+        }
         String connectionString = buildConnectionString(protocol, host, port, params);
         try {
             PlcConnection connection =
@@ -111,6 +114,29 @@ public class Plc4xBridgeClient {
         } catch (Exception e) {
             LOG.warn("Connection test failed for {}: {}", connectionString, e.getMessage());
             return false;
+        }
+    }
+
+    /** OPC UA 全部走 Eclipse Milo：PLC4X 的 OPC UA 驱动与部分服务端握手后 session 失效。 */
+    private boolean testOpcUaConnection(String host, int port) {
+        String endpointUrl = opcUaEndpoint(host, port);
+        OpcUaClient client = null;
+        try {
+            client = OpcUaClient.create(endpointUrl);
+            client.connect().get(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            LOG.info("OPC UA connection test OK for {}", endpointUrl);
+            return true;
+        } catch (Exception e) {
+            LOG.warn("OPC UA connection test failed for {}: {}", endpointUrl, e.getMessage());
+            return false;
+        } finally {
+            if (client != null) {
+                try {
+                    client.disconnect().get();
+                } catch (Exception ignored) {
+                    // ignore
+                }
+            }
         }
     }
 
@@ -152,7 +178,7 @@ public class Plc4xBridgeClient {
     // ========================================================================
 
     private List<Map<String, Object>> browseTags(String protocol, String host, int port) {
-        String normalized = protocol.toLowerCase().replaceAll("[\\s-]", "");
+        String normalized = normalizeProtocol(protocol);
         switch (normalized) {
             case "opcua":
                 return browseOpcUa(host, port);
@@ -174,7 +200,7 @@ public class Plc4xBridgeClient {
      * OpcUaBrowseProvider).
      */
     private List<Map<String, Object>> browseOpcUa(String host, int port) {
-        String endpointUrl = "opc.tcp://" + host + ":" + port;
+        String endpointUrl = opcUaEndpoint(host, port);
         OpcUaClient client = null;
         try {
             client = OpcUaClient.create(endpointUrl);
@@ -258,11 +284,23 @@ public class Plc4xBridgeClient {
     // ========================================================================
 
     static String toPlc4xProtocol(String protocol) {
-        String normalized = protocol.toLowerCase().replaceAll("[\\s_]", "");
+        String normalized = normalizeProtocol(protocol);
         if (normalized.equals(Plc4xDataSourceConfig.MODBUS_PROTOCOL.toLowerCase())) {
             return "modbus-tcp";
         }
         return normalized;
+    }
+
+    private static String normalizeProtocol(String protocol) {
+        return protocol.toLowerCase().replaceAll("[\\s_-]", "");
+    }
+
+    static boolean isOpcUa(String protocol) {
+        return "opcua".equals(normalizeProtocol(protocol));
+    }
+
+    static String opcUaEndpoint(String host, int port) {
+        return "opc.tcp://" + host + ":" + port;
     }
 
     static String buildConnectionString(
