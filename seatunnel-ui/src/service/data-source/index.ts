@@ -197,12 +197,14 @@ export function discoverTags(data: {
 
 export function readTagValues(data: {
   datasourceId: string
+  // Modbus 传寄存器坐标，S7 / OPC UA 直接传 browse 出来的 address
   points: Array<{
-    unitId: number
-    functionCode: number
-    offset: number
-    dataType: string
-    byteOrder: string
+    unitId?: number
+    functionCode?: number
+    offset?: number
+    dataType?: string
+    byteOrder?: string
+    address?: string
   }>
 }): any {
   return axios({

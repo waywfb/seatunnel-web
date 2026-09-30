@@ -74,19 +74,25 @@ export default defineComponent({
 
     const isPlcType = () => PLC_TYPES.includes(props.pluginName)
 
-    // 读值接口目前只实现 Modbus（app 侧 BridgeClient 直连 PLC4X）
-    const valueVisible = computed(() => props.pluginName === 'Modbus')
+    // 读值接口支持 Modbus / S7 / OPC UA（app 侧 BridgeClient 直连 PLC4X 与 Milo）
+    const valueVisible = computed(() =>
+      ['Modbus', 'S7', 'OPCUA'].includes(props.pluginName)
+    )
     const values = ref<Record<string, { value: string; error: string }>>({})
     const live = ref(true)
     const reading = ref(false)
     let valueTimer: number | null = null
 
+    const isModbus = () => props.pluginName === 'Modbus'
+    const addressOf = (t: TagRow) => (t.tagAddress || t.nativeId || '').trim()
+    // Modbus 靠 properties 里的寄存器坐标，S7 / OPC UA 靠 browse 出来的地址
     const readableTags = computed(() =>
-      pagedTags.value.filter(
-        (t) =>
-          t.properties &&
-          t.properties.registerOffset != null &&
-          t.properties.functionCode != null
+      pagedTags.value.filter((t) =>
+        isModbus()
+          ? t.properties &&
+            t.properties.registerOffset != null &&
+            t.properties.functionCode != null
+          : addressOf(t) !== ''
       )
     )
 
@@ -98,13 +104,20 @@ export default defineComponent({
       try {
         const list: any[] = await readTagValues({
           datasourceId: props.datasourceId,
-          points: targets.map((t) => ({
-            unitId: Number(t.properties?.unitId ?? 1),
-            functionCode: Number(t.properties?.functionCode),
-            offset: Number(t.properties?.registerOffset),
-            dataType: String(t.properties?.dataType || 'UINT16'),
-            byteOrder: String(t.properties?.byteOrder || 'ABCD')
-          }))
+          points: targets.map((t) =>
+            isModbus()
+              ? {
+                  unitId: Number(t.properties?.unitId ?? 1),
+                  functionCode: Number(t.properties?.functionCode),
+                  offset: Number(t.properties?.registerOffset),
+                  dataType: String(t.properties?.dataType || 'UINT16'),
+                  byteOrder: String(t.properties?.byteOrder || 'ABCD')
+                }
+              : {
+                  address: addressOf(t),
+                  dataType: String(t.dataType || '')
+                }
+          )
         })
         const next: Record<string, { value: string; error: string }> = {}
         for (const item of Array.isArray(list) ? list : []) {
