@@ -20,10 +20,14 @@ import org.apache.plc4x.java.api.messages.PlcBrowseRequest;
 import org.apache.plc4x.java.api.messages.PlcBrowseResponse;
 import org.apache.plc4x.java.api.messages.PlcReadRequest;
 import org.apache.plc4x.java.api.messages.PlcReadResponse;
+import org.apache.plc4x.java.api.model.PlcTag;
 import org.apache.plc4x.java.api.types.PlcResponseCode;
 import org.apache.plc4x.java.api.types.PlcValueType;
 import org.apache.plc4x.java.api.value.PlcValue;
 import org.apache.plc4x.java.modbus.base.tag.ModbusTag;
+import org.apache.plc4x.java.opcua.tag.OpcuaTag;
+import org.apache.plc4x.java.s7.readwrite.MemoryArea;
+import org.apache.plc4x.java.s7.readwrite.tag.S7Tag;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.nodes.UaNode;
@@ -43,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -153,13 +158,7 @@ public class BridgeClientImpl implements BridgeClient {
 
         String connectionId = resolveConnectionId(String.valueOf(request.getDatasourceId()));
         ConnInfo conn = parseConnectionId(connectionId);
-        if (!"modbus".equals(conn.protocol)) {
-            throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "在线读值当前仅支持 Modbus 数据源");
-        }
-
-        // PLUGIN_TO_BRIDGE_PROTOCOL maps Modbus -> "modbus" which PLC4X does not
-        // recognize (design doc B1); the real driver protocol is "modbus-tcp".
-        String connectionString = "modbus-tcp://" + conn.host + ":" + conn.port;
+        String connectionString = readConnectionString(conn);
         PlcConnection connection = null;
         String failure = null;
         // 第一次失败后重建连接重试一次：长连接可能被设备/网络单方面断开。
@@ -169,15 +168,16 @@ public class BridgeClientImpl implements BridgeClient {
                 int start = 0;
                 while (start < points.size()) {
                     int end = Math.min(start + READ_BATCH_SIZE, points.size());
-                    readBatch(connection, points, results, start, end);
+                    readBatch(connection, conn.protocol, points, results, start, end);
                     start = end;
                 }
             } catch (SeatunnelException e) {
                 throw e;
             } catch (Exception e) {
                 LOG.warn(
-                        "Modbus read failed (attempt {}) for {}:{}: {}",
+                        "Read failed (attempt {}) for {}://{}:{}: {}",
                         attempt + 1,
+                        conn.protocol,
                         conn.host,
                         conn.port,
                         e.getMessage());
@@ -241,8 +241,30 @@ public class BridgeClientImpl implements BridgeClient {
         closer.start();
     }
 
+    /**
+     * 在线读值使用的 PLC4X 连接串。
+     *
+     * <p>PLUGIN_TO_BRIDGE_PROTOCOL 给出的是桥接协议名（modbus/s7/opcua），其中 Modbus 需要显式指定 TCP 传输（{@code
+     * modbus-tcp}），而 S7 与 OPC UA 直接使用驱动协议名。
+     */
+    private String readConnectionString(ConnInfo conn) {
+        String hostPort = conn.host + ":" + conn.port;
+        switch (conn.protocol) {
+            case "modbus":
+                return "modbus-tcp://" + hostPort;
+            case "s7":
+                return "s7://" + hostPort;
+            case "opcua":
+                return "opcua://" + hostPort;
+            default:
+                throw new SeatunnelException(
+                        SeatunnelErrorEnum.UNKNOWN, "在线读值暂不支持协议: " + conn.protocol);
+        }
+    }
+
     private void readBatch(
             PlcConnection connection,
+            String protocol,
             List<ReadTagsRequest.PointRead> points,
             List<TagValueDTO> results,
             int start,
@@ -252,11 +274,10 @@ public class BridgeClientImpl implements BridgeClient {
         for (int i = start; i < end; i++) {
             TagValueDTO dto = results.get(i);
             try {
-                String address = buildModbusAddress(points.get(i));
                 // Fail fast per-tag so one invalid address cannot sink the whole batch.
-                ModbusTag.of(address);
+                PlcTag tag = buildTag(protocol, points.get(i));
                 String name = "t" + i;
-                builder.addTagAddress(name, address);
+                builder.addTag(name, tag);
                 added.put(name, i);
             } catch (Exception e) {
                 dto.setValue(null);
@@ -287,7 +308,7 @@ public class BridgeClientImpl implements BridgeClient {
                     }
                 } else {
                     dto.setValue(null);
-                    dto.setError(describeResponseCode(response.getResponseCode(name)));
+                    dto.setError(describeResponseCode(response.getResponseCode(name), protocol));
                 }
             }
         } catch (Exception e) {
@@ -295,7 +316,7 @@ public class BridgeClientImpl implements BridgeClient {
                 // 长连接已被对端关闭，交给上层重建连接后重试一次。
                 throw new IllegalStateException("连接已断开: " + e.getMessage(), e);
             }
-            LOG.warn("Modbus batch read failed: {}", e.getMessage());
+            LOG.warn("Batch read failed ({}): {}", protocol, e.getMessage());
             for (Integer idx : added.values()) {
                 TagValueDTO dto = results.get(idx);
                 dto.setValue(null);
@@ -304,7 +325,111 @@ public class BridgeClientImpl implements BridgeClient {
         }
     }
 
-    private String buildModbusAddress(ReadTagsRequest.PointRead point) {
+    private static PlcTag buildTag(String protocol, ReadTagsRequest.PointRead point) {
+        switch (protocol) {
+            case "modbus":
+                return ModbusTag.of(buildModbusAddress(point));
+            case "s7":
+                return S7Tag.of(normalizeS7Address(point.getAddress(), point.getDataType()));
+            case "opcua":
+                return OpcuaTag.of(normalizeOpcUaAddress(point.getAddress()));
+            default:
+                throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "在线读值暂不支持协议: " + protocol);
+        }
+    }
+
+    /**
+     * 归一化 S7 地址：补 {@code %} 前缀、给 BOOL 补 bit offset、缺类型后缀时用 dataType 补全。
+     *
+     * <p>PLC4X 的 S7 地址语法为 {@code %DB<块>:<字节>[.<位>]:<类型>} 或 {@code %<区><字节>[.<位>]:<类型>}， 其中 BOOL 必须带
+     * bit offset（{@code %M100:BOOL} 非法，需要 {@code %M100.0:BOOL}）。是否缺类型后缀交由驱动判断：{@code :} 同时用作块号与偏移
+     * 的分隔符，数冒号并不可靠。
+     */
+    static String normalizeS7Address(String rawAddress, String dataType) {
+        if (rawAddress == null || rawAddress.trim().isEmpty()) {
+            throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "缺少 S7 测点地址");
+        }
+        String address = rawAddress.trim();
+        if (!address.startsWith("%")) {
+            address = "%" + address;
+        }
+        int typeSeparator = address.lastIndexOf(':');
+        if (typeSeparator > 0
+                && address.substring(typeSeparator + 1).equalsIgnoreCase("BOOL")
+                && address.lastIndexOf('.') < typeSeparator) {
+            address = address.substring(0, typeSeparator) + ".0" + address.substring(typeSeparator);
+        }
+        if (!isS7Address(address)) {
+            String withType = address + ":" + s7PlcDataType(dataType);
+            if (isS7Address(withType)) {
+                return withType;
+            }
+        }
+        return address;
+    }
+
+    private static boolean isS7Address(String address) {
+        try {
+            S7Tag.of(address);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static String s7PlcDataType(String dataType) {
+        if (dataType == null || dataType.isEmpty()) {
+            return "INT";
+        }
+        String type = dataType.toUpperCase(Locale.ROOT);
+        switch (type) {
+            case "INT16":
+                return "INT";
+            case "UINT16":
+                return "UINT";
+            case "INT32":
+                return "DINT";
+            case "UINT32":
+                return "UDINT";
+            case "INT64":
+                return "LINT";
+            case "UINT64":
+                return "ULINT";
+            case "FLOAT32":
+                return "REAL";
+            case "FLOAT64":
+                return "LREAL";
+            default:
+                return type;
+        }
+    }
+
+    /**
+     * 归一化 OPC UA 节点地址。
+     *
+     * <p>Milo 的 {@code NodeId.toParseableString()} 可能返回 {@code nsu=http://...;ns=2;s=Foo}，而 {@link
+     * OpcuaTag} 只识别 {@code ns=2;s=Foo} 形式，因此这里丢掉 nsu 前缀。
+     */
+    static String normalizeOpcUaAddress(String rawAddress) {
+        if (rawAddress == null || rawAddress.trim().isEmpty()) {
+            throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "缺少 OPC UA 节点地址");
+        }
+        String address = rawAddress.trim();
+        if (address.startsWith("%")) {
+            address = address.substring(1);
+        }
+        if (address.startsWith("nsu=")) {
+            int nsIndex = address.indexOf(";ns=");
+            if (nsIndex < 0) {
+                throw new SeatunnelException(
+                        SeatunnelErrorEnum.UNKNOWN, "无法解析 OPC UA 节点地址: " + rawAddress);
+            }
+            address = address.substring(nsIndex + 1);
+        }
+        return address;
+    }
+
+    private static String buildModbusAddress(ReadTagsRequest.PointRead point) {
         Integer fcObj = point.getFunctionCode();
         if (fcObj == null) {
             throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "缺少功能码");
@@ -361,7 +486,7 @@ public class BridgeClientImpl implements BridgeClient {
         return sb.toString();
     }
 
-    private String mapPlcDataType(int functionCode, String dataType) {
+    private static String mapPlcDataType(int functionCode, String dataType) {
         if (functionCode == 1 || functionCode == 2) {
             return "BOOL";
         }
@@ -390,7 +515,7 @@ public class BridgeClientImpl implements BridgeClient {
         }
     }
 
-    private int registerCountOf(String plcType) {
+    private static int registerCountOf(String plcType) {
         switch (plcType) {
             case "DINT":
             case "UDINT":
@@ -404,17 +529,18 @@ public class BridgeClientImpl implements BridgeClient {
         }
     }
 
-    private String describeResponseCode(PlcResponseCode code) {
+    private String describeResponseCode(PlcResponseCode code, String protocol) {
         if (code == null) {
             return "设备无响应";
         }
+        boolean modbus = "modbus".equals(protocol);
         switch (code) {
             case INVALID_ADDRESS:
-                return "地址无效(设备异常码 0x02)：起始地址或寄存器数量超出设备支持范围";
+                return modbus ? "地址无效(设备异常码 0x02)：起始地址或寄存器数量超出设备支持范围" : "地址无效：测点地址不被设备识别";
             case INVALID_DATATYPE:
                 return "设备不支持该数据类型";
             case ACCESS_DENIED:
-                return "设备拒绝访问：从站号或功能码不被支持";
+                return modbus ? "设备拒绝访问：从站号或功能码不被支持" : "设备拒绝访问：连接或节点权限不足";
             case REMOTE_BUSY:
                 return "设备忙，请稍后重试";
             case REMOTE_ERROR:
@@ -425,7 +551,7 @@ public class BridgeClientImpl implements BridgeClient {
         }
     }
 
-    private String mapByteOrder(String byteOrder) {
+    private static String mapByteOrder(String byteOrder) {
         if (byteOrder == null || byteOrder.isEmpty()) {
             return null;
         }
@@ -614,8 +740,15 @@ public class BridgeClientImpl implements BridgeClient {
             List<BrowseNodeDTO> nodes = new ArrayList<>();
             for (String queryName : response.getQueryNames()) {
                 for (PlcBrowseItem item : response.getValues(queryName)) {
+                    // S7Tag.getAddressString() 返回 null，只能从已解析的 tag 反推 %DB1:5:INT 形式，
+                    // 否则导入的点没有可读地址，在线试读与建任务都无从下手。
+                    String address = formatS7Address(item.getTag());
+                    if (!isS7Address(address)) {
+                        LOG.debug(
+                                "Skip S7 browse item without readable address: {}", item.getName());
+                        continue;
+                    }
                     BrowseNodeDTO node = new BrowseNodeDTO();
-                    String address = item.getTag().getAddressString();
                     node.setNativeId(address);
                     node.setAddress(address);
                     node.setDisplayName(item.getName());
@@ -653,6 +786,32 @@ public class BridgeClientImpl implements BridgeClient {
             throw new SeatunnelException(
                     SeatunnelErrorEnum.UNKNOWN, "S7 discover failed: " + e.getMessage());
         }
+    }
+
+    /** 由已解析的 {@link S7Tag} 反推 PLC4X S7 地址字符串。 */
+    static String formatS7Address(PlcTag tag) {
+        if (tag == null) {
+            return null;
+        }
+        if (!(tag instanceof S7Tag)) {
+            return tag.getAddressString();
+        }
+        S7Tag s7Tag = (S7Tag) tag;
+        MemoryArea area = s7Tag.getMemoryArea();
+        if (area == null || area == MemoryArea.INSTANCE_DATA_BLOCKS) {
+            // PLC4X 没有 %DBI 形式的可解析地址，交由上层跳过该节点。
+            return null;
+        }
+        StringBuilder sb = new StringBuilder("%").append(area.getShortName());
+        if (area == MemoryArea.DATA_BLOCKS) {
+            // 数据块是 %DB1:5:INT，其余存储区是 %M100.0:BOOL 这种紧跟偏移的写法。
+            sb.append(s7Tag.getBlockNumber()).append(':');
+        }
+        sb.append(s7Tag.getByteOffset());
+        if ("BOOL".equals(s7Tag.getPlcDataType())) {
+            sb.append('.').append(s7Tag.getBitOffset());
+        }
+        return sb.append(':').append(s7Tag.getPlcDataType()).toString();
     }
 
     // ========================================================================
