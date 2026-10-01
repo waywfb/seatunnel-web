@@ -91,15 +91,16 @@ public class TagServiceImpl implements TagService {
             tag.setStatus(TagStatus.ACTIVE.getCode());
             tag.setDeletedAt(null);
 
-            if (dto.getGroupPath() != null && pathToIdMap != null) {
-                Long groupId = pathToIdMap.get(dto.getGroupPath());
-                if (groupId == null) {
-                    throw new SeatunnelException(
-                            SeatunnelErrorEnum.ILLEGAL_STATE,
-                            "Group path not found: " + dto.getGroupPath());
-                }
-                tag.setGroupId(groupId);
+            if (dto.getGroupPath() == null || dto.getGroupPath().trim().isEmpty()) {
+                throw new SeatunnelException(SeatunnelErrorEnum.ILLEGAL_STATE, "测点必须归属某个设备层级节点");
             }
+            Long groupId = pathToIdMap == null ? null : pathToIdMap.get(dto.getGroupPath());
+            if (groupId == null) {
+                throw new SeatunnelException(
+                        SeatunnelErrorEnum.ILLEGAL_STATE,
+                        "Group path not found: " + dto.getGroupPath());
+            }
+            tag.setGroupId(groupId);
 
             tag.setAlias(dto.getAlias());
             tag.setDisplayName(dto.getDisplayName());

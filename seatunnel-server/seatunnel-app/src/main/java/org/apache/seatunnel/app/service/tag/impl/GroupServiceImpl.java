@@ -120,7 +120,8 @@ public class GroupServiceImpl implements GroupService {
 
     private int getLevelOfPath(String path) {
         if (path == null || path.isEmpty() || ROOT_PATH.equals(path)) return 0;
-        return path.split("/").length - 1;
+        // /root/<id> 为 1 级，/root/<id>/<id> 为 2 级
+        return path.split("/").length - 2;
     }
 
     @Override

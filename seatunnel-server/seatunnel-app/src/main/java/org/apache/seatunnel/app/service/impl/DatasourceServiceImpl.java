@@ -156,9 +156,7 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
                         .build();
         boolean success = datasourceDao.insertDatasource(datasource);
         if (success) {
-            if (PLC_PLUGIN_NAMES.contains(pluginName)) {
-                initRootGroup(uuid);
-            }
+            // 设备层级由用户按需创建，不再自动生成名为 root 的设备节点。
             return String.valueOf(uuid);
         }
         throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_CREATE_FAILED);
@@ -224,14 +222,6 @@ public class DatasourceServiceImpl extends SeatunnelBaseServiceImpl
             groupService.batchDeleteByDatasourceId(datasourceId);
         }
         return datasourceDao.deleteDatasourceById(datasourceId);
-    }
-
-    private void initRootGroup(Long datasourceId) {
-        org.apache.seatunnel.app.domain.request.group.GroupCreateDTO root =
-                new org.apache.seatunnel.app.domain.request.group.GroupCreateDTO();
-        root.setGroupName("root");
-        root.setParentPath(null);
-        groupService.createGroups(datasourceId, java.util.Collections.singletonList(root));
     }
 
     @Override
