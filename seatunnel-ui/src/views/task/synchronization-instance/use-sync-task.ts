@@ -100,9 +100,22 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     refreshTimerId: ref(0)
   })
 
+  // 引擎「运行中」状态：这些状态下可以执行 savepoint 暂停
+  const runningStates = ['RUNNING', 'RUNNING_EXECUTION', 'SUBMITTED_SUCCESS']
+  // 可恢复状态：引擎已做 savepoint 停止，等待从 savepoint 恢复
+  // 只有这些状态才应展示「恢复暂停」，终态（FINISHED/FAILED/CANCELED）不应出现
+  const resumableStates = ['SAVEPOINT_DONE', 'PAUSED', 'READY_PAUSE']
+  // 暂停指令已发出但引擎尚未确认，中间态应禁用重复操作
+  const pausingStates = ['DOING_SAVEPOINT', 'PAUSING', 'CANCELING']
+
   const isRunning = (jobStatus?: string) =>
-    !!jobStatus &&
-    ['RUNNING', 'RUNNING_EXECUTION', 'SUBMITTED_SUCCESS'].includes(jobStatus)
+    !!jobStatus && runningStates.includes(jobStatus)
+
+  const isResumable = (jobStatus?: string) =>
+    !!jobStatus && resumableStates.includes(jobStatus)
+
+  const isPausing = (jobStatus?: string) =>
+    !!jobStatus && pausingStates.includes(jobStatus)
 
   // 高频跳动驱动：每行锁定锚点毫秒（snapshotAt - runningTime ≈ 真实开始时刻，runningTime 为毫秒），
   // 非终态统一基于 nowTick - anchor 毫秒级单源计时，跨轮询持久，避免双时间基准对账抖动；
@@ -236,13 +249,15 @@ export function useSyncTask(syncTaskType = 'BATCH') {
           {
             text: t('project.workflow.recovery_suspend'),
             icon: h(PlayCircleOutlined),
-            show: (row) => !isRunning(row.jobStatus),
+            show: (row) => isResumable(row.jobStatus),
+            disabled: (row) => isPausing(row.jobStatus),
             onClick: (row) => void handleRecover(row.id)
           },
           {
             text: t('project.workflow.pause'),
             icon: h(PauseCircleOutlined),
             show: (row) => isRunning(row.jobStatus),
+            disabled: (row) => isPausing(row.jobStatus),
             onClick: (row) => void handlePause(row.id)
           },
           {

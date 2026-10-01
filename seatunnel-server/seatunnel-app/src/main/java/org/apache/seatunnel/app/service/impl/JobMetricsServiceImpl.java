@@ -69,6 +69,10 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements IJobMetricsService {
+
+    /** 定时任务无 HTTP 会话时使用的系统用户 id */
+    private static final int SYSTEM_USER_ID = -1;
+
     @Resource private IJobMetricsDao jobMetricsDao;
 
     @Resource private IJobInstanceHistoryDao jobInstanceHistoryDao;
@@ -167,51 +171,43 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
 
         // Traverse all jobInstances in allJobInstance
         for (JobInstance jobInstance : allJobInstance) {
-            log.debug("jobEngineId={}", jobInstance.getJobEngineId());
+            try {
+                JobStatus status = jobInstance.getJobStatus();
+                Long engineId = jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId());
 
-            if (jobInstance.getJobStatus() == null
-                    || jobInstance.getJobStatus() == JobStatus.FAILED
-                    || jobInstance.getJobStatus() == JobStatus.RUNNING
-                    || jobInstance.getJobStatus() == JobStatus.SCHEDULED
-                    || jobInstance.getJobStatus() == JobStatus.PENDING
-                    || jobInstance.getJobStatus() == JobStatus.INITIALIZING
-                    || jobInstance.getJobStatus() == JobStatus.CREATED) {
-                // Obtain monitoring information from the collection of running jobs returned from
-                // the engine
-                if (!allRunningJobMetricsFromEngine.isEmpty()
-                        && allRunningJobMetricsFromEngine.containsKey(
-                                jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId()))) {
-                    JobSummaryMetricsRes jobMetricsFromEngineRes =
-                            getRunningJobMetricsFromEngine(
-                                    allRunningJobMetricsFromEngine,
-                                    jobInstanceIdAndJobEngineIdMap,
-                                    jobInstance);
-                    jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromEngineRes);
-
-                } else {
-                    log.debug(
-                            "The job does not exist on the engine, it is directly returned from the database");
+                if (status == JobStatus.FINISHED || status == JobStatus.CANCELED) {
+                    // If the status of the job is finished or cancelled, the monitoring
+                    // information is directly obtained from MySQL
                     JobSummaryMetricsRes jobMetricsFromDb =
                             getJobSummaryMetricsResByDb(
-                                    jobInstance,
-                                    Long.toString(
-                                            jobInstanceIdAndJobEngineIdMap.get(
-                                                    jobInstance.getId())));
+                                    jobInstance, String.valueOf(engineId), engineId);
                     if (jobMetricsFromDb != null) {
                         jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromDb);
                     }
+                    continue;
                 }
-            } else if (jobInstance.getJobStatus() == JobStatus.FINISHED
-                    || jobInstance.getJobStatus() == JobStatus.CANCELED) {
-                // If the status of the job is finished or cancelled, the monitoring information is
-                // directly obtained from MySQL
-                JobSummaryMetricsRes jobMetricsFromDb =
+
+                // 运行中或中间态：引擎快照与 DB 记录取较大值，
+                // 避免引擎瞬时快照缺失/计数器回退时数据量被覆盖为更小值或 0
+                JobSummaryMetricsRes fromEngine =
+                        getRunningJobMetricsFromEngine(
+                                allRunningJobMetricsFromEngine,
+                                jobInstanceIdAndJobEngineIdMap,
+                                jobInstance);
+                JobSummaryMetricsRes fromDb =
                         getJobSummaryMetricsResByDb(
-                                jobInstance,
-                                Long.toString(
-                                        jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId())));
-                log.debug("jobStatus=finish oe canceled,JobSummaryMetricsRes={}", jobMetricsFromDb);
-                jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromDb);
+                                jobInstance, String.valueOf(engineId), engineId);
+                JobSummaryMetricsRes merged =
+                        mergeKeepingLargerCounts(fromEngine, fromDb, jobInstance, engineId);
+                if (merged != null) {
+                    jobSummaryMetricsResMap.put(jobInstance.getId(), merged);
+                }
+            } catch (Exception e) {
+                // 单实例指标获取失败时降级跳过，不因单个实例异常导致整个列表返回 500
+                log.warn(
+                        "Failed to get metrics for job instance {}, skip it",
+                        jobInstance.getId(),
+                        e);
             }
         }
 
@@ -227,73 +223,36 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
 
         // Traverse all jobInstances in allJobInstance
         for (JobInstance jobInstance : allJobInstance) {
-
             try {
-                if (jobInstance.getJobStatus() != null
-                        && jobInstance.getJobStatus() == JobStatus.CANCELED) {
-                    // If the status of the job is finished or cancelled
-                    // the monitoring information is directly obtained from MySQL
+                JobStatus status = jobInstance.getJobStatus();
+                Long engineId = jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId());
+
+                // 已取消/已彻底结束的实例以 DB 记录为准，引擎侧数据不再可靠。
+                // SAVEPOINT_DONE 是可恢复的暂停态，仍需读取指标
+                if (status != null && status.isEndState() && status != JobStatus.SAVEPOINT_DONE) {
                     JobSummaryMetricsRes jobMetricsFromDb =
                             getJobSummaryMetricsResByDb(
-                                    jobInstance,
-                                    Long.toString(
-                                            jobInstanceIdAndJobEngineIdMap.get(
-                                                    jobInstance.getId())));
-                    jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromDb);
-
-                } else if (jobInstance.getJobStatus() != null
-                        && (jobInstance.getJobStatus() == JobStatus.FINISHED
-                                || jobInstance.getJobStatus() == JobStatus.FAILED)) {
-                    // Obtain monitoring information from the collection of running jobs returned
-                    // from
-                    // the engine
-                    if (!allRunningJobMetricsFromEngine.isEmpty()
-                            && allRunningJobMetricsFromEngine.containsKey(
-                                    jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId()))) {
-                        // Return data from the front-end
-                        JobSummaryMetricsRes jobMetricsFromEngineRes =
-                                getRunningJobMetricsFromEngine(
-                                        allRunningJobMetricsFromEngine,
-                                        jobInstanceIdAndJobEngineIdMap,
-                                        jobInstance);
-                        jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromEngineRes);
-                    } else {
-                        // If not found, obtain information from MySQL
-                        JobSummaryMetricsRes jobMetricsFromDb =
-                                getJobSummaryMetricsResByDb(
-                                        jobInstance,
-                                        Long.toString(
-                                                jobInstanceIdAndJobEngineIdMap.get(
-                                                        jobInstance.getId())));
+                                    jobInstance, String.valueOf(engineId), engineId);
+                    if (jobMetricsFromDb != null) {
                         jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromDb);
                     }
-                } else {
-                    // Obtain monitoring information from the collection of running jobs returned
-                    // from
-                    // the engine
-                    if (!allRunningJobMetricsFromEngine.isEmpty()
-                            && allRunningJobMetricsFromEngine.containsKey(
-                                    jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId()))) {
-                        // Return data from the front-end
-                        JobSummaryMetricsRes jobMetricsFromEngineRes =
-                                getRunningJobMetricsFromEngine(
-                                        allRunningJobMetricsFromEngine,
-                                        jobInstanceIdAndJobEngineIdMap,
-                                        jobInstance);
-                        jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromEngineRes);
-                    } else {
-                        // Engine snapshot miss: return DB record directly, no per-instance engine
-                        // fallback query
-                        JobSummaryMetricsRes jobMetricsFromDb =
-                                getJobSummaryMetricsResByDb(
-                                        jobInstance,
-                                        String.valueOf(
-                                                jobInstanceIdAndJobEngineIdMap.get(
-                                                        jobInstance.getId())));
-                        if (jobMetricsFromDb != null) {
-                            jobSummaryMetricsResMap.put(jobInstance.getId(), jobMetricsFromDb);
-                        }
-                    }
+                    continue;
+                }
+
+                // 运行中（含从 savepoint 恢复的实例）：引擎快照与 DB 记录取较大值，
+                // 避免引擎瞬时快照缺失/计数器回退时数据量被覆盖为更小值或 0
+                JobSummaryMetricsRes fromEngine =
+                        getRunningJobMetricsFromEngine(
+                                allRunningJobMetricsFromEngine,
+                                jobInstanceIdAndJobEngineIdMap,
+                                jobInstance);
+                JobSummaryMetricsRes fromDb =
+                        getJobSummaryMetricsResByDb(
+                                jobInstance, String.valueOf(engineId), engineId);
+                JobSummaryMetricsRes merged =
+                        mergeKeepingLargerCounts(fromEngine, fromDb, jobInstance, engineId);
+                if (merged != null) {
+                    jobSummaryMetricsResMap.put(jobInstance.getId(), merged);
                 }
             } catch (Exception e) {
                 // 单实例指标获取失败时降级跳过，不因单个实例异常导致整个列表返回 500
@@ -306,16 +265,39 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
         return jobSummaryMetricsResMap;
     }
 
+    /** 合并引擎快照与 DB 记录的行数：行数是单调递增的累计量，任一来源出现 0 或更小值时保留较大值， 避免运行一段时间后统计被瞬时快照覆盖成 0。 */
+    private JobSummaryMetricsRes mergeKeepingLargerCounts(
+            JobSummaryMetricsRes fromEngine,
+            JobSummaryMetricsRes fromDb,
+            JobInstance jobInstance,
+            Long engineId) {
+        if (fromEngine == null) {
+            return fromDb;
+        }
+        if (fromDb == null) {
+            return fromEngine;
+        }
+        return new JobSummaryMetricsRes(
+                jobInstance.getId(),
+                engineId != null ? engineId : fromEngine.getJobEngineId(),
+                Math.max(fromEngine.getReadRowCount(), fromDb.getReadRowCount()),
+                Math.max(fromEngine.getWriteRowCount(), fromDb.getWriteRowCount()),
+                fromEngine.getStatus() != null ? fromEngine.getStatus() : fromDb.getStatus());
+    }
+
     private JobSummaryMetricsRes getRunningJobMetricsFromEngine(
             Map<Long, HashMap<Integer, JobMetrics>> allRunningJobMetricsFromEngine,
             Map<Long, Long> jobInstanceIdAndJobEngineIdMap,
             JobInstance jobInstance) {
 
-        // If there is job information in the engine
+        Long engineJobId = jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId());
         HashMap<Integer, JobMetrics> jobMetricsFromEngine =
-                allRunningJobMetricsFromEngine.get(
-                        jobInstanceIdAndJobEngineIdMap.get(jobInstance.getId()));
-        log.debug("0706jobMetricsFromEngine={}", jobMetricsFromEngine);
+                allRunningJobMetricsFromEngine == null
+                        ? null
+                        : allRunningJobMetricsFromEngine.get(engineJobId);
+        if (jobMetricsFromEngine == null || jobMetricsFromEngine.isEmpty()) {
+            return null;
+        }
         long readCount =
                 jobMetricsFromEngine.values().stream().mapToLong(JobMetrics::getReadRowCount).sum();
         long writeCount =
@@ -323,14 +305,19 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
                         .mapToLong(JobMetrics::getWriteRowCount)
                         .sum();
 
-        log.debug("jobInstance={}", jobInstance);
-
         return new JobSummaryMetricsRes(
-                jobInstance.getId(), 1L, readCount, writeCount, JobStatus.RUNNING);
+                jobInstance.getId(),
+                engineJobId != null ? engineJobId : 0L,
+                readCount,
+                writeCount,
+                JobStatus.RUNNING);
     }
 
     private JobSummaryMetricsRes getJobSummaryMetricsResByDb(
-            JobInstance jobInstance, String jobEngineId) {
+            JobInstance jobInstance, String jobEngineId, Long engineId) {
+        if (jobEngineId == null || "null".equals(jobEngineId)) {
+            return null;
+        }
         List<JobMetrics> jobMetricsFromDb = getJobMetricsFromDb(jobInstance, jobEngineId);
         if (!jobMetricsFromDb.isEmpty()) {
             long readCount = jobMetricsFromDb.stream().mapToLong(JobMetrics::getReadRowCount).sum();
@@ -338,7 +325,7 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
                     jobMetricsFromDb.stream().mapToLong(JobMetrics::getWriteRowCount).sum();
             return new JobSummaryMetricsRes(
                     jobInstance.getId(),
-                    Long.parseLong(jobInstance.getJobEngineId()),
+                    engineId != null ? engineId : 0L,
                     readCount,
                     writeCount,
                     jobInstance.getJobStatus());
@@ -517,13 +504,70 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
                 Integer pipelineId = jobMetrics.getPipelineId();
                 JobMetrics currentPiplinejobMetricsFromEngine =
                         jobMetricsFromEngineMap.get(pipelineId);
+                if (currentPiplinejobMetricsFromEngine == null) {
+                    // 引擎快照缺少该 pipeline（如 savepoint 恢复后重建），保留 DB 已有累计值，
+                    // 不能用 0 覆盖，否则统计会随轮询归零
+                    continue;
+                }
                 jobMetrics.setWriteQps(currentPiplinejobMetricsFromEngine.getWriteQps());
                 jobMetrics.setReadQps(currentPiplinejobMetricsFromEngine.getReadQps());
-                jobMetrics.setReadRowCount(currentPiplinejobMetricsFromEngine.getReadRowCount());
-                jobMetrics.setWriteRowCount(currentPiplinejobMetricsFromEngine.getWriteRowCount());
+                // 行数是单调递增的累计量，引擎计数器回退时保留较大值
+                jobMetrics.setReadRowCount(
+                        Math.max(
+                                jobMetrics.getReadRowCount(),
+                                currentPiplinejobMetricsFromEngine.getReadRowCount()));
+                jobMetrics.setWriteRowCount(
+                        Math.max(
+                                jobMetrics.getWriteRowCount(),
+                                currentPiplinejobMetricsFromEngine.getWriteRowCount()));
                 jobMetrics.setStatus(jobStatus);
                 jobMetricsDao.getJobMetricsMapper().updateById(jobMetrics);
             }
+        }
+    }
+
+    @Override
+    public void syncRunningMetricsToDb(@NonNull JobInstance jobInstance) {
+        String jobEngineId = jobInstance.getJobEngineId();
+        if (StringUtils.isEmpty(jobEngineId)) {
+            return;
+        }
+        Map<Integer, JobMetrics> jobMetricsFromEngineMap =
+                getJobMetricsFromEngineMap(jobInstance, jobEngineId);
+        if (jobMetricsFromEngineMap == null || jobMetricsFromEngineMap.isEmpty()) {
+            return;
+        }
+        List<JobMetrics> jobMetricsFromDb = jobMetricsDao.getByInstanceId(jobInstance.getId());
+        if (jobMetricsFromDb.isEmpty()) {
+            List<JobMetrics> pending =
+                    Arrays.asList(jobMetricsFromEngineMap.values().toArray(new JobMetrics[0]));
+            for (JobMetrics metrics : pending) {
+                try {
+                    metrics.setId(CodeGenerateUtils.getInstance().genCode());
+                } catch (CodeGenerateUtils.CodeGenerateException e) {
+                    throw new SeatunnelException(SeatunnelErrorEnum.JOB_RUN_GENERATE_UUID_ERROR);
+                }
+                metrics.setJobInstanceId(jobInstance.getId());
+                metrics.setCreateUserId(SYSTEM_USER_ID);
+                metrics.setUpdateUserId(SYSTEM_USER_ID);
+                metrics.setWorkspaceId(jobInstance.getWorkspaceId());
+            }
+            jobMetricsDao.getJobMetricsMapper().insertBatchMetrics(pending);
+            return;
+        }
+        for (JobMetrics dbMetrics : jobMetricsFromDb) {
+            JobMetrics engineMetrics = jobMetricsFromEngineMap.get(dbMetrics.getPipelineId());
+            if (engineMetrics == null) {
+                continue;
+            }
+            dbMetrics.setWriteQps(engineMetrics.getWriteQps());
+            dbMetrics.setReadQps(engineMetrics.getReadQps());
+            dbMetrics.setReadRowCount(
+                    Math.max(dbMetrics.getReadRowCount(), engineMetrics.getReadRowCount()));
+            dbMetrics.setWriteRowCount(
+                    Math.max(dbMetrics.getWriteRowCount(), engineMetrics.getWriteRowCount()));
+            dbMetrics.setStatus(JobStatus.RUNNING);
+            jobMetricsDao.getJobMetricsMapper().updateById(dbMetrics);
         }
     }
 

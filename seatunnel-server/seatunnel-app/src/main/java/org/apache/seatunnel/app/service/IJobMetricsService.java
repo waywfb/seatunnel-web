@@ -51,6 +51,14 @@ public interface IJobMetricsService {
 
     void syncJobDataToDb(@NonNull JobInstance jobInstance, @NonNull String jobEngineId);
 
+    /**
+     * 将运行中实例的引擎指标快照写入 t_job_metrics（按 pipelineId 更新，覆盖式累加语义）。 供定时任务在无 HTTP 会话的场景下调用，因此使用系统用户 -1 且不写
+     * jobEngineId 关联。
+     *
+     * @param jobInstance 运行中的实例
+     */
+    void syncRunningMetricsToDb(@NonNull JobInstance jobInstance);
+
     JobSummaryMetricsRes getJobSummaryMetrics(
             @NonNull Long jobInstanceId, @NonNull String jobEngineId);
 

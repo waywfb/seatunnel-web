@@ -49,7 +49,7 @@ public interface IJobInstanceDao {
 
     List<JobInstance> getAllJobInstance(@NonNull List<Long> jobInstanceIdList);
 
-    List<JobInstance> getAllRunningJobInstance();
+    List<JobInstance> getAllUnfinishedJobInstance();
 
     Long countActiveByJobDefinitionId(Long jobDefinitionId, Long workspaceId);
 

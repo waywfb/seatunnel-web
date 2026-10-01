@@ -96,7 +96,7 @@ public class MonitorTaskScheduler {
     public void updateJobInstance() {
         try {
             log.info("Start updating job instance information...");
-            List<JobInstance> allJobInstance = jobInstanceDao.getAllRunningJobInstance();
+            List<JobInstance> allJobInstance = jobInstanceDao.getAllUnfinishedJobInstance();
 
             Map<Long, JobInstance> newInstanceMap =
                     allJobInstance.stream()
@@ -168,6 +168,11 @@ public class MonitorTaskScheduler {
                                                     jobInstanceId,
                                                     historyList.size());
                                         }
+
+                                        // 同时刷新 t_job_metrics 的累计行数：
+                                        // 实例列表在引擎快照缺失时以 DB 为准，
+                                        // 若运行期间从不落库，统计会随快照抖动归零
+                                        jobMetricsService.syncRunningMetricsToDb(jobInstance);
                                     } catch (Exception e) {
                                         log.error(
                                                 "Error saving job metrics for job instance {}",
@@ -185,7 +190,7 @@ public class MonitorTaskScheduler {
     @Scheduled(fixedDelay = 3000)
     public void syncEngineStatusToDB() {
         try {
-            List<JobInstance> runningInstances = jobInstanceDao.getAllRunningJobInstance();
+            List<JobInstance> runningInstances = jobInstanceDao.getAllUnfinishedJobInstance();
             if (runningInstances.isEmpty()) {
                 return;
             }
@@ -197,21 +202,41 @@ public class MonitorTaskScheduler {
                 }
                 long engineJobId = Long.parseLong(jobEngineId);
                 if (engineRunningJobIds.contains(engineJobId)) {
+                    // 引擎仍在运行：DB 状态可能停留在暂停/中间态（如从 savepoint 恢复后未回写）
+                    if (jobInstance.getJobStatus() != JobStatus.RUNNING) {
+                        int updated =
+                                jobInstanceDao
+                                        .getJobInstanceMapper()
+                                        .updateStatusIfNotEndState(
+                                                jobInstance.getId(), JobStatus.RUNNING, null);
+                        if (updated > 0) {
+                            log.info(
+                                    "Job instance {} is running on engine, DB status {} updated to RUNNING",
+                                    jobInstance.getId(),
+                                    jobInstance.getJobStatus());
+                        }
+                    }
                     continue;
                 }
                 JobStatus engineStatus =
                         SeaTunnelEngineProxy.getInstance().getJobStatus(jobEngineId);
-                if (engineStatus != null && JobUtils.isJobEndStatus(engineStatus)) {
-                    int updated =
-                            jobInstanceDao
-                                    .getJobInstanceMapper()
-                                    .updateStatusIfNotEndState(
-                                            jobInstance.getId(), engineStatus, new Date());
-                    if (updated > 0) {
-                        log.info(
-                                "Job instance {} no longer running on engine, updated to {}",
-                                jobInstance.getId(),
-                                engineStatus);
+                if (engineStatus == null || engineStatus == jobInstance.getJobStatus()) {
+                    continue;
+                }
+                // 非终态回写时清空 end_time，恢复运行后运行时长重新计时
+                Date endTime = JobUtils.isJobEndStatus(engineStatus) ? new Date() : null;
+                int updated =
+                        jobInstanceDao
+                                .getJobInstanceMapper()
+                                .updateStatusIfNotEndState(
+                                        jobInstance.getId(), engineStatus, endTime);
+                if (updated > 0) {
+                    log.info(
+                            "Job instance {} engine status {} differs from DB status {}, updated",
+                            jobInstance.getId(),
+                            engineStatus,
+                            jobInstance.getJobStatus());
+                    if (JobUtils.isJobEndStatus(engineStatus)) {
                         synchronized (mapLock) {
                             jobInstanceMap.remove(jobInstance.getId());
                         }
@@ -266,12 +291,17 @@ public class MonitorTaskScheduler {
                         jobInstance.getId(),
                         jobEngineId,
                         engineStatus != null ? engineStatus : JobStatus.FAILED);
-                jobInstance.setJobStatus(engineStatus != null ? engineStatus : JobStatus.FAILED);
-                jobInstance.setEndTime(new Date());
-                jobInstance.setUpdateUserId(-1);
-                jobInstanceDao.getJobInstanceMapper().updateById(jobInstance);
-                synchronized (mapLock) {
-                    jobInstanceMap.remove(jobInstance.getId());
+                JobStatus finalStatus = engineStatus != null ? engineStatus : JobStatus.FAILED;
+                // 条件更新，避免覆盖用户主动停止/强制成功写入的终态
+                int updated =
+                        jobInstanceDao
+                                .getJobInstanceMapper()
+                                .updateStatusIfNotEndState(
+                                        jobInstance.getId(), finalStatus, new Date());
+                if (updated > 0) {
+                    synchronized (mapLock) {
+                        jobInstanceMap.remove(jobInstance.getId());
+                    }
                 }
             }
         } catch (Exception ex) {

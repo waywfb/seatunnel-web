@@ -57,18 +57,25 @@
         </where>
         ORDER BY ji.create_time DESC
     </select>
-    <select id="getAllRunningJobInstance" resultType="org.apache.seatunnel.app.dal.entity.JobInstance">
+    <!--
+      未彻底结束的实例：排除 FINISHED/FAILED/CANCELED。
+      保留可恢复终态（如 SAVEPOINT_DONE）和中间态，才能由 MonitorTaskScheduler
+      检测到「引擎侧恢复运行」并把状态回写 DB；否则恢复后 DB 状态永远停留在暂停态。
+    -->
+    <select id="getAllUnfinishedJobInstance" resultType="org.apache.seatunnel.app.dal.entity.JobInstance">
         SELECT <include refid="Base_Column_List"/>
         FROM t_st_job_instance t
-        WHERE t.job_status = 'RUNNING'
+        WHERE t.job_status IS NULL
+           OR t.job_status NOT IN ('FINISHED', 'FAILED', 'CANCELED')
     </select>
+    <!-- 与 getAllUnfinishedJobInstance 的排除集合保持一致，避免覆盖用户主动停止的终态 -->
     <update id="updateStatusIfNotEndState">
         UPDATE t_st_job_instance
         SET job_status = #{jobStatus},
-            end_time   = #{endTime},
+            end_time   = #{endTime,jdbcType=TIMESTAMP},
             gmt_modified = NOW()
         WHERE id = #{id}
-          AND job_status NOT IN ('FINISHED', 'FAILED', 'CANCELED')
+          AND (job_status IS NULL OR job_status NOT IN ('FINISHED', 'FAILED', 'CANCELED'))
     </update>
     <select id="countActiveByJobDefinitionId" resultType="java.lang.Long">
         SELECT COUNT(1)

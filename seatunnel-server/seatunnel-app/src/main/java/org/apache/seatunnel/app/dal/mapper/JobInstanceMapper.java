@@ -44,9 +44,12 @@ public interface JobInstanceMapper extends BaseMapper<JobInstance> {
 
     JobInstance getJobExecutionStatus(@Param("jobInstanceId") Long jobInstanceId);
 
-    List<JobInstance> getAllRunningJobInstance();
+    /**
+     * 查询未彻底结束的实例（排除 FINISHED/FAILED/CANCELED），含可恢复终态（如 SAVEPOINT_DONE）与中间态， 供状态同步覆盖「暂停后又恢复运行」的场景
+     */
+    List<JobInstance> getAllUnfinishedJobInstance();
 
-    /** 将运行中实例状态更新为终态，仅当当前 DB 状态非终态时生效，防止异步任务覆盖用户主动停止的终态 */
+    /** 按引擎状态回写实例状态，仅当当前 DB 状态未彻底结束时生效，防止异步任务覆盖用户主动停止的终态； 非终态回写时 endTime 传 null，表示重新开始计时 */
     int updateStatusIfNotEndState(
             @Param("id") Long id,
             @Param("jobStatus") JobStatus jobStatus,

@@ -88,8 +88,8 @@ public class JobInstanceDaoImpl implements IJobInstanceDao {
     }
 
     @Override
-    public List<JobInstance> getAllRunningJobInstance() {
-        return jobInstanceMapper.getAllRunningJobInstance();
+    public List<JobInstance> getAllUnfinishedJobInstance() {
+        return jobInstanceMapper.getAllUnfinishedJobInstance();
     }
 
     @Override
