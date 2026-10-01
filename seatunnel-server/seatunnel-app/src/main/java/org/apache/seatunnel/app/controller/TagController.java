@@ -15,8 +15,8 @@ import org.apache.seatunnel.app.domain.request.tag.TagUpdateDTO;
 import org.apache.seatunnel.app.domain.response.group.GroupResponse;
 import org.apache.seatunnel.app.domain.response.tag.DiscoverResponseDTO;
 import org.apache.seatunnel.app.domain.response.tag.TagResponse;
-import org.apache.seatunnel.app.domain.response.tag.TagValueDTO;
 import org.apache.seatunnel.app.service.bridge.BridgeClient;
+import org.apache.seatunnel.app.service.bridge.collector.ReadValuesResponse;
 import org.apache.seatunnel.app.service.sync.SyncService;
 import org.apache.seatunnel.app.service.sync.impl.AsyncSyncTrigger;
 import org.apache.seatunnel.app.service.tag.GroupService;
@@ -67,7 +67,7 @@ public class TagController extends BaseController {
     }
 
     @PostMapping("/tags/read")
-    public Result<List<TagValueDTO>> readValues(@Valid @RequestBody ReadTagsRequest request) {
+    public Result<ReadValuesResponse> readValues(@Valid @RequestBody ReadTagsRequest request) {
         return success(bridgeClient.read(request));
     }
 
