@@ -129,8 +129,12 @@ public class BridgeClientImpl extends SeatunnelBaseServiceImpl implements Bridge
 
     @Override
     public DiscoverResponseDTO discover(DiscoverRequestDTO request) {
-        String connectionId = resolveConnectionId(request.getConnectionId());
-        ConnInfo conn = parseConnectionId(connectionId);
+        if (request.getDatasourceId() == null) {
+            throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "datasourceId is required");
+        }
+        requireDatasourceReadPerm(request.getDatasourceId());
+        ConnInfo conn =
+                parseConnectionId(resolveConnectionId(String.valueOf(request.getDatasourceId())));
 
         switch (conn.protocol) {
             case "opcua":
@@ -686,16 +690,13 @@ public class BridgeClientImpl extends SeatunnelBaseServiceImpl implements Bridge
     // Connection helpers
     // ========================================================================
 
-    private String resolveConnectionId(String connId) {
-        if (connId == null || connId.contains("://")) {
-            return connId;
-        }
+    /** 连接串只能由数据源 id 推导，杜绝调用方自带 {@code protocol://host:port} 直连任意地址。 */
+    String resolveConnectionId(String connId) {
         try {
             Long datasourceId = Long.parseLong(connId);
             Datasource datasource = datasourceDao.selectDatasourceById(datasourceId);
             if (datasource == null) {
-                throw new SeatunnelException(
-                        SeatunnelErrorEnum.UNKNOWN, "Datasource not found: " + datasourceId);
+                throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceId);
             }
 
             String pluginName = datasource.getPluginName();

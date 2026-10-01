@@ -77,9 +77,9 @@ public class SyncServiceImpl implements SyncService {
 
             log.info("Starting sync for datasource {}", datasourceId);
 
-            // Build connectionId and discover
+            // Build discover request by datasourceId
             DiscoverRequestDTO discReq = new DiscoverRequestDTO();
-            discReq.setConnectionId(buildConnectionId(datasourceId));
+            discReq.setDatasourceId(datasourceId);
             discReq.setParentNodeId(null);
 
             DiscoverResponseDTO discResp = bridgeClient.discover(discReq);
@@ -177,14 +177,5 @@ public class SyncServiceImpl implements SyncService {
 
         // Save tags
         tagService.createTags(datasourceId, tags, pathToIdMap);
-    }
-
-    private String buildConnectionId(Long datasourceId) {
-        // In production, this would look up the datasource and build connectionId from its config.
-        // For now, this is a placeholder that works with the datasource's pluginName and config.
-        // The actual connectionId format is "protocol://host:port"
-        throw new SeatunnelException(
-                SeatunnelErrorEnum.ILLEGAL_STATE,
-                "Connection ID building not yet implemented - must be called with a connectionId directly");
     }
 }

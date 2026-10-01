@@ -1,6 +1,5 @@
 import { defineComponent, ref, computed, watch } from 'vue'
 import { useMessage } from 'naive-ui'
-import { datasourceDetail } from '@/service/data-source'
 import { useBrowseStore } from './use-browse-store'
 import { useTagImport } from './use-tag-import'
 import { FolderList } from './FolderList'
@@ -24,27 +23,13 @@ export const BrowseImportModal = defineComponent({
     const selectedFolderId = ref<string | null>(null)
     const message = useMessage()
 
-    const dsHost = ref('localhost')
-    const dsPort = ref('49320')
-
-    const loadDsDetail = async () => {
-      try {
-        const res = await datasourceDetail(props.datasourceId)
-        const params = res?.datasourceConfig || res?.params || {}
-        dsHost.value = params.host || 'localhost'
-        dsPort.value = params.port || '49320'
-      } catch {}
-    }
+    const dsId = ref('')
 
     const handleDiscover = async () => {
       browseLoading.value = true
       selectedFolderId.value = null
       try {
-        const port = dsPort.value || '49320'
-        const connId = `${props.pluginName.toLowerCase()}://${
-          dsHost.value
-        }:${port}`
-        await browse.loadRoots(connId)
+        await browse.loadRoots(dsId.value)
       } catch (err: any) {
         message.error(err.message || 'Discover failed')
       } finally {
@@ -97,7 +82,7 @@ export const BrowseImportModal = defineComponent({
     )
 
     const autoDiscover = async () => {
-      await loadDsDetail()
+      dsId.value = props.datasourceId
       await handleDiscover()
     }
 

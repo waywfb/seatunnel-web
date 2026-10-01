@@ -183,7 +183,7 @@ export function datasourceDelete(id: string): any {
 const PLC_BASE_URL = '/datasource'
 
 export function discoverTags(data: {
-  connectionId: string
+  datasourceId: string | number
   parentNodeId?: string
   limit?: number
   offset?: number

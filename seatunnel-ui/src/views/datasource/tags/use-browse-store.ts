@@ -4,7 +4,7 @@ import { discoverTags } from '@/service/data-source'
 
 const nodeMap = reactive(new Map<string, BrowseNode>())
 const rootNodeIds = reactive<string[]>([])
-const connId = ref('')
+const dsId = ref<string | number>('')
 
 function buildNode(raw: RawBrowseNode, parentId: string | null): BrowseNode {
   const nodeId = raw.nativeId || raw.address || ''
@@ -49,10 +49,10 @@ export function useBrowseStore() {
     return result
   })
 
-  async function loadRoots(connectionId: string) {
-    connId.value = connectionId
+  async function loadRoots(datasourceId: string | number) {
+    dsId.value = datasourceId
     rootNodeIds.length = 0
-    const res = await discoverTags({ connectionId })
+    const res = await discoverTags({ datasourceId })
     const raws: RawBrowseNode[] = res?.nodes || []
     for (const raw of raws) {
       const node = buildNode(raw, null)
@@ -69,7 +69,7 @@ export function useBrowseStore() {
     node.loading = true
     try {
       const res = await discoverTags({
-        connectionId: connId.value,
+        datasourceId: dsId.value,
         parentNodeId: nodeId,
         limit: 200
       })
