@@ -16,80 +16,64 @@ import {
   readTagValues
 } from '@/service/data-source'
 import { TagGroupTree } from './TagGroupTree'
-import type { TreeGroupNode, TreeTagNode, TreeNode } from './TagGroupTree'
+import type { GroupNode } from './TagGroupTree'
 import { TagManageTable } from './TagManageTable'
 import type { TagRow } from './TagManageTable'
 import { BrowseImportModal } from './BrowseImportModal'
 
 const PLC_TYPES = ['OPCUA', 'S7', 'Modbus', 'Plc4x']
 
-function flattenGroups(raw: any[], depth: number): TreeGroupNode[] {
+function flattenGroups(raw: any[], depth: number): GroupNode[] {
   return (raw || []).map((g: any) => ({
-    kind: 'group' as const,
     id: String(g.id || ''),
     groupName: g.groupName || g.path || '',
     path: g.path || '',
     count: 0,
     depth,
-    children: flattenGroups(g.children, depth + 1) as TreeNode[]
+    children: flattenGroups(g.children, depth + 1)
   }))
 }
 
 function findGroup(
-  nodes: TreeGroupNode[],
-  predicate: (n: TreeGroupNode) => boolean
-): TreeGroupNode | null {
+  nodes: GroupNode[],
+  predicate: (n: GroupNode) => boolean
+): GroupNode | null {
   for (const n of nodes) {
     if (predicate(n)) return n
-    const found = findGroup(
-      n.children.filter((c) => c.kind === 'group') as TreeGroupNode[],
-      predicate
-    )
+    const found = findGroup(n.children, predicate)
     if (found) return found
   }
   return null
 }
 
 /**
- * 把测点挂到所属设备节点下并统计数量。
+ * 按归属统计每个设备节点的测点数量。
  * 归属优先用 groupId（稳定），groupPath 仅作兜底，避免历史数据 groupPath 为空时丢失归属。
  */
-function attachTags(groups: TreeGroupNode[], tags: TagRow[]): void {
-  const index = new Map<string, TreeGroupNode>()
-  const walk = (nodes: TreeGroupNode[]) => {
+function countTags(groups: GroupNode[], tags: TagRow[]): void {
+  const index = new Map<string, GroupNode>()
+  const walk = (nodes: GroupNode[]) => {
     for (const n of nodes) {
       index.set(n.id, n)
-      walk(n.children.filter((c) => c.kind === 'group') as TreeGroupNode[])
+      walk(n.children)
     }
   }
   walk(groups)
 
+  const directCount = new Map<string, number>()
   for (const t of tags) {
     const node =
       (t.groupId ? index.get(t.groupId) : undefined) ||
       (t.groupPath ? findGroup(groups, (g) => g.path === t.groupPath) : null)
     if (!node) continue
-    const leaf: TreeTagNode = {
-      kind: 'tag',
-      id: t.id,
-      tagName: t.tagName || t.nativeId,
-      tagAddress: t.tagAddress || t.nativeId,
-      status: t.status,
-      unit: t.unit
-    }
-    const insertAt = node.children.findIndex((c) => c.kind === 'group')
-    if (insertAt < 0) node.children.push(leaf)
-    else node.children.splice(insertAt, 0, leaf)
+    directCount.set(node.id, (directCount.get(node.id) || 0) + 1)
   }
 
-  const count = (nodes: TreeGroupNode[]): number => {
+  const count = (nodes: GroupNode[]): number => {
     let total = 0
     for (const n of nodes) {
-      n.count = count(
-        n.children.filter((c) => c.kind === 'group') as TreeGroupNode[]
-      )
-      const direct = n.children.filter((c) => c.kind === 'tag').length
-      n.count += direct
+      const childCount = count(n.children)
+      n.count = (directCount.get(n.id) || 0) + childCount
       total += n.count
     }
     return total
@@ -97,13 +81,10 @@ function attachTags(groups: TreeGroupNode[], tags: TagRow[]): void {
   count(groups)
 }
 
-function collectPaths(groups: TreeGroupNode[], result: string[] = []) {
+function collectPaths(groups: GroupNode[], result: string[] = []) {
   for (const g of groups) {
     result.push(g.path)
-    collectPaths(
-      g.children.filter((c) => c.kind === 'group') as TreeGroupNode[],
-      result
-    )
+    collectPaths(g.children, result)
   }
   return result
 }
@@ -117,7 +98,7 @@ export default defineComponent({
     const message = useMessage()
     const dialog = useDialog()
 
-    const groupTree = ref<TreeGroupNode[]>([])
+    const groupTree = ref<GroupNode[]>([])
     const allTags = ref<TagRow[]>([])
     const selectedPath = ref<string | null>(null)
     const loading = ref(false)
@@ -132,7 +113,8 @@ export default defineComponent({
       ['Modbus', 'S7', 'OPCUA'].includes(props.pluginName)
     )
     const values = ref<Record<string, { value: string; error: string }>>({})
-    const live = ref(true)
+    // 实时读值默认关闭，需用户手动开启后才轮询
+    const live = ref(false)
     const reading = ref(false)
     let valueTimer: number | null = null
 
@@ -188,7 +170,8 @@ export default defineComponent({
 
     const startValuePolling = () => {
       if (valueTimer !== null || !valueVisible.value) return
-      void pollValues()
+      // 实时开关默认关闭，未开启时不主动读值
+      if (live.value) void pollValues()
       valueTimer = window.setInterval(() => {
         if (live.value) void pollValues()
       }, 1000)
@@ -242,7 +225,7 @@ export default defineComponent({
           groupId: t.groupId != null ? String(t.groupId) : '',
           groupPath: t.groupPath || ''
         }))
-        attachTags(newGroups, newTags)
+        countTags(newGroups, newTags)
         groupTree.value = newGroups
         allTags.value = newTags
         if (!keepSelection) {
@@ -272,15 +255,12 @@ export default defineComponent({
     )
 
     function buildGroupPathMap(
-      nodes: TreeGroupNode[],
+      nodes: GroupNode[],
       map: Record<string, string> = {}
     ): Record<string, string> {
       for (const n of nodes) {
         map[n.id] = n.path
-        buildGroupPathMap(
-          n.children.filter((c) => c.kind === 'group') as TreeGroupNode[],
-          map
-        )
+        buildGroupPathMap(n.children, map)
       }
       return map
     }
@@ -351,10 +331,7 @@ export default defineComponent({
       // 未选中任何节点时创建顶层设备，parentPath 传 /root 表示根层级
       const parentPath = selectedPath.value || null
       const siblings = parentPath
-        ? (findGroup(
-            groupTree.value,
-            (g) => g.path === parentPath
-          )?.children.filter((c) => c.kind === 'group') as TreeGroupNode[]) ||
+        ? findGroup(groupTree.value, (g) => g.path === parentPath)?.children ||
           []
         : groupTree.value
       if (siblings.some((n) => n.groupName === name)) {
@@ -413,7 +390,7 @@ export default defineComponent({
       }
     }
 
-    const handleDeleteGroup = (node: TreeGroupNode) => {
+    const handleDeleteGroup = (node: GroupNode) => {
       dialog.warning({
         title: '确认删除',
         content: `确定删除节点"${node.groupName}"吗？${
