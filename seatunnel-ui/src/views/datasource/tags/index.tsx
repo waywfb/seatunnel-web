@@ -1,7 +1,7 @@
 import { defineComponent, ref, onMounted, computed } from 'vue'
 import { useMessage } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { datasourceList } from '@/service/data-source'
 import TagManage from './tag-manage'
 import STabs from '@/components/tabs'
@@ -13,7 +13,6 @@ export default defineComponent({
     const { t } = useI18n()
     const message = useMessage()
     const route = useRoute()
-    const router = useRouter()
 
     const datasources = ref<any[]>([])
     const selectedId = ref((route.query.datasourceId as string) || '')

@@ -13,7 +13,7 @@ export const BrowseImportModal = defineComponent({
     show: { type: Boolean, default: false },
     datasourceId: { type: String, required: true },
     pluginName: { type: String, default: '' },
-    groupPath: { type: String, default: '/root' }
+    groupPath: { type: String, default: '' }
   },
   emits: ['close', 'imported'],
   setup(props, { emit }) {

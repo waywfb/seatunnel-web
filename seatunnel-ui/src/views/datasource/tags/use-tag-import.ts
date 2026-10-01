@@ -34,6 +34,11 @@ export function useTagImport(datasourceId: () => string | null) {
     if (checkedNodes.size === 0) return
     const id = datasourceId()
     if (!id) return
+    // 测点必须归属设备层级节点，没有归属目标直接拒绝导入
+    if (!groupPath) {
+      window.$message.warning('请先在设备层级中选择设备节点')
+      return
+    }
 
     importing.value = true
     try {
@@ -42,7 +47,7 @@ export function useTagImport(datasourceId: () => string | null) {
         tagAddress: n.address || n.nodeId,
         tagName: n.label,
         source: 'browse' as const,
-        groupPath: groupPath || '/root',
+        groupPath,
         properties: { dataType: n.attributes?.dataType }
       }))
       await importTags(id, { tags })

@@ -134,7 +134,7 @@ const inputCls =
 export const ManualPointEntry = defineComponent({
   props: {
     datasourceId: { type: String, required: true },
-    groupPath: { type: String, default: '/root' }
+    groupPath: { type: String, default: '' }
   },
   emits: ['imported'],
   setup(props, { emit }) {
@@ -354,6 +354,11 @@ export const ManualPointEntry = defineComponent({
 
     const handleImport = async () => {
       if (importableRows.value.length === 0 || importing.value) return
+      // 测点必须归属设备层级节点
+      if (!props.groupPath) {
+        message.warning('请先在设备层级中选择设备节点')
+        return
+      }
       importing.value = true
       try {
         const tags = importableRows.value.map((r, idx) => ({
@@ -363,7 +368,7 @@ export const ManualPointEntry = defineComponent({
             r.pointName.trim() ||
             `${FC_META[r.functionCode].namePrefix}_${r.offset}`,
           source: 'import',
-          groupPath: props.groupPath || '/root',
+          groupPath: props.groupPath,
           sortOrder: idx,
           enabled: true,
           readOnly: !r.writable,
