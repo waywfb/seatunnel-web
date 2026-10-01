@@ -21,6 +21,10 @@ server:
 spring:
   application:
     name: seatunnel
+  autoconfigure:
+    # 业务不使用 MongoDB，排除自动配置避免驱动默认连接 mongodb://localhost:27017
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
   datasource:
