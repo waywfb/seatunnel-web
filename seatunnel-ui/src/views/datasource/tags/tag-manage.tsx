@@ -15,6 +15,7 @@ import {
   deleteGroup,
   readTagValues
 } from '@/service/data-source'
+import type { ReadValuesResponse } from '@/service/data-source'
 import { TagGroupTree } from './TagGroupTree'
 import type { GroupNode } from './TagGroupTree'
 import { TagManageTable } from './TagManageTable'
@@ -116,6 +117,8 @@ export default defineComponent({
     // 实时读值默认关闭，需用户手动开启后才轮询
     const live = ref(false)
     const reading = ref(false)
+    /** 采集降级原因；非空时在实时区提示，不打断轮询 */
+    const degraded = ref('')
     let valueTimer: number | null = null
 
     const isModbus = () => props.pluginName === 'Modbus'
@@ -137,7 +140,7 @@ export default defineComponent({
       if (targets.length === 0) return
       reading.value = true
       try {
-        const list: any[] = await readTagValues({
+        const res: ReadValuesResponse = await readTagValues({
           datasourceId: props.datasourceId,
           points: targets.map((t) =>
             isModbus()
@@ -154,13 +157,20 @@ export default defineComponent({
                 }
           )
         })
+        const list = Array.isArray(res?.values) ? res.values : []
         const next: Record<string, { value: string; error: string }> = {}
-        for (const item of Array.isArray(list) ? list : []) {
+        for (const item of list) {
           const row = targets[item.index]
           if (!row) continue
           next[row.id] = { value: item.value || '', error: item.error || '' }
         }
         values.value = next
+        if (res?.degraded) {
+          // 降级不打断轮询，仅保留提示，避免每次请求弹 toast
+          degraded.value = res.degradedReason || '采集已降级'
+        } else {
+          degraded.value = ''
+        }
       } catch {
         // 实时轮询失败不弹全局提示，保持上一次的值
       } finally {
@@ -456,6 +466,7 @@ export default defineComponent({
               canAdd={hasDevice.value}
               values={values.value}
               valueVisible={valueVisible.value}
+              degraded={degraded.value}
               live={live.value}
               onRefresh={() => void pollValues()}
               onUpdate:live={(v: boolean) => {

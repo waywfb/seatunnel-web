@@ -47,6 +47,7 @@ export const TagManageTable = defineComponent({
       default: () => ({})
     },
     valueVisible: { type: Boolean, default: false },
+    degraded: { type: String, default: '' },
     live: { type: Boolean, default: true }
   },
   emits: ['edit', 'delete', 'add', 'update:page', 'refresh', 'update:live'],
@@ -125,6 +126,14 @@ export const TagManageTable = defineComponent({
             )}
           </div>
           <div class='flex items-center gap-2'>
+            {props.valueVisible && props.degraded && (
+              <span
+                class='text-xs text-tide-error truncate max-w-[220px]'
+                title={props.degraded}
+              >
+                {props.degraded}
+              </span>
+            )}
             {props.valueVisible && (
               <>
                 <button

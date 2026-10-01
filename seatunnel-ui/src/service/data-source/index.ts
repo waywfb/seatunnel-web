@@ -195,6 +195,30 @@ export function discoverTags(data: {
   })
 }
 
+/** 单点质量码，与后端 PointQuality 对齐 */
+export type PointQuality = 'GOOD' | 'BAD' | 'UNCERTAIN' | 'STALE'
+
+/**
+ * /tags/read 响应。values 保持与请求 points 下标一一对应，
+ * 其余字段说明"值从哪来、有多新、是否处于降级"。
+ */
+export interface ReadValuesResponse {
+  values: Array<{
+    index: number
+    value: string | null
+    error: string | null
+    quality?: PointQuality
+    sourceTimestamp?: number | null
+    serverTimestamp?: number | null
+    cacheAgeMs?: number | null
+  }>
+  collectMode?: 'POLLING' | 'SUBSCRIPTION'
+  collectorState?: string
+  degraded?: boolean
+  degradedReason?: string | null
+  maxCacheAgeMs?: number | null
+}
+
 export function readTagValues(data: {
   datasourceId: string
   // Modbus 传寄存器坐标，S7 / OPC UA 直接传 browse 出来的 address

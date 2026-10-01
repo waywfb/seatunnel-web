@@ -15,6 +15,7 @@ import {
   RefreshCw
 } from 'lucide-vue-next'
 import { importTags, readTagValues } from '@/service/data-source'
+import type { ReadValuesResponse } from '@/service/data-source'
 
 interface PointRow {
   key: number
@@ -215,12 +216,13 @@ export const ManualPointEntry = defineComponent({
           dataType: r.dataType,
           byteOrder: r.byteOrder
         }))
-        const list: any[] = await readTagValues({
+        const res: ReadValuesResponse = await readTagValues({
           datasourceId: props.datasourceId,
           points
         })
+        const list = Array.isArray(res?.values) ? res.values : []
         let failed = 0
-        for (const item of Array.isArray(list) ? list : []) {
+        for (const item of list) {
           const r = snapshot[item.index]
           if (!r) continue
           r.value = item.value || ''
