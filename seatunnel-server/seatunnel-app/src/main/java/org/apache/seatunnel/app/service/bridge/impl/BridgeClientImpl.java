@@ -8,6 +8,7 @@ import org.apache.seatunnel.app.domain.response.tag.BrowseNodeDTO;
 import org.apache.seatunnel.app.domain.response.tag.DiscoverResponseDTO;
 import org.apache.seatunnel.app.domain.response.tag.ProtocolCapabilityDTO;
 import org.apache.seatunnel.app.domain.response.tag.TagValueDTO;
+import org.apache.seatunnel.app.security.UserContextHolder;
 import org.apache.seatunnel.app.service.bridge.BridgeClient;
 import org.apache.seatunnel.app.service.bridge.collector.CollectMode;
 import org.apache.seatunnel.app.service.bridge.collector.CollectorStatus;
@@ -15,6 +16,9 @@ import org.apache.seatunnel.app.service.bridge.collector.DatasourceContext;
 import org.apache.seatunnel.app.service.bridge.collector.PointCollector;
 import org.apache.seatunnel.app.service.bridge.collector.PointCollectorRegistry;
 import org.apache.seatunnel.app.service.bridge.collector.ReadValuesResponse;
+import org.apache.seatunnel.app.service.impl.SeatunnelBaseServiceImpl;
+import org.apache.seatunnel.common.access.AccessType;
+import org.apache.seatunnel.common.access.ResourceType;
 import org.apache.seatunnel.common.utils.JsonUtils;
 import org.apache.seatunnel.server.common.SeatunnelErrorEnum;
 import org.apache.seatunnel.server.common.SeatunnelException;
@@ -76,7 +80,7 @@ import java.util.concurrent.TimeUnit;
  * configuration property is no longer used.
  */
 @Service
-public class BridgeClientImpl implements BridgeClient {
+public class BridgeClientImpl extends SeatunnelBaseServiceImpl implements BridgeClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(BridgeClientImpl.class);
     private static final PlcDriverManager DRIVER_MANAGER = PlcDriverManager.getDefault();
@@ -150,6 +154,7 @@ public class BridgeClientImpl implements BridgeClient {
         if (request.getDatasourceId() == null) {
             throw new SeatunnelException(SeatunnelErrorEnum.UNKNOWN, "datasourceId is required");
         }
+        requireDatasourceReadPerm(request.getDatasourceId());
         DatasourceContext ctx = buildContext(request.getDatasourceId());
         PointCollector collector = collectorRegistry.pick(ctx);
         List<TagValueDTO> values = collector.read(ctx, request.getPoints());
@@ -160,6 +165,22 @@ public class BridgeClientImpl implements BridgeClient {
         response.setDegraded(status.isDegraded());
         response.setDegradedReason(status.getDegradedReason());
         return response;
+    }
+
+    /** 在线读值会直连 PLC，必须先校验数据源读权限；数据源不存在与无权限分别报对应错误码。 */
+    private void requireDatasourceReadPerm(Long datasourceId) {
+        Datasource datasource = datasourceDao.selectDatasourceById(datasourceId);
+        if (datasource == null) {
+            throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceId);
+        }
+        if (datasource.getDatasourceName() == null) {
+            throw new SeatunnelException(SeatunnelErrorEnum.DATASOURCE_NOT_FOUND, datasourceId);
+        }
+        permissionCheck(
+                datasource.getDatasourceName(),
+                ResourceType.DATASOURCE,
+                AccessType.READ,
+                UserContextHolder.getAccessInfo());
     }
 
     private DatasourceContext buildContext(Long datasourceId) {
