@@ -59,7 +59,10 @@ const SynchronizationInstanceDetail = defineComponent({
               <span
                 onClick={() =>
                   router.push({
-                    name: 'synchronization-instance',
+                    name:
+                      (route.query.syncTaskType as string) === 'STREAMING'
+                        ? 'synchronization-instance-realtime'
+                        : 'synchronization-instance-offline',
                     params: { projectCode: route.params.projectCode },
                     query: {
                       project: route.query.project,
@@ -68,7 +71,11 @@ const SynchronizationInstanceDetail = defineComponent({
                   })
                 }
               >
-                {t('menu.synchronization_instance')}
+                {t(
+                  (route.query.syncTaskType as string) === 'STREAMING'
+                    ? 'menu.sync_task_instance_realtime'
+                    : 'menu.sync_task_instance_offline'
+                )}
               </span>
             </NBreadcrumbItem>
             <NBreadcrumbItem>{route.query.taskName}</NBreadcrumbItem>

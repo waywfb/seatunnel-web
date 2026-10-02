@@ -57,26 +57,19 @@ import {
   UnorderedListOutlined,
   LoadingOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
-  CalendarOutlined,
-  ThunderboltOutlined
+  CloseCircleOutlined
 } from '@vicons/antd'
 
 const props = {
   syncTaskType: {
     type: String as PropType<string>,
     default: 'BATCH'
-  },
-  tabs: {
-    type: Array as PropType<Array<{ name: string; label: string }>>,
-    default: () => []
   }
 }
 
 const SyncTask = defineComponent({
   name: 'SyncTask',
   props,
-  emits: ['switchType'],
   setup(props) {
     let logTimer: ReturnType<typeof setTimeout>
     let pollTimer: ReturnType<typeof setTimeout> | null = null
@@ -325,30 +318,7 @@ const SyncTask = defineComponent({
     const { t } = this
     const renderSearchBar = () => (
       <div class='bg-white rounded-xl border border-[#E5E7EB] p-3 space-y-3 shadow-sm'>
-        <div class='flex items-center justify-between'>
-          <div class='flex items-center gap-1 p-0.5 rounded-lg border border-[#E5E7EB] bg-[#F3F4F6]'>
-            {this.tabs.map((tab) => (
-              <button
-                key={tab.name}
-                class={[
-                  'flex items-center gap-1 px-3 py-1 rounded-md text-xs font-medium transition active:scale-95',
-                  tab.name === this.syncTaskType
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-[#6B7280] hover:text-[#111827]'
-                ]}
-                onClick={() => this.$emit('switchType', tab.name)}
-              >
-                <NIcon size={12}>
-                  {tab.name === 'BATCH' ? (
-                    <CalendarOutlined />
-                  ) : (
-                    <ThunderboltOutlined />
-                  )}
-                </NIcon>
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div class='flex items-center justify-end'>
           <NDatePicker
             v-model={[this.datePickerRange, 'formattedValue']}
             type='datetimerange'

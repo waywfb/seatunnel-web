@@ -156,7 +156,8 @@ export function useSyncTask(syncTaskType = 'BATCH') {
               path: `/task/synchronization-instance/${row.jobDefineId}`,
               query: {
                 jobInstanceId: row.id,
-                taskName: row.jobDefineName
+                taskName: row.jobDefineName,
+                syncTaskType: variables.syncTaskType
               }
             })
           }

@@ -490,7 +490,8 @@ export function useTable() {
         path: `/task/synchronization-instance/${row.id}`,
         query: {
           jobInstanceId: res,
-          taskName: row.name
+          taskName: row.name,
+          syncTaskType: row.jobMode || (route.meta.jobMode as string) || 'BATCH'
         }
       })
     } catch (error) {

@@ -17,7 +17,7 @@
 
 import utils from '@/utils'
 import type { Component } from 'vue'
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteLocationNormalized, RouteRecordRaw } from 'vue-router'
 
 const modules = import.meta.glob('/src/views/**/**.tsx')
 const components: { [key: string]: Component } = utils.mapping(modules)
@@ -72,12 +72,34 @@ export default {
     },
     {
       path: '/task/synchronization-instance',
-      name: 'synchronization-instance',
+      redirect: (to: RouteLocationNormalized) => ({
+        path:
+          (to.query.syncTaskType as string) === 'STREAMING'
+            ? '/task/synchronization-instance/realtime'
+            : '/task/synchronization-instance/offline'
+      })
+    },
+    {
+      path: '/task/synchronization-instance/realtime',
+      name: 'synchronization-instance-realtime',
       component: components['task-synchronization-instance'],
       meta: {
         title: 'synchronization-instance',
         activeMenu: 'tasks',
-        activeSide: 'synchronization-instance',
+        activeSide: 'synchronization-instance-realtime',
+        syncTaskType: 'STREAMING',
+        showSide: true
+      }
+    },
+    {
+      path: '/task/synchronization-instance/offline',
+      name: 'synchronization-instance-offline',
+      component: components['task-synchronization-instance'],
+      meta: {
+        title: 'synchronization-instance',
+        activeMenu: 'tasks',
+        activeSide: 'synchronization-instance-offline',
+        syncTaskType: 'BATCH',
         showSide: true
       }
     },
@@ -88,7 +110,7 @@ export default {
       meta: {
         title: 'synchronization-instance-detail',
         activeMenu: 'tasks',
-        activeSide: 'synchronization-instance',
+        activeSide: 'synchronization-instance-offline',
         showSide: true
       }
     }

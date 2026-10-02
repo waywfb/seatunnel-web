@@ -29,6 +29,8 @@ export default {
   sync_task_definition_realtime: '实时任务',
   sync_task_definition_offline: '离线任务',
   sync_task_instance: '同步任务实例',
+  sync_task_instance_realtime: '实时日志',
+  sync_task_instance_offline: '离线日志',
   synchronization_instance: '同步任务实例',
   section_overview: '概览',
   section_pipeline: '数据集成',

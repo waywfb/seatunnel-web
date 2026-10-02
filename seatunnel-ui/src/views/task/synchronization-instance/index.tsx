@@ -15,38 +15,22 @@
  * limitations under the License.
  */
 
-import { defineComponent, ref } from 'vue'
+import { computed, defineComponent } from 'vue'
 import { useRoute } from 'vue-router'
 import PageLayout from '@/components/page-layout'
-import { useI18n } from 'vue-i18n'
 import { SyncTask } from './sync-task'
 
 const SynchronizationInstance = defineComponent({
   name: 'SynchronizationInstance',
   setup() {
     const route = useRoute()
-    const { t } = useI18n()
-    const syncTaskType = ref((route.query.syncTaskType as string) || 'BATCH')
-
-    const tabs = [
-      {
-        name: 'BATCH',
-        label: t('project.synchronization_instance.offline_sync')
-      },
-      {
-        name: 'STREAMING',
-        label: t('project.synchronization_instance.real_time_sync')
-      }
-    ]
+    const syncTaskType = computed(
+      () => (route.meta.syncTaskType as string) || 'BATCH'
+    )
 
     return () => (
       <PageLayout>
-        <SyncTask
-          key={syncTaskType.value}
-          syncTaskType={syncTaskType.value}
-          tabs={tabs}
-          onSwitchType={(val: string) => (syncTaskType.value = val)}
-        />
+        <SyncTask key={syncTaskType.value} syncTaskType={syncTaskType.value} />
       </PageLayout>
     )
   }

@@ -106,10 +106,16 @@ const NAV_GROUPS: NavGroup[] = [
         labelKey: 'sync_task_definition_offline'
       },
       {
-        key: 'synchronization-instance',
+        key: 'synchronization-instance-realtime',
         icon: 'account_tree',
-        route: '/task/synchronization-instance',
-        labelKey: 'sync_task_instance'
+        route: '/task/synchronization-instance/realtime',
+        labelKey: 'sync_task_instance_realtime'
+      },
+      {
+        key: 'synchronization-instance-offline',
+        icon: 'account_tree',
+        route: '/task/synchronization-instance/offline',
+        labelKey: 'sync_task_instance_offline'
       }
     ]
   },
@@ -141,6 +147,12 @@ const Sidebar = defineComponent({
         return (route.query.jobMode as string) === 'STREAMING'
           ? 'synchronization-definition-realtime'
           : 'synchronization-definition-offline'
+      }
+
+      if (route.name === 'synchronization-instance-detail') {
+        return (route.query.syncTaskType as string) === 'STREAMING'
+          ? 'synchronization-instance-realtime'
+          : 'synchronization-instance-offline'
       }
 
       return metaSide || ''
