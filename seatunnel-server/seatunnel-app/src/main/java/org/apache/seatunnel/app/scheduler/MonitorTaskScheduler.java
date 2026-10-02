@@ -37,6 +37,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PreDestroy;
@@ -376,8 +377,7 @@ public class MonitorTaskScheduler {
     }
 
     private Long generateId() {
-        // Here you can use a distributed ID generator, such as Snowflake algorithm
-        return System.currentTimeMillis();
+        return IdWorker.getId();
     }
 
     @PreDestroy
