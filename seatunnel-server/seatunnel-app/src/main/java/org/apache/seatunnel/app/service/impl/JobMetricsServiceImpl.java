@@ -537,7 +537,8 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
         if (jobMetricsFromEngineMap == null || jobMetricsFromEngineMap.isEmpty()) {
             return;
         }
-        List<JobMetrics> jobMetricsFromDb = jobMetricsDao.getByInstanceId(jobInstance.getId());
+        List<JobMetrics> jobMetricsFromDb =
+                jobMetricsDao.getByInstanceId(jobInstance.getId(), jobInstance.getWorkspaceId());
         if (jobMetricsFromDb.isEmpty()) {
             List<JobMetrics> pending =
                     Arrays.asList(jobMetricsFromEngineMap.values().toArray(new JobMetrics[0]));
@@ -637,7 +638,7 @@ public class JobMetricsServiceImpl extends SeatunnelBaseServiceImpl implements I
         relationJobInstanceAndJobEngineId(jobInstance, jobEngineId);
 
         // get metrics from db
-        return jobMetricsDao.getByInstanceId(jobInstance.getId());
+        return jobMetricsDao.getByInstanceId(jobInstance.getId(), jobInstance.getWorkspaceId());
     }
 
     @Override

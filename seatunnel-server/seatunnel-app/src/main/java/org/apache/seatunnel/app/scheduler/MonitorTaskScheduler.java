@@ -33,6 +33,7 @@ import org.apache.seatunnel.engine.common.job.JobStatus;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -181,7 +182,11 @@ public class MonitorTaskScheduler {
                                                 "Error saving job metrics for job instance {}",
                                                 jobInstance.getId(),
                                                 e);
-                                        handleEngineJobNotFound(jobInstance);
+                                        // DB/持久层异常与引擎作业是否存在无关，跳过引擎核对，
+                                        // 避免每次 DB 抖动都多发一次引擎 RPC
+                                        if (!(e instanceof DataAccessException)) {
+                                            handleEngineJobNotFound(jobInstance);
+                                        }
                                     }
                                 });
                     } catch (Exception e) {
@@ -307,14 +312,25 @@ public class MonitorTaskScheduler {
                 return;
             }
             JobStatus engineStatus = SeaTunnelEngineProxy.getInstance().getJobStatus(jobEngineId);
-            if (engineStatus == null || JobUtils.isJobEndStatus(engineStatus)) {
+            if (engineStatus == null) {
+                // getJobStatus 对所有异常（引擎不可达/查询失败）都返回 null，无法证明作业已结束；
+                // 作业真丢失时引擎会正常应答 UNKNOWABLE，由 syncEngineStatusToDB 处理。
+                // 这里若把 null 当 FAILED 回写，引擎抖动瞬间会把所有 RUNNING 实例误标终态并永久卡死。
+                log.warn(
+                        "Job instance {} (engineId={}) status query returned null,"
+                                + " cannot determine engine state, skip status update",
+                        jobInstance.getId(),
+                        jobEngineId);
+                return;
+            }
+            if (JobUtils.isJobEndStatus(engineStatus)) {
                 log.warn(
                         "Job instance {} (engineId={}) is no longer running on engine,"
                                 + " updating DB status to {}",
                         jobInstance.getId(),
                         jobEngineId,
-                        engineStatus != null ? engineStatus : JobStatus.FAILED);
-                JobStatus finalStatus = engineStatus != null ? engineStatus : JobStatus.FAILED;
+                        engineStatus);
+                JobStatus finalStatus = engineStatus;
                 // 条件更新，避免覆盖用户主动停止/强制成功写入的终态
                 int updated =
                         jobInstanceDao

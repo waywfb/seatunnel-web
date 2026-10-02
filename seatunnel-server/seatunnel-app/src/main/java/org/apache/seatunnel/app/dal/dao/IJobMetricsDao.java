@@ -25,7 +25,11 @@ import java.util.List;
 
 public interface IJobMetricsDao {
 
-    List<JobMetrics> getByInstanceId(@NonNull Long jobInstanceId);
+    /**
+     * 按实例查询累计指标。workspaceId 由调用方从 jobInstance 显式传入，DAO 内不取 ThreadLocal： 后台调度线程（MonitorTaskScheduler
+     * 等）没有 HTTP 用户上下文，隐式获取必抛 User context not found
+     */
+    List<JobMetrics> getByInstanceId(@NonNull Long jobInstanceId, @NonNull Long workspaceId);
 
     JobMetricsMapper getJobMetricsMapper();
 }

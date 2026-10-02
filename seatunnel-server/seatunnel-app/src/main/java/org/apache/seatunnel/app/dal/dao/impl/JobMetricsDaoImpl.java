@@ -28,16 +28,15 @@ import javax.annotation.Resource;
 
 import java.util.List;
 
-import static org.apache.seatunnel.app.utils.ServletUtils.getCurrentWorkspaceId;
-
 @Repository
 public class JobMetricsDaoImpl implements IJobMetricsDao {
 
     @Resource private JobMetricsMapper jobMetricsMapper;
 
     @Override
-    public List<JobMetrics> getByInstanceId(@NonNull Long jobInstanceId) {
-        return jobMetricsMapper.queryJobMetricsByInstanceId(jobInstanceId, getCurrentWorkspaceId());
+    public List<JobMetrics> getByInstanceId(
+            @NonNull Long jobInstanceId, @NonNull Long workspaceId) {
+        return jobMetricsMapper.queryJobMetricsByInstanceId(jobInstanceId, workspaceId);
     }
 
     @Override
