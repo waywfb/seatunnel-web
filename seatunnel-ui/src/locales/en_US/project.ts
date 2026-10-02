@@ -199,6 +199,7 @@ export default {
     recovery_waiting_thread: 'Recovery waiting thread',
     recover_serial_wait: 'Recover serial wait',
     recovery_suspend: 'Recovery Suspend',
+    lost_resubmit: 'Re-run',
     dependent_chain_rerun: 'Dependent Chain Rerun',
     dependent_chain_recovery: 'Dependent Chain Recovery',
     failed_to_retry: 'Failed to retry',

@@ -71,6 +71,9 @@ public class MonitorTaskScheduler {
 
     private final Object mapLock = new Object();
 
+    /** 引擎返回 UNKNOWABLE（重启/故障转移后丢失任务状态）时写入 error_message 的显性标记， 供前端提示“引擎侧已丢失，可重新拉起” */
+    private static final String ENGINE_STATUS_LOST_MESSAGE = "引擎任务状态丢失（引擎重启或故障转移），可重新拉起该实例";
+
     public MonitorTaskScheduler() {
         // Create thread pool
         this.executorService =
@@ -208,7 +211,12 @@ public class MonitorTaskScheduler {
                                 jobInstanceDao
                                         .getJobInstanceMapper()
                                         .updateStatusIfNotEndState(
-                                                jobInstance.getId(), JobStatus.RUNNING, null);
+                                                jobInstance.getId(),
+                                                JobStatus.RUNNING,
+                                                null,
+                                                lostMessageOnSync(
+                                                        JobStatus.RUNNING,
+                                                        jobInstance.getJobStatus()));
                         if (updated > 0) {
                             log.info(
                                     "Job instance {} is running on engine, DB status {} updated to RUNNING",
@@ -229,7 +237,11 @@ public class MonitorTaskScheduler {
                         jobInstanceDao
                                 .getJobInstanceMapper()
                                 .updateStatusIfNotEndState(
-                                        jobInstance.getId(), engineStatus, endTime);
+                                        jobInstance.getId(),
+                                        engineStatus,
+                                        endTime,
+                                        lostMessageOnSync(
+                                                engineStatus, jobInstance.getJobStatus()));
                 if (updated > 0) {
                     log.info(
                             "Job instance {} engine status {} differs from DB status {}, updated",
@@ -277,6 +289,17 @@ public class MonitorTaskScheduler {
         return engineRunningJobIds;
     }
 
+    /**
+     * 计算状态回写时需要一并维护的 error_message： 引擎返回 UNKNOWABLE 时写入丢失标记；从 UNKNOWABLE
+     * 迁出（重新拉起后引擎恢复运行/转入其他状态）时传空串清空；其余场景传 null，不触碰该列
+     */
+    private String lostMessageOnSync(JobStatus engineStatus, JobStatus dbStatus) {
+        if (engineStatus == JobStatus.UNKNOWABLE) {
+            return ENGINE_STATUS_LOST_MESSAGE;
+        }
+        return dbStatus == JobStatus.UNKNOWABLE ? "" : null;
+    }
+
     private void handleEngineJobNotFound(JobInstance jobInstance) {
         try {
             String jobEngineId = jobInstance.getJobEngineId();
@@ -297,7 +320,10 @@ public class MonitorTaskScheduler {
                         jobInstanceDao
                                 .getJobInstanceMapper()
                                 .updateStatusIfNotEndState(
-                                        jobInstance.getId(), finalStatus, new Date());
+                                        jobInstance.getId(),
+                                        finalStatus,
+                                        new Date(),
+                                        lostMessageOnSync(finalStatus, jobInstance.getJobStatus()));
                 if (updated > 0) {
                     synchronized (mapLock) {
                         jobInstanceMap.remove(jobInstance.getId());

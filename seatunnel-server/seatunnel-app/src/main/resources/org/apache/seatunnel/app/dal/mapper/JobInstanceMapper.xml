@@ -68,14 +68,31 @@
         WHERE t.job_status IS NULL
            OR t.job_status NOT IN ('FINISHED', 'FAILED', 'CANCELED')
     </select>
-    <!-- 与 getAllUnfinishedJobInstance 的排除集合保持一致，避免覆盖用户主动停止的终态 -->
+    <!--
+      与 getAllUnfinishedJobInstance 的排除集合保持一致，避免覆盖用户主动停止的终态。
+      errorMessage 非 null 时一并回写 error_message：引擎返回 UNKNOWABLE 时写入“状态丢失”标记，
+      从 UNKNOWABLE 迁出（如重新拉起后引擎恢复运行）时传空串清空，其余场景传 null 不触碰该列。
+    -->
     <update id="updateStatusIfNotEndState">
         UPDATE t_st_job_instance
         SET job_status = #{jobStatus},
-            end_time   = #{endTime,jdbcType=TIMESTAMP},
-            gmt_modified = NOW()
+            end_time   = #{endTime,jdbcType=TIMESTAMP}
+        <if test="errorMessage != null">
+            , error_message = #{errorMessage}
+        </if>
         WHERE id = #{id}
           AND (job_status IS NULL OR job_status NOT IN ('FINISHED', 'FAILED', 'CANCELED'))
+    </update>
+    <!--
+      拉起成功后的显性回写：终态（FAILED 等）行不会被 updateStatusIfNotEndState 与状态同步循环覆盖，
+      必须在拉起入口主动重置为 RUNNING，清空 end_time（运行时长重新计时）与 error_message（清掉上次失败原因）。
+    -->
+    <update id="resetForRestore">
+        UPDATE t_st_job_instance
+        SET job_status    = 'RUNNING',
+            end_time      = NULL,
+            error_message = ''
+        WHERE id = #{id}
     </update>
     <select id="countActiveByJobDefinitionId" resultType="java.lang.Long">
         SELECT COUNT(1)

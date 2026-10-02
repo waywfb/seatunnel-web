@@ -49,11 +49,21 @@ public interface JobInstanceMapper extends BaseMapper<JobInstance> {
      */
     List<JobInstance> getAllUnfinishedJobInstance();
 
-    /** 按引擎状态回写实例状态，仅当当前 DB 状态未彻底结束时生效，防止异步任务覆盖用户主动停止的终态； 非终态回写时 endTime 传 null，表示重新开始计时 */
+    /**
+     * 按引擎状态回写实例状态，仅当当前 DB 状态未彻底结束时生效，防止异步任务覆盖用户主动停止的终态； 非终态回写时 endTime 传 null，表示重新开始计时；errorMessage
+     * 传 null 表示不触碰 error_message， 传空串表示清空（引擎状态丢失标记被解除）
+     */
     int updateStatusIfNotEndState(
             @Param("id") Long id,
             @Param("jobStatus") JobStatus jobStatus,
-            @Param("endTime") Date endTime);
+            @Param("endTime") Date endTime,
+            @Param("errorMessage") String errorMessage);
+
+    /**
+     * 拉起成功后的显性回写：FAILED 等终态行不会被 updateStatusIfNotEndState / 状态同步循环覆盖， 必须在拉起入口主动置为 RUNNING，并清空
+     * end_time 与 error_message，否则 DB 状态永远停留在拉起前的失败态
+     */
+    int resetForRestore(@Param("id") Long id);
 
     Long countActiveByJobDefinitionId(
             @Param("jobDefinitionId") Long jobDefinitionId, @Param("workspaceId") Long workspaceId);

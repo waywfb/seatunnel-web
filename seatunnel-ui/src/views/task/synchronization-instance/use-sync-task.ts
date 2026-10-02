@@ -26,6 +26,7 @@ import {
   SyncOutlined,
   PlayCircleOutlined,
   PauseCircleOutlined,
+  ReloadOutlined,
   DeleteOutlined
 } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
@@ -107,6 +108,9 @@ export function useSyncTask(syncTaskType = 'BATCH') {
   const resumableStates = ['SAVEPOINT_DONE', 'PAUSED', 'READY_PAUSE']
   // 暂停指令已发出但引擎尚未确认，中间态应禁用重复操作
   const pausingStates = ['DOING_SAVEPOINT', 'PAUSING', 'CANCELING']
+  // 引擎侧任务状态丢失（重启/故障转移后引擎返回 UNKNOWABLE）：不可从 savepoint 恢复，
+  // 只能重新提交配置拉起，单独展示「重新拉起」按钮，不混入 resumableStates
+  const isLost = (jobStatus?: string) => jobStatus === 'UNKNOWABLE'
 
   const isRunning = (jobStatus?: string) =>
     !!jobStatus && runningStates.includes(jobStatus)
@@ -259,6 +263,12 @@ export function useSyncTask(syncTaskType = 'BATCH') {
             show: (row) => isRunning(row.jobStatus),
             disabled: (row) => isPausing(row.jobStatus),
             onClick: (row) => void handlePause(row.id)
+          },
+          {
+            text: t('project.workflow.lost_resubmit'),
+            icon: h(ReloadOutlined),
+            show: (row) => isLost(row.jobStatus),
+            onClick: (row) => void handleRecover(row.id)
           },
           {
             text: t('project.synchronization_instance.view_logs'),

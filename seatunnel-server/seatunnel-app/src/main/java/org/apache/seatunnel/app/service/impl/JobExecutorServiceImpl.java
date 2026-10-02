@@ -221,6 +221,9 @@ public class JobExecutorServiceImpl implements IJobExecutorService {
         log.info("jobStore filePath:{}", filePath);
         SeaTunnelEngineProxy.getInstance()
                 .restoreJob(filePath, jobInstanceId, Long.valueOf(jobInstance.getJobEngineId()));
+        // 拉起成功后显性回写：终态实例不会被状态同步循环扫描，必须在此主动置为 RUNNING
+        jobInstanceDao.getJobInstanceMapper().resetForRestore(jobInstanceId);
+        log.info("job instance {} restored, status reset to RUNNING", jobInstanceId);
         return Result.success();
     }
 }

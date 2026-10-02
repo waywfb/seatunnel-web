@@ -199,6 +199,7 @@ export default {
     recovery_waiting_thread: '恢复等待线程',
     recover_serial_wait: '串行恢复',
     recovery_suspend: '恢复运行',
+    lost_resubmit: '重新拉起',
     dependent_chain_rerun: '依赖链重跑',
     dependent_chain_recovery: '依赖链恢复',
     failed_to_retry: '重跑失败任务',
