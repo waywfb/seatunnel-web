@@ -686,7 +686,6 @@ const SyncTask = defineComponent({
             <NPagination
               v-model:page={this.page}
               v-model:page-size={this.pageSize}
-              page-count={this.totalPage}
               item-count={this.total}
               show-size-picker
               page-sizes={[10, 30, 50]}

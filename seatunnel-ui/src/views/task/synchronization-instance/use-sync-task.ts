@@ -585,11 +585,14 @@ const STATE_PILL_TEXT_COLORS: Record<string, string> = {
   SCHEDULED: '#7C3AED'
 }
 
+const renderStatePlaceholder = () =>
+  h('span', { class: 'text-slate-400' }, '--')
+
 const renderStateCell = (state: ITaskState, t: Function) => {
-  if (!state) return ''
+  if (!state) return renderStatePlaceholder()
 
   const stateOption = tasksState(t)[state]
-  if (!stateOption) return ''
+  if (!stateOption) return renderStatePlaceholder()
   const color = STATE_PILL_TEXT_COLORS[state] || '#64748B'
   return h(
     'span',

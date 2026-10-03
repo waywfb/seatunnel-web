@@ -198,7 +198,7 @@ export const useTableOperation = (params: {
               ),
             default: () => buttonText
           })
-        : h('')
+        : null
     })
 
     if (moreActions.length > 0) {
