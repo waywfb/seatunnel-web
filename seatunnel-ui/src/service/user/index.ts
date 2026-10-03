@@ -20,7 +20,8 @@ import type {
   UserList,
   UserLogin,
   SeatunnelHeader,
-  UserDetail
+  UserDetail,
+  UserNameReq
 } from '@/service/user/types'
 
 export function userList(params: UserList): any {
@@ -52,6 +53,15 @@ export function fetchWorkspaces(): any {
   return axios({
     url: '/resources/workspace',
     method: 'get'
+  })
+}
+
+/** 用户名候选（供「执行用户」筛选下拉使用），返回 username 字符串数组 */
+export function queryUserNames(params: UserNameReq = {}): any {
+  return axios({
+    url: '/resources/user',
+    method: 'get',
+    params
   })
 }
 

@@ -41,4 +41,8 @@ interface UserDetail extends UserLogin {
   updateTime?: any | null
 }
 
-export { UserList, UserLogin, UserDetail, SeatunnelHeader }
+interface UserNameReq {
+  searchName?: string
+}
+
+export { UserList, UserLogin, UserDetail, SeatunnelHeader, UserNameReq }

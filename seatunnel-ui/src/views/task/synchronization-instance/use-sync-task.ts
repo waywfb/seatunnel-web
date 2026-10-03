@@ -16,27 +16,22 @@
  */
 
 import { h, onUnmounted, reactive, ref } from 'vue'
-import { endOfToday, format, startOfToday, subDays } from 'date-fns'
+import { format, subDays, subHours } from 'date-fns'
 import { useTableLink, useTableOperation } from '@/hooks'
 import {
   AlignLeftOutlined,
-  CheckCircleOutlined,
-  ClearOutlined,
-  DownloadOutlined,
-  SyncOutlined,
   PlayCircleOutlined,
   PauseCircleOutlined,
   ReloadOutlined,
   DeleteOutlined
 } from '@vicons/antd'
 import { useI18n } from 'vue-i18n'
-import { cleanState, downloadLog, forceSuccess } from '@/service/task-instances'
 import {
   COLUMN_WIDTH_CONFIG,
   DefaultTableWidth,
   calculateTableWidth
 } from '@/common/column-width-config'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { ITaskState } from '@/common/types'
 import { isJobEndState, tasksState } from '@/common/common'
 import { NButton, NIcon, NPopover } from 'naive-ui'
@@ -47,19 +42,23 @@ import {
   hanldleRecoverJob,
   hanldleDelJob
 } from '@/service/sync-task-instance'
+import { queryUserNames } from '@/service/user'
 import type { RowKey } from 'naive-ui/lib/data-table/src/interface'
 import type { Router } from 'vue-router'
-import {
-  cleanStateByIds,
-  forcedSuccessByIds
-} from '@/service/sync-task-instance'
 import { getRemainTime } from '@/utils/time'
 import ErrorMessageHighlight from './error-message-highlight'
+
+/** 状态筛选药丸取值：all（空）/ 运行中 / 成功 / 失败，后端按同口径状态组过滤 */
+export type StatusFilter = '' | 'RUNNING' | 'SUCCESS' | 'FAILED'
+/** 时间范围预设：24 小时 / 7 天 / 30 天 / 自定义区间 */
+export type TimePreset = '24h' | '7d' | '30d' | 'custom'
+
+/** 默认时间范围：与改版前行为一致取近 30 天（设计稿首屏为 7 天，如需跟随改此处即可） */
+export const DEFAULT_TIME_PRESET: TimePreset = '30d'
 
 export function useSyncTask(syncTaskType = 'BATCH') {
   const { t } = useI18n()
   const router: Router = useRouter()
-  const route = useRoute()
   const message = useMessage()
 
   const variables = reactive({
@@ -70,6 +69,9 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     pageSize: ref(10),
     totalPage: ref(1),
     total: ref(0),
+    runningCount: ref(null as number | null),
+    successCount: ref(null as number | null),
+    failedCount: ref(null as number | null),
     loadingRef: ref(false),
     logRef: '',
     logLoadingRef: ref(true),
@@ -81,14 +83,17 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     executeUser: ref(''),
     errorMessage: ref(''),
     host: ref(''),
-    stateType: null as null | string,
+    stateType: '' as string,
     syncTaskType,
     checkedRowKeys: [] as Array<RowKey>,
-    buttonList: [],
-    datePickerRange: [
-      format(subDays(startOfToday(), 30), 'yyyy-MM-dd HH:mm:ss'),
-      format(endOfToday(), 'yyyy-MM-dd HH:mm:ss')
-    ],
+    // 状态药丸角标：不受 stateType 影响的全量计数（后端 allCount），未返回时退回本地统计
+    allCount: ref(0),
+    // 时间范围预设与自定义区间（设计稿：24h / 7天 / 30天 / 自定义）
+    timePreset: DEFAULT_TIME_PRESET as TimePreset,
+    // 空值必须是 null：NDatePicker 的 datetimerange 对空数组会按 [undefined, undefined] 解析并抛错
+    customTimeRange: null as Array<string | null> | null,
+    userOptions: [] as Array<{ label: string; value: string }>,
+    batchLoading: ref(false),
     showLogViewerModal: ref(false),
     currentJobId: ref(''),
     currentJobName: ref(''),
@@ -131,21 +136,156 @@ export function useSyncTask(syncTaskType = 'BATCH') {
   }, 100)
   onUnmounted(() => clearInterval(tickTimer))
 
-  const creatInstanceButtons = (variables: any) => {
-    variables.buttonList = [
-      {
-        label: t('project.task.clean_state'),
-        key: 'clean_state'
-      },
-      {
-        label: t('project.task.forced_success'),
-        key: 'forced_success'
+  /** 时间范围：预设为滚动窗口，自定义为用户选定区间；返回后端可直接解析的 [start, end] */
+  const buildTimeRange = (): [string, string] => {
+    const now = new Date()
+    if (variables.timePreset === 'custom') {
+      const [start, end] = variables.customTimeRange || []
+      if (start && end) {
+        return [start, end]
       }
+    }
+    const start =
+      variables.timePreset === '24h'
+        ? subHours(now, 24)
+        : subDays(now, variables.timePreset === '7d' ? 7 : 30)
+    return [
+      format(start, 'yyyy-MM-dd HH:mm:ss'),
+      format(now, 'yyyy-MM-dd HH:mm:ss')
     ]
   }
+
+  /** 列表查询参数：筛选条件统一在此组装，保证手动查询 / 轮询 / 重置三条链路口径一致 */
+  const buildQueryParams = (pageNo = variables.page) => {
+    const [startDate, endDate] = buildTimeRange()
+    return {
+      pageNo,
+      pageSize: variables.pageSize,
+      taskName: variables.taskName,
+      executorName: variables.executeUser,
+      host: variables.host,
+      stateType: variables.stateType,
+      startDate,
+      endDate,
+      syncTaskType: variables.syncTaskType
+    }
+  }
+
+  const setStatusFilter = (value: StatusFilter) => {
+    variables.stateType = value
+    variables.page = 1
+    variables.checkedRowKeys = []
+    getList()
+  }
+
+  const setTimePreset = (preset: TimePreset) => {
+    variables.timePreset = preset
+    variables.page = 1
+    variables.checkedRowKeys = []
+    getList()
+  }
+
+  /** 应用自定义时间区间：校验完整性与先后顺序，成功后切换到 custom 预设并重新查询 */
+  const applyCustomTime = () => {
+    const [start, end] = variables.customTimeRange || []
+    if (!start || !end) {
+      window.$message.warning(
+        t('project.synchronization_instance.select_time_range')
+      )
+      return false
+    }
+    if (start > end) {
+      window.$message.warning(
+        t('project.synchronization_instance.time_range_invalid')
+      )
+      return false
+    }
+    variables.timePreset = 'custom'
+    variables.page = 1
+    variables.checkedRowKeys = []
+    getList()
+    return true
+  }
+
+  const clearCustomTime = () => {
+    variables.customTimeRange = null
+    setTimePreset(DEFAULT_TIME_PRESET)
+  }
+
+  const loadUserOptions = () => {
+    queryUserNames()
+      .then((names: unknown) => {
+        variables.userOptions = (Array.isArray(names) ? names : [])
+          .filter((name): name is string => typeof name === 'string')
+          .map((name) => ({ label: name, value: name }))
+      })
+      .catch(() => {
+        variables.userOptions = []
+      })
+  }
+
+  /** 批量删除：复用单条删除接口并发执行，删完后回到当前页刷新 */
+  const onBatchDelete = async () => {
+    const ids = ([...variables.checkedRowKeys] as Array<string | number>).map(
+      Number
+    )
+    if (ids.length === 0 || variables.batchLoading) return
+    variables.batchLoading = true
+    try {
+      await Promise.all(ids.map((id) => hanldleDelJob(id)))
+      window.$message.success(t('project.synchronization_instance.batch_done'))
+      variables.checkedRowKeys = []
+      getList()
+    } catch (error) {
+      // 失败提示由请求拦截器统一弹出，这里只保证状态复位
+    } finally {
+      variables.batchLoading = false
+    }
+  }
+
+  /** 批量重试：仅对「可恢复 / 状态丢失」的实例下发恢复指令，与单行按钮口径一致 */
+  const onBatchRetry = async () => {
+    const ids = ([...variables.checkedRowKeys] as Array<string | number>).map(
+      Number
+    )
+    const eligible = (variables.tableData as any[]).filter(
+      (row) =>
+        ids.includes(Number(row.id)) &&
+        (isResumable(row.jobStatus) || isLost(row.jobStatus))
+    )
+    if (eligible.length === 0) {
+      window.$message.warning(
+        t('project.synchronization_instance.no_retriable_task')
+      )
+      return
+    }
+    if (variables.batchLoading) return
+    variables.batchLoading = true
+    try {
+      await Promise.all(
+        eligible.map((row) => hanldleRecoverJob(Number(row.id)))
+      )
+      window.$message.success(
+        t('project.synchronization_instance.batch_retry_submitted', {
+          count: eligible.length
+        })
+      )
+      variables.checkedRowKeys = []
+      getList()
+    } catch (error) {
+      // 失败提示由请求拦截器统一弹出
+    } finally {
+      variables.batchLoading = false
+    }
+  }
+
   //
   const createColumns = (variables: any) => {
     variables.columns = [
+      {
+        type: 'selection' as const,
+        ...COLUMN_WIDTH_CONFIG['selection']
+      },
       useTableLink({
         title: t('project.synchronization_definition.task_name'),
         key: 'jobDefineName',
@@ -326,6 +466,11 @@ export function useSyncTask(syncTaskType = 'BATCH') {
       })
       variables.totalPage = res.totalPage
       variables.total = res.total ?? 0
+      // allCount 为不受 stateType 影响的全量计数（状态药丸「全部」角标）
+      variables.allCount = res.allCount ?? 0
+      variables.runningCount = res.runningCount ?? null
+      variables.successCount = res.successCount ?? null
+      variables.failedCount = res.failedCount ?? null
     } catch (error: any) {
       // 仅处理非取消异常；AbortError 为主动取消，静默忽略
       if (error?.name !== 'AbortError') {
@@ -365,85 +510,39 @@ export function useSyncTask(syncTaskType = 'BATCH') {
     variables.currentJobName = row.jobDefineName
   }
 
-  const handleCleanState = (row: any) => {
-    cleanState(Number(row.projectCode), [row.id]).then(() => {
-      getList()
-    })
-  }
-
-  const handleForcedSuccess = (row: any) => {
-    forceSuccess({ id: row.id }, { projectCode: Number(row.projectCode) }).then(
-      () => {
-        getList()
-      }
-    )
-  }
-
   const getList = () => {
-    getTableData({
-      pageSize: variables.pageSize,
-      pageNo:
-        variables.tableData.length === 1 && variables.page > 1
-          ? variables.page - 1
-          : variables.page,
-      taskName: variables.taskName,
-      host: variables.host,
-      stateType: variables.stateType,
-      startDate: variables.datePickerRange ? variables.datePickerRange[0] : '',
-      endDate: variables.datePickerRange ? variables.datePickerRange[1] : '',
-      executorName: variables.executeUser,
-      syncTaskType: variables.syncTaskType
-    })
+    const pageNo =
+      variables.tableData.length === 1 && variables.page > 1
+        ? variables.page - 1
+        : variables.page
+    getTableData(buildQueryParams(pageNo))
   }
 
   const onReset = () => {
     variables.taskName = ''
     variables.executeUser = ''
     variables.host = ''
-    variables.stateType = null
-    variables.datePickerRange = [
-      format(subDays(startOfToday(), 30), 'yyyy-MM-dd HH:mm:ss'),
-      format(endOfToday(), 'yyyy-MM-dd HH:mm:ss')
-    ]
-  }
-  const onBatchCleanState = (ids: any) => {
-    cleanStateByIds(ids).then(() => {
-      window.$message.success(t('project.workflow.success'))
-      variables.checkedRowKeys = []
-      getList()
-    })
-  }
-
-  const onBatchForcedSuccess = (ids: any) => {
-    forcedSuccessByIds(ids).then(() => {
-      window.$message.success(t('project.workflow.success'))
-      variables.checkedRowKeys = []
-      getList()
-    })
-  }
-
-  const batchBtnListClick = (key: string) => {
-    if (variables.checkedRowKeys.length == 0) {
-      window.$message.warning(t('project.select_task_instance'))
-      return
-    }
-    switch (key) {
-      case 'clean_state':
-        onBatchCleanState(variables.checkedRowKeys)
-        break
-      case 'forced_success':
-        onBatchForcedSuccess(variables.checkedRowKeys)
-        break
-    }
+    variables.stateType = ''
+    variables.customTimeRange = null
+    variables.timePreset = DEFAULT_TIME_PRESET
+    variables.page = 1
+    variables.checkedRowKeys = []
+    getList()
   }
 
   return {
     variables,
     createColumns,
     getTableData,
+    buildQueryParams,
+    loadUserOptions,
+    setStatusFilter,
+    setTimePreset,
+    applyCustomTime,
+    clearCustomTime,
+    onBatchDelete,
+    onBatchRetry,
     onReset,
-    batchBtnListClick,
-    creatInstanceButtons,
     handleViewLogs
   }
 }

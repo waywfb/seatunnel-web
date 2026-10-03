@@ -57,22 +57,6 @@ export function querySyncTaskInstancePaging(
   })
 }
 
-export function cleanStateByIds(taskInstanceIds: Array<any>) {
-  return axios({
-    url: 'ws/seaTunnel/batch-clean-task-instance-state',
-    method: 'post',
-    data: { taskInstanceIds }
-  })
-}
-
-export function forcedSuccessByIds(taskInstanceIds: Array<any>) {
-  return axios({
-    url: 'ws/seaTunnel/batch-force-task-success',
-    method: 'post',
-    data: { taskInstanceIds }
-  })
-}
-
 export function hanldlePauseJob(id: number): any {
   return axios({
     url: `/job/executor/pause?jobInstanceId=${id}`,
