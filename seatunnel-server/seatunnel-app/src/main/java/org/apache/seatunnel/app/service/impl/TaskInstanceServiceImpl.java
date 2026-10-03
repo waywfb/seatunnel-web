@@ -26,6 +26,7 @@ import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.dal.entity.JobMetricsHistory;
 import org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto;
 import org.apache.seatunnel.app.domain.response.executor.JobExecutionStatus;
+import org.apache.seatunnel.app.domain.response.metrics.JobInstanceStatusStats;
 import org.apache.seatunnel.app.domain.response.metrics.JobSummaryMetricsRes;
 import org.apache.seatunnel.app.security.UserContextHolder;
 import org.apache.seatunnel.app.service.BaseService;
@@ -91,10 +92,32 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
 
         Date startDate = dateConverter(startTime);
         Date endDate = dateConverter(endTime);
+        // 前端未选中筛选项时传空串，转 null 避免 SQL 拼出 username = '' / job_status = ''
+        String executorFilter = blankToNull(executorName);
+        String stateFilter = blankToNull(stateType);
 
         IPage<SeaTunnelJobInstanceDto> jobInstanceIPage =
                 jobInstanceDao.queryJobInstanceListPaging(
-                        new Page<>(pageNo, pageSize), startDate, endDate, jobDefineName, jobMode);
+                        new Page<>(pageNo, pageSize),
+                        startDate,
+                        endDate,
+                        jobDefineName,
+                        jobMode,
+                        executorFilter,
+                        stateFilter);
+
+        // 状态角标全局口径：先回填 total 与全量状态计数，避免当前页被权限过滤为空时丢失；
+        // total 为当前状态筛选下的匹配条数，allCount 为不受状态筛选影响的全量条数（“全部”角标）
+        pageInfo.setTotal((int) jobInstanceIPage.getTotal());
+        JobInstanceStatusStats statusStats =
+                jobInstanceDao.countJobStatusStats(
+                        startDate, endDate, jobDefineName, jobMode, executorFilter);
+        if (statusStats != null) {
+            pageInfo.setAllCount(statusStats.getTotalCount());
+            pageInfo.setRunningCount(statusStats.getRunningCount());
+            pageInfo.setSuccessCount(statusStats.getSuccessCount());
+            pageInfo.setFailedCount(statusStats.getFailedCount());
+        }
 
         List<SeaTunnelJobInstanceDto> records = jobInstanceIPage.getRecords();
         List<SeaTunnelJobInstanceDto> filteredRecords =
@@ -108,10 +131,13 @@ public class TaskInstanceServiceImpl extends SeatunnelBaseServiceImpl
         }
         addRunningTimeToResult(filteredRecords);
         jobPipelineSummaryMetrics(filteredRecords, jobMode);
-        pageInfo.setTotal((int) jobInstanceIPage.getTotal());
         pageInfo.setTotalList(filteredRecords);
         result.setData(pageInfo);
         return result;
+    }
+
+    private static String blankToNull(String value) {
+        return value == null || value.trim().isEmpty() ? null : value.trim();
     }
 
     private void populateExecutionMetricsData(

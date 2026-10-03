@@ -19,6 +19,7 @@ package org.apache.seatunnel.app.dal.mapper;
 
 import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto;
+import org.apache.seatunnel.app.domain.response.metrics.JobInstanceStatusStats;
 import org.apache.seatunnel.common.constants.JobMode;
 import org.apache.seatunnel.engine.common.job.JobStatus;
 
@@ -40,6 +41,17 @@ public interface JobInstanceMapper extends BaseMapper<JobInstance> {
             @Param("endTime") Date endTime,
             @Param("jobDefineName") String jobDefineName,
             @Param("jobMode") JobMode jobMode,
+            @Param("executorName") String executorName,
+            @Param("stateType") String stateType,
+            @Param("workspaceId") Long workspaceId);
+
+    /** 与分页查询同过滤条件（除状态筛选外）的全局状态计数，供列表页状态角标使用（SQL 层聚合，非当前页口径）；刻意不含 stateType，保证各状态角标互相可比 */
+    JobInstanceStatusStats countJobStatusStats(
+            @Param("startTime") Date startTime,
+            @Param("endTime") Date endTime,
+            @Param("jobDefineName") String jobDefineName,
+            @Param("jobMode") JobMode jobMode,
+            @Param("executorName") String executorName,
             @Param("workspaceId") Long workspaceId);
 
     JobInstance getJobExecutionStatus(@Param("jobInstanceId") Long jobInstanceId);

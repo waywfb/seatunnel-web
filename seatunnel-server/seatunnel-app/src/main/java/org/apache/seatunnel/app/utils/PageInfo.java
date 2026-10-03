@@ -53,6 +53,22 @@ public class PageInfo<T> {
     @Schema(description = "PAGE_NO")
     private Integer pageNo;
 
+    /** 不区分状态的全量实例数（同过滤条件、不受状态筛选影响的全量聚合），供“全部”状态角标使用； 与 total 的区别：total 是当前状态筛选下的匹配条数 */
+    @Schema(description = "ALL_INSTANCE_COUNT")
+    private Integer allCount;
+
+    /** 全局运行中实例数（同过滤条件全量聚合，非当前页口径） */
+    @Schema(description = "RUNNING_INSTANCE_COUNT")
+    private Integer runningCount;
+
+    /** 全局成功实例数 */
+    @Schema(description = "SUCCESS_INSTANCE_COUNT")
+    private Integer successCount;
+
+    /** 全局失败实例数 */
+    @Schema(description = "FAILED_INSTANCE_COUNT")
+    private Integer failedCount;
+
     public PageInfo() {}
 
     public PageInfo(Integer currentPage, Integer pageSize) {
@@ -126,5 +142,49 @@ public class PageInfo<T> {
 
     public void setCurrentPage(Integer currentPage) {
         this.currentPage = currentPage;
+    }
+
+    public Integer getRunningCount() {
+        if (runningCount == null) {
+            return 0;
+        }
+        return runningCount;
+    }
+
+    public void setRunningCount(Integer runningCount) {
+        this.runningCount = runningCount;
+    }
+
+    public Integer getSuccessCount() {
+        if (successCount == null) {
+            return 0;
+        }
+        return successCount;
+    }
+
+    public void setSuccessCount(Integer successCount) {
+        this.successCount = successCount;
+    }
+
+    public Integer getFailedCount() {
+        if (failedCount == null) {
+            return 0;
+        }
+        return failedCount;
+    }
+
+    public void setFailedCount(Integer failedCount) {
+        this.failedCount = failedCount;
+    }
+
+    public Integer getAllCount() {
+        if (allCount == null) {
+            return 0;
+        }
+        return allCount;
+    }
+
+    public void setAllCount(Integer allCount) {
+        this.allCount = allCount;
     }
 }

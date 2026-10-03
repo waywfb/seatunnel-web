@@ -20,6 +20,7 @@ package org.apache.seatunnel.app.dal.dao;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.dal.mapper.JobInstanceMapper;
 import org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto;
+import org.apache.seatunnel.app.domain.response.metrics.JobInstanceStatusStats;
 import org.apache.seatunnel.common.constants.JobMode;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -44,8 +45,18 @@ public interface IJobInstanceDao {
             IPage<JobInstance> page,
             Date startTime,
             Date endTime,
-            String jobDefineId,
-            JobMode jobMode);
+            String jobDefineName,
+            JobMode jobMode,
+            String executorName,
+            String stateType);
+
+    /** 与分页查询同过滤条件（除状态筛选外）的全局状态计数，供列表页状态角标使用 */
+    JobInstanceStatusStats countJobStatusStats(
+            Date startTime,
+            Date endTime,
+            String jobDefineName,
+            JobMode jobMode,
+            String executorName);
 
     List<JobInstance> getAllJobInstance(@NonNull List<Long> jobInstanceIdList);
 

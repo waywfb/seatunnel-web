@@ -21,6 +21,7 @@ import org.apache.seatunnel.app.dal.dao.IJobInstanceDao;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.dal.mapper.JobInstanceMapper;
 import org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto;
+import org.apache.seatunnel.app.domain.response.metrics.JobInstanceStatusStats;
 import org.apache.seatunnel.app.utils.ServletUtils;
 import org.apache.seatunnel.common.constants.JobMode;
 
@@ -82,9 +83,29 @@ public class JobInstanceDaoImpl implements IJobInstanceDao {
             Date startTime,
             Date endTime,
             String jobDefineName,
-            JobMode jobMode) {
+            JobMode jobMode,
+            String executorName,
+            String stateType) {
         return jobInstanceMapper.queryJobInstanceListPaging(
-                page, startTime, endTime, jobDefineName, jobMode, getWorkspaceId());
+                page,
+                startTime,
+                endTime,
+                jobDefineName,
+                jobMode,
+                executorName,
+                stateType,
+                getWorkspaceId());
+    }
+
+    @Override
+    public JobInstanceStatusStats countJobStatusStats(
+            Date startTime,
+            Date endTime,
+            String jobDefineName,
+            JobMode jobMode,
+            String executorName) {
+        return jobInstanceMapper.countJobStatusStats(
+                startTime, endTime, jobDefineName, jobMode, executorName, getWorkspaceId());
     }
 
     @Override

@@ -32,11 +32,7 @@
         , `job_define_id`, `job_status`, `job_config`, `engine_name`, `engine_version`, `job_engine_id`,`error_message`, `workspace_id`
     </sql>
 
-    <select id="queryJobInstanceListPaging" resultType="org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto">
-        SELECT ji.*, jd.name AS jobDefineName, cu.username AS username
-        FROM t_st_job_instance ji
-        LEFT JOIN t_st_job_definition jd ON ji.job_define_id = jd.id
-        LEFT JOIN `user` cu ON ji.create_user_id = cu.id
+    <sql id="jobInstancePagingWhere">
         <where>
             ji.workspace_id = #{workspaceId}
             <if test="startTime != null">
@@ -51,11 +47,62 @@
             <if test="jobDefineName != null">
                 AND jd.name LIKE concat('%', #{jobDefineName}, '%')
             </if>
+            <if test="executorName != null and executorName != ''">
+                AND cu.username = #{executorName}
+            </if>
             <if test="jobMode != null">
                 AND ji.job_type = #{jobMode}
             </if>
         </where>
+    </sql>
+    <!--
+      状态筛选：与状态计数同口径的三组状态映射，保证「状态角标计数」与「列表过滤结果」可对齐；
+      其余状态（暂停/取消等）只计入“全部”，不受 stateType 分组影响。
+      传入具体 JobStatus（如从历史路由 query 续接）时走 equality 兜底。
+    -->
+    <sql id="jobInstanceStateFilter">
+        <if test="stateType != null and stateType != ''">
+            <choose>
+                <when test="stateType == 'RUNNING'">
+                    AND ji.job_status IN ('RUNNING', 'SUBMITTED_SUCCESS')
+                </when>
+                <when test="stateType == 'SUCCESS'">
+                    AND ji.job_status IN ('SUCCESS', 'FINISHED', 'FORCED_SUCCESS')
+                </when>
+                <when test="stateType == 'FAILED'">
+                    AND ji.job_status IN ('FAILURE', 'FAILED')
+                </when>
+                <otherwise>
+                    AND ji.job_status = #{stateType}
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    <select id="queryJobInstanceListPaging" resultType="org.apache.seatunnel.app.domain.dto.job.SeaTunnelJobInstanceDto">
+        SELECT ji.*, jd.name AS jobDefineName, cu.username AS username
+        FROM t_st_job_instance ji
+        LEFT JOIN t_st_job_definition jd ON ji.job_define_id = jd.id
+        LEFT JOIN `user` cu ON ji.create_user_id = cu.id
+        <include refid="jobInstancePagingWhere"/>
+        <include refid="jobInstanceStateFilter"/>
         ORDER BY ji.create_time DESC
+    </select>
+    <!--
+      实例列表统计卡全局计数：与分页查询同 WHERE（同 workspace/时间/名称/执行用户/模式过滤），
+      但**不含 stateType 状态筛选**，这样四个状态角标互相可比、切换状态时角标不跳变；
+      在 SQL 层聚合，不受当前页与权限后置过滤影响；状态口径与前端状态角标一致：
+      running=RUNNING/SUBMITTED_SUCCESS，success=SUCCESS/FINISHED/FORCED_SUCCESS，failed=FAILURE/FAILED
+    -->
+    <select id="countJobStatusStats" resultType="org.apache.seatunnel.app.domain.response.metrics.JobInstanceStatusStats">
+        SELECT
+            COUNT(*) AS totalCount,
+            COALESCE(SUM(ji.job_status IN ('RUNNING', 'SUBMITTED_SUCCESS')), 0) AS runningCount,
+            COALESCE(SUM(ji.job_status IN ('SUCCESS', 'FINISHED', 'FORCED_SUCCESS')), 0) AS successCount,
+            COALESCE(SUM(ji.job_status IN ('FAILURE', 'FAILED')), 0) AS failedCount
+        FROM t_st_job_instance ji
+        LEFT JOIN t_st_job_definition jd ON ji.job_define_id = jd.id
+        LEFT JOIN `user` cu ON ji.create_user_id = cu.id
+        <include refid="jobInstancePagingWhere"/>
     </select>
     <!--
       未彻底结束的实例：排除 FINISHED/FAILED/CANCELED。
