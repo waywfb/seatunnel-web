@@ -25,6 +25,7 @@ import org.apache.seatunnel.app.dal.dao.IJobMetricsHistoryDao;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.dal.entity.JobMetricsHistory;
 import org.apache.seatunnel.app.domain.response.metrics.JobPipelineDetailMetricsRes;
+import org.apache.seatunnel.app.service.IAlertService;
 import org.apache.seatunnel.app.service.IJobMetricsService;
 import org.apache.seatunnel.app.thirdparty.engine.SeaTunnelEngineProxy;
 import org.apache.seatunnel.app.utils.JobUtils;
@@ -68,6 +69,8 @@ public class MonitorTaskScheduler {
     @Resource private IJobMetricsService jobMetricsService;
 
     @Resource private IJobMetricsHistoryDao jobMetricsHistoryDao;
+
+    @Resource private IAlertService alertService;
 
     private final ConcurrentHashMap<Long, JobInstance> jobInstanceMap = new ConcurrentHashMap<>();
 
@@ -258,6 +261,8 @@ public class MonitorTaskScheduler {
                         synchronized (mapLock) {
                             jobInstanceMap.remove(jobInstance.getId());
                         }
+                        // 终态挂钩：仅写告警事件，发送由 AlertSendScheduler 异步处理
+                        alertService.onInstanceTerminal(jobInstance, engineStatus);
                     }
                 }
             }
@@ -345,6 +350,8 @@ public class MonitorTaskScheduler {
                     synchronized (mapLock) {
                         jobInstanceMap.remove(jobInstance.getId());
                     }
+                    // 终态挂钩：仅写告警事件，发送由 AlertSendScheduler 异步处理
+                    alertService.onInstanceTerminal(jobInstance, finalStatus);
                 }
             }
         } catch (Exception ex) {

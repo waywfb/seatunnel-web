@@ -23,6 +23,7 @@ import org.apache.seatunnel.app.dal.entity.JobInstance;
 import org.apache.seatunnel.app.domain.request.job.JobExecParam;
 import org.apache.seatunnel.app.domain.response.engine.Engine;
 import org.apache.seatunnel.app.domain.response.executor.JobExecutorRes;
+import org.apache.seatunnel.app.service.IAlertService;
 import org.apache.seatunnel.app.service.IJobExecutorService;
 import org.apache.seatunnel.app.service.IJobInstanceService;
 import org.apache.seatunnel.app.thirdparty.engine.SeaTunnelEngineProxy;
@@ -67,6 +68,7 @@ import java.util.concurrent.Executors;
 public class JobExecutorServiceImpl implements IJobExecutorService {
     @Resource private IJobInstanceService jobInstanceService;
     @Resource private IJobInstanceDao jobInstanceDao;
+    @Resource private IAlertService alertService;
     @Autowired private AsyncTaskExecutor taskExecutor;
 
     @Override
@@ -135,6 +137,8 @@ public class JobExecutorServiceImpl implements IJobExecutorService {
             String jobInstanceErrorMessage = JobUtils.getJobInstanceErrorMessage(e.getMessage());
             jobInstance.setErrorMessage(jobInstanceErrorMessage);
             jobInstanceDao.update(jobInstance);
+            // 提交失败同属任务失败终态，挂钩告警（内部自吞异常，不影响本方法抛错）
+            alertService.onInstanceTerminal(jobInstance, JobStatus.FAILED);
             throw new RuntimeException(e.getMessage(), e);
         }
         JobInstance jobInstance = jobInstanceDao.getJobInstance(jobInstanceId);

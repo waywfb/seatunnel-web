@@ -440,3 +440,46 @@ CREATE TABLE `t_st_job_schedule_trigger_log` (
   INDEX `idx_tl_job_definition`(`job_definition_id`, `workspace_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='任务调度触发记录表';
 
+-- ----------------------------
+-- Table structure for t_st_alert_rule (告警规则)
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_alert_rule`;
+CREATE TABLE `t_st_alert_rule` (
+  `id` bigint(20) NOT NULL COMMENT '主键 ID',
+  `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT '规则名称',
+  `event_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT 'JOB_FAILED' COMMENT '触发事件类型: JOB_FAILED-任务失败',
+  `webhook_url` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL COMMENT 'Webhook 推送地址',
+  `webhook_headers` json DEFAULT NULL COMMENT '自定义请求头 JSON，如签名鉴权头',
+  `webhook_template` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '消息模板，支持 ${jobName} ${errorMessage} 等占位符',
+  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态: 1-启用 0-停用',
+  `cooldown_seconds` int(11) NOT NULL DEFAULT 300 COMMENT '同实例告警冷却时间(秒)，防抖动重复推送',
+  `create_user_id` int(11) NOT NULL,
+  `update_user_id` int(11) NULL DEFAULT NULL,
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `workspace_id` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_alert_rule_workspace`(`workspace_id`, `status`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='告警规则表';
+
+-- ----------------------------
+-- Table structure for t_st_alert_event (告警事件)
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_alert_event`;
+CREATE TABLE `t_st_alert_event` (
+  `id` bigint(20) NOT NULL COMMENT '主键 ID',
+  `rule_id` bigint(20) NOT NULL COMMENT '触发的告警规则 ID',
+  `job_instance_id` bigint(20) NOT NULL COMMENT '来源任务实例 ID',
+  `job_define_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '任务定义名称(冗余存储，便于列表展示)',
+  `error_message` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '失败原因',
+  `send_status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '发送状态: 0-待发送 1-已发送 2-发送失败',
+  `retry_count` int(11) NOT NULL DEFAULT 0 COMMENT '已重试次数',
+  `send_time` timestamp(3) NULL DEFAULT NULL COMMENT '发送成功时间',
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `update_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `workspace_id` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_alert_event_status`(`send_status`) USING BTREE,
+  INDEX `idx_alert_event_instance`(`job_instance_id`, `workspace_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='告警事件表';
+

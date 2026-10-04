@@ -380,3 +380,43 @@ CREATE TABLE t_st_job_schedule_trigger_log (
   workspace_id BIGINT NOT NULL,
   PRIMARY KEY (id)
 );
+
+-- Table structure for t_st_alert_rule (告警规则)
+DROP TABLE IF EXISTS t_st_alert_rule;
+CREATE TABLE t_st_alert_rule (
+  id BIGINT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  event_type VARCHAR(50) NOT NULL DEFAULT 'JOB_FAILED',
+  webhook_url VARCHAR(500) NOT NULL,
+  webhook_headers TEXT DEFAULT NULL,
+  webhook_template VARCHAR(2000) DEFAULT NULL,
+  status TINYINT NOT NULL DEFAULT 1,
+  cooldown_seconds INT NOT NULL DEFAULT 300,
+  create_user_id INT NOT NULL,
+  update_user_id INT DEFAULT NULL,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  workspace_id BIGINT NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_alert_rule_workspace (workspace_id, status)
+);
+
+-- Table structure for t_st_alert_event (告警事件)
+DROP TABLE IF EXISTS t_st_alert_event;
+CREATE TABLE t_st_alert_event (
+  id BIGINT NOT NULL,
+  rule_id BIGINT NOT NULL,
+  job_instance_id BIGINT NOT NULL,
+  job_define_name VARCHAR(200) DEFAULT NULL,
+  error_message VARCHAR(4096) DEFAULT NULL,
+  send_status TINYINT NOT NULL DEFAULT 0,
+  retry_count INT NOT NULL DEFAULT 0,
+  send_time TIMESTAMP(3) DEFAULT NULL,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  workspace_id BIGINT NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_alert_event_status (send_status),
+  INDEX idx_alert_event_instance (job_instance_id, workspace_id)
+);
+
