@@ -18,16 +18,28 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import { codeInspectorPlugin } from 'code-inspector-plugin'
 import path from 'path'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
     base: process.env.NODE_ENV === 'production' ? '/ui/' : '/',
     plugins: [
       vue(),
-      vueJsx()
+      vueJsx(),
+      // 代码定位：仅开发服务器注入，生产构建不打包
+      ...(command === 'serve'
+        ? [
+            codeInspectorPlugin({
+              bundler: 'vite',
+              hotKeys: ['altKey', 'shiftKey'],
+              showSwitch: true,
+              lang: 'zh'
+            })
+          ]
+        : [])
     ],
     resolve: {
       alias: {
