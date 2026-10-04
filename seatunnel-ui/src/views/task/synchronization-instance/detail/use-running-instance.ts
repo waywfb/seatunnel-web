@@ -119,8 +119,10 @@ export function useRunningInstance() {
         key: 'readQps'
       },
       {
-        title: t('project.synchronization_instance.amount_of_data_read'),
-        key: 'readRowCount'
+        title: t('project.synchronization_instance.amount_of_data_rw'),
+        key: 'readRowCount',
+        render: (row: any) =>
+          `${row.readRowCount ?? 0} / ${row.writeRowCount ?? 0}`
       },
       {
         title: t('project.synchronization_instance.delay_of_data'),
@@ -161,10 +163,6 @@ export function useRunningInstance() {
       {
         title: t('project.synchronization_instance.processing_rate'),
         key: 'writeQps'
-      },
-      {
-        title: t('project.synchronization_instance.amount_of_data_written'),
-        key: 'writeRowCount'
       },
       {
         title: t('project.synchronization_instance.state'),

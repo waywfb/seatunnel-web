@@ -304,14 +304,11 @@ export function useSyncTask(syncTaskType = 'BATCH') {
         }
       }),
       {
-        title: t('project.synchronization_instance.amount_of_data_read'),
+        title: t('project.synchronization_instance.amount_of_data_rw'),
         key: 'readRowCount',
-        ...COLUMN_WIDTH_CONFIG['tag']
-      },
-      {
-        title: t('project.synchronization_instance.amount_of_data_written'),
-        key: 'writeRowCount',
-        ...COLUMN_WIDTH_CONFIG['tag']
+        ...COLUMN_WIDTH_CONFIG['tag'],
+        render: (row: any) =>
+          `${row.readRowCount ?? 0} / ${row.writeRowCount ?? 0}`
       },
       {
         title: t('project.synchronization_instance.execute_user'),
