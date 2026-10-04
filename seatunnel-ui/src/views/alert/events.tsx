@@ -26,11 +26,15 @@ import {
   NSpace
 } from 'naive-ui'
 import { useI18n } from 'vue-i18n'
-import { alertEventList } from '@/service/alert'
+import { alertEventList, alertEventHistoryList } from '@/service/alert'
 import type { AlertEvent } from '@/service/alert'
 
 const Events = defineComponent({
-  setup() {
+  props: {
+    /** 读历史归档表（已超保留期的事件），默认读主表 */
+    history: { type: Boolean, default: false }
+  },
+  setup(props) {
     const { t } = useI18n()
     const loading = ref(false)
     const tableData = ref<AlertEvent[]>([])
@@ -53,11 +57,13 @@ const Events = defineComponent({
 
     const getTableData = () => {
       loading.value = true
-      alertEventList({
+      const query = {
         pageNo: pageNo.value,
         pageSize: pageSize.value,
         ...(sendStatus.value === null ? {} : { sendStatus: sendStatus.value })
-      })
+      }
+      const fetcher = props.history ? alertEventHistoryList : alertEventList
+      fetcher(query)
         .then((res: any) => {
           tableData.value = res?.data || []
           totalCount.value = res?.totalCount || 0
@@ -89,7 +95,9 @@ const Events = defineComponent({
     }
 
     const statusOptions = [
-      { label: t('alert.send_status_pending'), value: 0 },
+      ...(props.history
+        ? []
+        : [{ label: t('alert.send_status_pending'), value: 0 }]),
       { label: t('alert.send_status_success'), value: 1 },
       { label: t('alert.send_status_failed'), value: 2 }
     ]
@@ -155,7 +163,11 @@ const Events = defineComponent({
     return (
       <NCard size='small' class='mt-2'>
         <div class='mb-3 flex items-center justify-between'>
-          <span class='text-tide-title-lg'>{this.t('alert.event_tab')}</span>
+          <span class='text-tide-title-lg'>
+            {this.history
+              ? this.t('alert.history_tab')
+              : this.t('alert.event_tab')}
+          </span>
           <NSpace>
             <NSelect
               value={this.sendStatus}

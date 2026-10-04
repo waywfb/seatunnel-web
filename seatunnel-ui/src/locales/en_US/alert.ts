@@ -19,6 +19,7 @@ export default {
   alert: 'Alert',
   rule_tab: 'Alert Rules',
   event_tab: 'Alert Events',
+  history_tab: 'Archived',
   rule_name: 'Rule Name',
   event_type: 'Event Type',
   event_type_task_failed: 'Task Failed',

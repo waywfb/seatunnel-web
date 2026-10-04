@@ -66,6 +66,18 @@ public interface IAlertService {
             Long ruleId,
             String jobDefineName);
 
+    /**
+     * 查询已归档到历史表的告警事件，筛选条件与 {@link #pageEvent} 一致。
+     *
+     * <p>历史行只含发送终态（成功/失败），不会出现待发送。
+     */
+    PageInfo<AlertEventRes> pageEventHistory(
+            Integer pageNo,
+            Integer pageSize,
+            Integer sendStatus,
+            Long ruleId,
+            String jobDefineName);
+
     /** 用指定规则向其 webhook 地址推送一条测试消息，返回是否成功 */
     boolean sendTestWebhook(Long ruleId);
 }

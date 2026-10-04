@@ -106,3 +106,12 @@ export function alertEventList(params: AlertEventPageQuery): any {
     params
   })
 }
+
+/** 查询已超过保留期、归档到历史表的告警事件 */
+export function alertEventHistoryList(params: AlertEventPageQuery): any {
+  return axios({
+    url: '/alert/event/history',
+    method: 'get',
+    params
+  })
+}

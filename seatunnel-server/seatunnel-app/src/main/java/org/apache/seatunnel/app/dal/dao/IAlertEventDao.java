@@ -18,6 +18,7 @@
 package org.apache.seatunnel.app.dal.dao;
 
 import org.apache.seatunnel.app.dal.entity.AlertEvent;
+import org.apache.seatunnel.app.dal.entity.AlertEventHistory;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 
@@ -34,6 +35,18 @@ public interface IAlertEventDao {
 
     IPage<AlertEvent> queryPage(
             IPage<AlertEvent> page,
+            Long workspaceId,
+            Integer sendStatus,
+            Long ruleId,
+            String jobDefineName);
+
+    /**
+     * 历史归档表分页查询，过滤条件与 {@link #queryPage} 完全一致，便于前端复用同一套筛选项。
+     *
+     * <p>归档行的 create_time 必然早于保留期下界，天然命中 idx_alert_event_history_workspace_time。
+     */
+    IPage<AlertEventHistory> queryHistoryPage(
+            IPage<AlertEventHistory> page,
             Long workspaceId,
             Integer sendStatus,
             Long ruleId,

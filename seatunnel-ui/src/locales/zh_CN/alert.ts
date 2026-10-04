@@ -19,6 +19,7 @@ export default {
   alert: '告警',
   rule_tab: '告警规则',
   event_tab: '告警事件',
+  history_tab: '历史归档',
   rule_name: '规则名称',
   event_type: '告警事件类型',
   event_type_task_failed: '任务失败',

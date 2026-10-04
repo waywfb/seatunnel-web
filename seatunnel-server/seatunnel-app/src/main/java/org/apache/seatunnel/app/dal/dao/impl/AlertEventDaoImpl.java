@@ -71,8 +71,26 @@ public class AlertEventDaoImpl implements IAlertEventDao {
             Integer sendStatus,
             Long ruleId,
             String jobDefineName) {
-        LambdaQueryWrapper<AlertEvent> wrapper =
-                Wrappers.<AlertEvent>lambdaQuery()
+        return alertEventMapper.selectPage(
+                page, buildQuery(workspaceId, sendStatus, ruleId, jobDefineName));
+    }
+
+    @Override
+    public IPage<AlertEventHistory> queryHistoryPage(
+            IPage<AlertEventHistory> page,
+            Long workspaceId,
+            Integer sendStatus,
+            Long ruleId,
+            String jobDefineName) {
+        return alertEventHistoryMapper.selectPage(
+                page, buildQuery(workspaceId, sendStatus, ruleId, jobDefineName));
+    }
+
+    /** 主表与历史归档表共用同一套过滤条件，保证切换前后端到端筛选行为一致 */
+    private <T extends AlertEvent> LambdaQueryWrapper<T> buildQuery(
+            Long workspaceId, Integer sendStatus, Long ruleId, String jobDefineName) {
+        LambdaQueryWrapper<T> wrapper =
+                Wrappers.<T>lambdaQuery()
                         .eq(AlertEvent::getWorkspaceId, workspaceId)
                         .eq(sendStatus != null, AlertEvent::getSendStatus, sendStatus)
                         .eq(ruleId != null, AlertEvent::getRuleId, ruleId)
@@ -80,7 +98,7 @@ public class AlertEventDaoImpl implements IAlertEventDao {
         if (StringUtils.hasText(jobDefineName)) {
             wrapper.like(AlertEvent::getJobDefineName, jobDefineName);
         }
-        return alertEventMapper.selectPage(page, wrapper);
+        return wrapper;
     }
 
     @Override

@@ -37,6 +37,9 @@ const AlertPage = defineComponent({
           <NTabPane name='events' tab={this.t('alert.event_tab')}>
             <Events />
           </NTabPane>
+          <NTabPane name='history' tab={this.t('alert.history_tab')}>
+            <Events history />
+          </NTabPane>
         </NTabs>
       </div>
     )

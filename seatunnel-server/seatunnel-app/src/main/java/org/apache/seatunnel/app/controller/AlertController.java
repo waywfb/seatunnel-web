@@ -108,4 +108,18 @@ public class AlertController extends BaseController {
         return Result.success(
                 alertService.pageEvent(pageNo, pageSize, sendStatus, ruleId, jobDefineName));
     }
+
+    @GetMapping("/event/history")
+    @ApiOperation(value = "page archived alert events", httpMethod = "GET")
+    public Result<PageInfo<AlertEventRes>> pageEventHistory(
+            @ApiParam(value = "page no", required = true) @RequestParam Integer pageNo,
+            @ApiParam(value = "page size", required = true) @RequestParam Integer pageSize,
+            @ApiParam(value = "send status, 1-success 2-failed") @RequestParam(required = false)
+                    Integer sendStatus,
+            @ApiParam(value = "rule id") @RequestParam(required = false) Long ruleId,
+            @ApiParam(value = "job define name") @RequestParam(required = false)
+                    String jobDefineName) {
+        return Result.success(
+                alertService.pageEventHistory(pageNo, pageSize, sendStatus, ruleId, jobDefineName));
+    }
 }

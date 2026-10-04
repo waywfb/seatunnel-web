@@ -20,6 +20,7 @@ package org.apache.seatunnel.app.service.impl;
 import org.apache.seatunnel.app.dal.dao.IAlertEventDao;
 import org.apache.seatunnel.app.dal.dao.IAlertRuleDao;
 import org.apache.seatunnel.app.dal.entity.AlertEvent;
+import org.apache.seatunnel.app.dal.entity.AlertEventHistory;
 import org.apache.seatunnel.app.dal.entity.AlertRule;
 import org.apache.seatunnel.app.dal.entity.JobDefinition;
 import org.apache.seatunnel.app.dal.entity.JobInstance;
@@ -466,6 +467,31 @@ public class AlertServiceImpl extends SeatunnelBaseServiceImpl implements IAlert
     }
 
     @Override
+    public PageInfo<AlertEventRes> pageEventHistory(
+            Integer pageNo,
+            Integer pageSize,
+            Integer sendStatus,
+            Long ruleId,
+            String jobDefineName) {
+        checkPermission(null, AccessType.READ);
+        Long workspaceId = ServletUtils.getCurrentWorkspaceId();
+        IPage<AlertEventHistory> historyPage =
+                alertEventDao.queryHistoryPage(
+                        new Page<>(pageNo, pageSize),
+                        workspaceId,
+                        sendStatus,
+                        ruleId,
+                        jobDefineName);
+        PageInfo<AlertEventRes> pageInfo = new PageInfo<>();
+        pageInfo.setPageSize(pageSize);
+        pageInfo.setPageNo(pageNo);
+        pageInfo.setData(toEventResList(historyPage.getRecords()));
+        // setTotalCount 依赖已设置的 pageSize 计算 totalPage，必须放在最后
+        pageInfo.setTotalCount((int) historyPage.getTotal());
+        return pageInfo;
+    }
+
+    @Override
     public boolean sendTestWebhook(Long ruleId) {
         AlertRule rule = requireRule(ruleId);
         checkPermission(rule.getName(), AccessType.EXECUTE);
@@ -546,7 +572,7 @@ public class AlertServiceImpl extends SeatunnelBaseServiceImpl implements IAlert
         return res;
     }
 
-    private List<AlertEventRes> toEventResList(List<AlertEvent> events) {
+    private List<AlertEventRes> toEventResList(List<? extends AlertEvent> events) {
         if (events == null || events.isEmpty()) {
             return Collections.emptyList();
         }
