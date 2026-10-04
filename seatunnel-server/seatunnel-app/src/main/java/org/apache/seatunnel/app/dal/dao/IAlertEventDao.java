@@ -46,11 +46,14 @@ public interface IAlertEventDao {
     long countSince(Long ruleId, Long jobInstanceId, Date since);
 
     /**
-     * 删除 create_time 早于 cutoff 的事件，单次最多删 limit 条。
+     * 把 create_time 早于 cutoff 且已进入发送终态的事件迁入历史表，单次最多搬 limit 条。
      *
-     * <p>调用方需分批循环直至返回值小于 limit，避免一次性删除造成大事务与长时间锁表。
+     * <p>只处理 {@link AlertEvent#SEND_STATUS_SUCCESS}/{@link AlertEvent#SEND_STATUS_FAILED}，绝不触碰待发送
+     * (send_status=0) 的行，避免与 10s 的发送调度争抢同一批数据。
      *
-     * @return 实际删除行数
+     * <p>插入历史表与删除主表行在同一事务内完成，调用方需分批循环直至返回值小于 limit。
+     *
+     * @return 实际迁移行数
      */
-    int deleteCreatedBefore(Date cutoff, int limit);
+    int archiveCreatedBefore(Date cutoff, int limit);
 }

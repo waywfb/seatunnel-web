@@ -49,13 +49,13 @@ public class AlertSendScheduler {
         }
     }
 
-    /** 每小时清理超期告警事件，防止事件表无限增长拖慢发送扫描 */
+    /** 每小时把超期告警事件迁入历史归档表，防止事件表无限增长拖慢发送扫描 */
     @Scheduled(initialDelay = 60000, fixedDelay = 3600000)
-    public void cleanupExpiredAlertEvents() {
+    public void archiveExpiredAlertEvents() {
         try {
-            alertService.cleanupExpiredEvents();
+            alertService.archiveExpiredEvents();
         } catch (Exception e) {
-            log.warn("Alert event cleanup failed", e);
+            log.warn("Alert event archive failed", e);
         }
     }
 }

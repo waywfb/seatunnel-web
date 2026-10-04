@@ -80,17 +80,17 @@ public class AlertServiceImpl extends SeatunnelBaseServiceImpl implements IAlert
 
     private static final int MAX_ERROR_MESSAGE_LENGTH = 4000;
 
-    /** 单次清理批量上限，避免大事务与长时间锁表 */
-    private static final int CLEANUP_BATCH_SIZE = 1000;
+    /** 单次归档批量上限，避免大事务与长时间锁表 */
+    private static final int ARCHIVE_BATCH_SIZE = 1000;
 
-    /** 单轮清理最多执行的批次数。Spring 调度默认单线程，巨量堆积时不限批次会长时间占用线程，进而推迟告警发送。 */
-    private static final int CLEANUP_MAX_BATCHES = 100;
+    /** 单轮归档最多执行的批次数。Spring 调度默认单线程，巨量堆积时不限批次会长时间占用线程，进而推迟告警发送。 */
+    private static final int ARCHIVE_MAX_BATCHES = 100;
 
     private static final long MILLIS_PER_DAY = 86400000L;
 
     private static final Pattern PLACEHOLDER = Pattern.compile("\\$\\{(\\w+)}");
 
-    /** 告警事件保留天数，0 或负数表示关闭自动清理 */
+    /** 告警事件保留天数，0 或负数表示关闭自动归档 */
     @Value("${seatunnel-web.alert.event-retention-days:30}")
     private int eventRetentionDays;
 
@@ -162,22 +162,22 @@ public class AlertServiceImpl extends SeatunnelBaseServiceImpl implements IAlert
     }
 
     @Override
-    public void cleanupExpiredEvents() {
+    public void archiveExpiredEvents() {
         if (eventRetentionDays <= 0) {
             return;
         }
         Date cutoff = new Date(System.currentTimeMillis() - eventRetentionDays * MILLIS_PER_DAY);
         int total = 0;
-        for (int i = 0; i < CLEANUP_MAX_BATCHES; i++) {
-            int deleted = alertEventDao.deleteCreatedBefore(cutoff, CLEANUP_BATCH_SIZE);
-            total += deleted;
-            if (deleted < CLEANUP_BATCH_SIZE) {
+        for (int i = 0; i < ARCHIVE_MAX_BATCHES; i++) {
+            int archived = alertEventDao.archiveCreatedBefore(cutoff, ARCHIVE_BATCH_SIZE);
+            total += archived;
+            if (archived < ARCHIVE_BATCH_SIZE) {
                 break;
             }
         }
         if (total > 0) {
             log.info(
-                    "Cleaned up {} expired alert events, retention {} days",
+                    "Archived {} expired alert events into history table, retention {} days",
                     total,
                     eventRetentionDays);
         }
@@ -490,7 +490,7 @@ public class AlertServiceImpl extends SeatunnelBaseServiceImpl implements IAlert
      * 告警资源权限校验，资源名为空时回落为模块名，避免校验实现拿到 null。
      *
      * <p>仅用于用户请求入口。系统钩子（{@link #onInstanceTerminal}）与调度任务（{@link #sendPendingEvents}、{@link
-     * #cleanupExpiredEvents}） 无用户上下文，调用会导致 UserContextHolder 抛异常，不得加校验。
+     * #archiveExpiredEvents}） 无用户上下文，调用会导致 UserContextHolder 抛异常，不得加校验。
      */
     private void checkPermission(String resourceName, AccessType accessType) {
         permissionCheck(

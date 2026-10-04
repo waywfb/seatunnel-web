@@ -421,3 +421,21 @@ CREATE TABLE t_st_alert_event (
   INDEX idx_alert_event_workspace_time (workspace_id, create_time)
 );
 
+-- Table structure for t_st_alert_event_history (告警事件历史归档)
+DROP TABLE IF EXISTS t_st_alert_event_history;
+CREATE TABLE t_st_alert_event_history (
+  id BIGINT NOT NULL,
+  rule_id BIGINT NOT NULL,
+  job_instance_id BIGINT NOT NULL,
+  job_define_name VARCHAR(200) DEFAULT NULL,
+  error_message VARCHAR(4096) DEFAULT NULL,
+  send_status TINYINT NOT NULL DEFAULT 0,
+  retry_count INT NOT NULL DEFAULT 0,
+  send_time TIMESTAMP(3) DEFAULT NULL,
+  create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  workspace_id BIGINT NOT NULL,
+  PRIMARY KEY (id),
+  INDEX idx_alert_event_history_workspace_time (workspace_id, create_time)
+);
+

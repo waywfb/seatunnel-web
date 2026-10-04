@@ -484,3 +484,23 @@ CREATE TABLE `t_st_alert_event` (
   INDEX `idx_alert_event_workspace_time`(`workspace_id`, `create_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='告警事件表';
 
+-- ----------------------------
+-- Table structure for t_st_alert_event_history (告警事件历史归档)
+-- ----------------------------
+DROP TABLE IF EXISTS `t_st_alert_event_history`;
+CREATE TABLE `t_st_alert_event_history` (
+  `id` bigint(20) NOT NULL COMMENT '主键 ID',
+  `rule_id` bigint(20) NOT NULL COMMENT '触发的告警规则 ID',
+  `job_instance_id` bigint(20) NOT NULL COMMENT '来源任务实例 ID',
+  `job_define_name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '任务定义名称(冗余存储，便于列表展示)',
+  `error_message` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NULL DEFAULT NULL COMMENT '失败原因',
+  `send_status` tinyint(4) NOT NULL DEFAULT 0 COMMENT '发送状态: 0-待发送 1-已发送 2-发送失败',
+  `retry_count` int(11) NOT NULL DEFAULT 0 COMMENT '已重试次数',
+  `send_time` timestamp(3) NULL DEFAULT NULL COMMENT '发送成功时间',
+  `create_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '事件产生时间(保留原值)',
+  `update_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  `workspace_id` bigint(20) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_alert_event_history_workspace_time`(`workspace_id`, `create_time`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='告警事件历史归档表(超过保留期的事件由 t_st_alert_event 迁入，只增不删)';
+

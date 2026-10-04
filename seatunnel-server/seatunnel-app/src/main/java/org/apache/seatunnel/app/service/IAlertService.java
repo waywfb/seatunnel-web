@@ -43,11 +43,13 @@ public interface IAlertService {
     void sendPendingEvents();
 
     /**
-     * 清理超过保留期的告警事件，防止事件表无限增长拖慢发送扫描。
+     * 把超过保留期的告警事件迁入历史归档表，防止事件表无限增长拖慢发送扫描。
+     *
+     * <p>只归档已进入发送终态的事件，待发送事件仍留在主表，由 {@link #sendPendingEvents()} 消化。
      *
      * <p>由调度器周期调用，无用户上下文，故不做权限校验。
      */
-    void cleanupExpiredEvents();
+    void archiveExpiredEvents();
 
     Long createRule(AlertRuleReq req);
 
