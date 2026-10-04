@@ -42,6 +42,13 @@ public interface IAlertService {
     /** 扫描待发送事件并推送 webhook，由独立调度器周期调用 */
     void sendPendingEvents();
 
+    /**
+     * 清理超过保留期的告警事件，防止事件表无限增长拖慢发送扫描。
+     *
+     * <p>由调度器周期调用，无用户上下文，故不做权限校验。
+     */
+    void cleanupExpiredEvents();
+
     Long createRule(AlertRuleReq req);
 
     void updateRule(Long ruleId, AlertRuleReq req);

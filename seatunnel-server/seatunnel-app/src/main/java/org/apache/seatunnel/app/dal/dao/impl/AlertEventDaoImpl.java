@@ -91,4 +91,12 @@ public class AlertEventDaoImpl implements IAlertEventDao {
                         .eq(AlertEvent::getJobInstanceId, jobInstanceId)
                         .ge(AlertEvent::getCreateTime, since));
     }
+
+    @Override
+    public int deleteCreatedBefore(Date cutoff, int limit) {
+        return alertEventMapper.delete(
+                Wrappers.<AlertEvent>lambdaQuery()
+                        .lt(AlertEvent::getCreateTime, cutoff)
+                        .last("limit " + Math.max(1, limit)));
+    }
 }

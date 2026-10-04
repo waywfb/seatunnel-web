@@ -44,4 +44,13 @@ public interface IAlertEventDao {
 
     /** 冷却判断：该规则对同一实例在 since 之后是否已产生过事件 */
     long countSince(Long ruleId, Long jobInstanceId, Date since);
+
+    /**
+     * 删除 create_time 早于 cutoff 的事件，单次最多删 limit 条。
+     *
+     * <p>调用方需分批循环直至返回值小于 limit，避免一次性删除造成大事务与长时间锁表。
+     *
+     * @return 实际删除行数
+     */
+    int deleteCreatedBefore(Date cutoff, int limit);
 }

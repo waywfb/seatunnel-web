@@ -21,7 +21,8 @@ public enum ResourceType {
     DATASOURCE,
     JOB,
     USER,
-    VIRTUAL_TABLE;
+    VIRTUAL_TABLE,
+    ALERT;
 
     public String getName() {
         return this.name().toLowerCase();

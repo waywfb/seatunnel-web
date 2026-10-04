@@ -48,4 +48,14 @@ public class AlertSendScheduler {
             log.warn("Alert send cycle failed", e);
         }
     }
+
+    /** 每小时清理超期告警事件，防止事件表无限增长拖慢发送扫描 */
+    @Scheduled(initialDelay = 60000, fixedDelay = 3600000)
+    public void cleanupExpiredAlertEvents() {
+        try {
+            alertService.cleanupExpiredEvents();
+        } catch (Exception e) {
+            log.warn("Alert event cleanup failed", e);
+        }
+    }
 }
