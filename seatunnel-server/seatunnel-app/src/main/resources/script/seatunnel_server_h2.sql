@@ -417,6 +417,7 @@ CREATE TABLE t_st_alert_event (
   workspace_id BIGINT NOT NULL,
   PRIMARY KEY (id),
   INDEX idx_alert_event_status (send_status),
-  INDEX idx_alert_event_instance (job_instance_id, workspace_id)
+  INDEX idx_alert_event_instance (job_instance_id, workspace_id),
+  INDEX idx_alert_event_workspace_time (workspace_id, create_time)
 );
 

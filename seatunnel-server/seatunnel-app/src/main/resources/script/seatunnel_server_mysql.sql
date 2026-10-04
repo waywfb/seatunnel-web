@@ -480,6 +480,7 @@ CREATE TABLE `t_st_alert_event` (
   `workspace_id` bigint(20) NOT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_alert_event_status`(`send_status`) USING BTREE,
-  INDEX `idx_alert_event_instance`(`job_instance_id`, `workspace_id`) USING BTREE
+  INDEX `idx_alert_event_instance`(`job_instance_id`, `workspace_id`) USING BTREE,
+  INDEX `idx_alert_event_workspace_time`(`workspace_id`, `create_time`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_bin ROW_FORMAT = Dynamic COMMENT='告警事件表';
 
