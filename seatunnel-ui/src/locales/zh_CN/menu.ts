@@ -38,5 +38,6 @@ export default {
   section_ai: '人工智能',
   data_standard: '数据标准',
   section_admin: '系统管理',
-  ai_assistant: 'AI 助手'
+  ai_assistant: 'AI 助手',
+  alert: '告警'
 }

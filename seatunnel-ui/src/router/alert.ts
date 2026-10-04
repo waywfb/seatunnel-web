@@ -16,55 +16,29 @@
  */
 
 import utils from '@/utils'
-import tasks from '@/router/tasks'
-import userManage from '@/router/user-manage'
-import datasource from '@/router/datasource'
-import virtualTables from '@/router/virtual-tables'
-import ai from '@/router/ai'
-import dataStandard from '@/router/data-standard'
-import alert from '@/router/alert'
-import type { RouteRecordRaw } from 'vue-router'
 import type { Component } from 'vue'
 
 const modules = import.meta.glob('/src/views/**/**.tsx')
 const components: { [key: string]: Component } = utils.mapping(modules)
 
-const basePage: RouteRecordRaw[] = [
-  {
-    path: '/',
-    redirect: { name: 'login' }
+export default {
+  path: '/alert',
+  name: 'alert',
+  meta: {
+    title: 'alert'
   },
-  tasks,
-  userManage,
-  datasource,
-  virtualTables,
-  ai,
-  dataStandard,
-  alert
-]
-
-const loginPage: RouteRecordRaw[] = [
-  {
-    path: '/login',
-    name: 'login',
-    component: components['login']
-  },
-  {
-    path: '/setting',
-    redirect: { name: 'setting' },
-    children: [
-      {
-        path: '/setting',
-        name: 'setting',
-        component: components['setting'],
-        meta: {
-          title: 'setting'
-        }
+  redirect: { name: 'alert' },
+  component: () => import('@/layouts/dashboard'),
+  children: [
+    {
+      path: '/alert',
+      name: 'alert',
+      component: components['alert'],
+      meta: {
+        title: 'alert',
+        activeMenu: 'alert',
+        breadcrumb: [{ label: '告警', path: '/alert' }]
       }
-    ]
-  }
-]
-
-const routes: RouteRecordRaw[] = [...basePage, ...loginPage]
-
-export default routes
+    }
+  ]
+}

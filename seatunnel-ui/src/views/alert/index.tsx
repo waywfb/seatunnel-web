@@ -15,27 +15,32 @@
  * limitations under the License.
  */
 
-export default {
-  success_tips: '操作成功',
-  operation: '操作',
-  edit: '编辑',
-  delete: '删除',
-  refresh: '刷新',
-  day: '天',
-  hour: '时',
-  min: '分',
-  second: '秒',
-  row_delimiter: '行分隔符',
-  field_delimiter: '字段分隔符',
-  schema: '数据结构',
-  encoding: '编码',
-  required: '必填',
-  row_delimiter_placeholder: '请输入行分隔符',
-  row_delimiter_description: '用于分隔数据行的字符',
-  field_delimiter_placeholder: '请输入字段分隔符',
-  field_delimiter_description: '用于分隔数据字段的字符',
-  schema_placeholder: '请输入数据结构',
-  schema_description: '数据的结构定义',
-  encoding_placeholder: '请选择编码',
-  encoding_description: '文件或数据的字符编码格式'
-}
+import { defineComponent, ref } from 'vue'
+import { NTabs, NTabPane } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
+import Rules from './rules'
+import Events from './events'
+
+const AlertPage = defineComponent({
+  setup() {
+    const { t } = useI18n()
+    const activeTab = ref('rules')
+    return { t, activeTab }
+  },
+  render() {
+    return (
+      <div class='p-4'>
+        <NTabs v-model:value={this.activeTab}>
+          <NTabPane name='rules' tab={this.t('alert.rule_tab')}>
+            <Rules />
+          </NTabPane>
+          <NTabPane name='events' tab={this.t('alert.event_tab')}>
+            <Events />
+          </NTabPane>
+        </NTabs>
+      </div>
+    )
+  }
+})
+
+export default AlertPage

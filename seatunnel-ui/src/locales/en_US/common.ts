@@ -17,6 +17,10 @@
 
 export default {
   success_tips: 'Success',
+  operation: 'Operation',
+  edit: 'Edit',
+  delete: 'Delete',
+  refresh: 'Refresh',
   day: 'd',
   hour: 'h',
   min: 'm',
