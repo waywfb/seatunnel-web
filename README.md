@@ -74,7 +74,14 @@ The other way to install SeaTunnel Zeta Engine Server is download the installer 
     export PASSWORD="123456"
     export DATABASE="seatunnel"
     ```
-2. Run init shell `sh seatunnel-server/seatunnel-app/src/main/resources/script/init_sql.sh` If there are no errors during operation, it indicates successful initialization.
+2. Create the target database. The init script does not create it, so it must exist before running:
+
+    ```shell
+    mysql -h${HOSTNAME} -P${PORT} -u${USERNAME} -p -e "CREATE DATABASE IF NOT EXISTS \`${DATABASE}\` DEFAULT CHARACTER SET utf8mb4;"
+    ```
+
+    (Run `source seatunnel-server/seatunnel-app/src/main/resources/script/seatunnel_server_env.sh` first, or replace the variables with the values from step 1.)
+3. Run init shell `sh seatunnel-server/seatunnel-app/src/main/resources/script/init_sql.sh` If there are no errors during operation, it indicates successful initialization.
 
 #### 2.3 Build the project
 
@@ -175,7 +182,14 @@ tar -zxvf apache-seatunnel-web-${project.version}.tar.gz
     export PASSWORD="123456"
     export DATABASE="seatunnel"
     ```
-2. Run init shell `sh apache-seatunnel-web-${project.version}/script/init_sql.sh` If there are no errors during operation, it indicates successful initialization.
+2. Create the target database. The init script does not create it, so it must exist before running:
+
+    ```shell
+    mysql -h${HOSTNAME} -P${PORT} -u${USERNAME} -p -e "CREATE DATABASE IF NOT EXISTS \`${DATABASE}\` DEFAULT CHARACTER SET utf8mb4;"
+    ```
+
+    (Run `source apache-seatunnel-web-${project.version}/script/seatunnel_server_env.sh` first, or replace the variables with the values from step 1.)
+3. Run init shell `sh apache-seatunnel-web-${project.version}/script/init_sql.sh` If there are no errors during operation, it indicates successful initialization.
 
 #### 3.5 Config application and Run SeaTunnel Web Backend Server
 

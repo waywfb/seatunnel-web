@@ -160,6 +160,28 @@ CREATE TABLE t_st_job_metrics (
                                   PRIMARY KEY (id)
 );
 
+-- Table structure for t_st_job_metrics_history
+DROP TABLE IF EXISTS t_st_job_metrics_history;
+CREATE TABLE t_st_job_metrics_history (
+                                          id BIGINT NOT NULL,
+                                          job_instance_id BIGINT NOT NULL,
+                                          pipeline_id INT NOT NULL,
+                                          read_row_count BIGINT NOT NULL,
+                                          write_row_count BIGINT NOT NULL,
+                                          source_table_names VARCHAR(200) DEFAULT NULL,
+                                          sink_table_names VARCHAR(200) DEFAULT NULL,
+                                          read_qps BIGINT DEFAULT NULL,
+                                          write_qps BIGINT DEFAULT NULL,
+                                          record_delay BIGINT DEFAULT NULL,
+                                          status VARCHAR(20) DEFAULT NULL,
+                                          create_user_id INT NOT NULL,
+                                          update_user_id INT DEFAULT NULL,
+                                          create_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+                                          update_time TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+                                          PRIMARY KEY (id),
+                                          INDEX idx_job_instance_id_create_time (job_instance_id, create_time)
+);
+
 -- Table structure for t_st_job_task
 DROP TABLE IF EXISTS t_st_job_task;
 CREATE TABLE t_st_job_task (

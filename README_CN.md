@@ -63,7 +63,14 @@ SeaTunnel是下一代超高性能、分布式、海量数据集成工具。它�
     export PASSWORD="123456"
     export DATABASE="seatunnel"
     ```
-2. 执行命令 `sh seatunnel-server/seatunnel-app/src/main/resources/script/init_sql.sh` 如果运行过程中没有错误，则说明初始化成功。
+2. 创建目标数据库。初始化脚本不再自动创建库，必须先建库：
+
+    ```shell
+    mysql -h${HOSTNAME} -P${PORT} -u${USERNAME} -p -e "CREATE DATABASE IF NOT EXISTS \`${DATABASE}\` DEFAULT CHARACTER SET utf8mb4;"
+    ```
+
+    （先执行 `source seatunnel-server/seatunnel-app/src/main/resources/script/seatunnel_server_env.sh`，或把变量替换为上一步填写的值。）
+3. 执行命令 `sh seatunnel-server/seatunnel-app/src/main/resources/script/init_sql.sh` 如果运行过程中没有错误，则说明初始化成功。
 
 #### 2.3 构建项目
 
@@ -168,7 +175,14 @@ tar -zxvf apache-seatunnel-web-${project.version}.tar.gz
     export PASSWORD="123456"
     export DATABASE="seatunnel"
     ```
-2. 运行初始化脚本 `sh apache-seatunnel-web-${project.version}/script/init_sql.sh` 如果操作过程中没有错误,表示初始化成功。
+2. 创建目标数据库。初始化脚本不再自动创建库，必须先建库：
+
+    ```shell
+    mysql -h${HOSTNAME} -P${PORT} -u${USERNAME} -p -e "CREATE DATABASE IF NOT EXISTS \`${DATABASE}\` DEFAULT CHARACTER SET utf8mb4;"
+    ```
+
+    （先执行 `source apache-seatunnel-web-${project.version}/script/seatunnel_server_env.sh`，或把变量替换为上一步填写的值。）
+3. 运行初始化脚本 `sh apache-seatunnel-web-${project.version}/script/init_sql.sh` 如果操作过程中没有错误,表示初始化成功。
 
 #### 3.5 配置应用并运行 SeaTunnel Web 后端服务
 
