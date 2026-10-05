@@ -65,13 +65,14 @@ The other way to install SeaTunnel Zeta Engine Server is download the installer 
 
 #### 2.2 Init database 
 
-1. Edit `seatunnel-server/seatunnel-app/src/main/resources/script/seatunnel_server_env.sh` file, Complete the installed database address, port, username, and password. Here is an example:
+1. Edit `seatunnel-server/seatunnel-app/src/main/resources/script/seatunnel_server_env.sh` file, Complete the installed database address, port, username, password, and database name. Here is an example:
 
     ```
     export HOSTNAME="localhost"
     export PORT="3306"
     export USERNAME="root"
     export PASSWORD="123456"
+    export DATABASE="seatunnel"
     ```
 2. Run init shell `sh seatunnel-server/seatunnel-app/src/main/resources/script/init_sql.sh` If there are no errors during operation, it indicates successful initialization.
 
@@ -165,13 +166,14 @@ tar -zxvf apache-seatunnel-web-${project.version}.tar.gz
 
 #### 3.4 Init database
 
-1. Edit `apache-seatunnel-web-${project.version}/script/seatunnel_server_env.sh` file, Complete the installed database address, port, username, and password. Here is an example:
+1. Edit `apache-seatunnel-web-${project.version}/script/seatunnel_server_env.sh` file, Complete the installed database address, port, username, password, and database name. Here is an example:
 
     ```
     export HOSTNAME="localhost"
     export PORT="3306"
     export USERNAME="root"
     export PASSWORD="123456"
+    export DATABASE="seatunnel"
     ```
 2. Run init shell `sh apache-seatunnel-web-${project.version}/script/init_sql.sh` If there are no errors during operation, it indicates successful initialization.
 

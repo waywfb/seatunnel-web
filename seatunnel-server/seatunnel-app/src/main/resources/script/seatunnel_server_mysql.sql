@@ -15,8 +15,10 @@
  * limitations under the License.
 */
 
-CREATE DATABASE IF NOT EXISTS seatunnel;
-use seatunnel;
+-- 本脚本用于全新建库，会对全部 23 张业务表执行 DROP TABLE，执行前务必确认目标库。
+-- 必须显式指定目标库，否则 MySQL 报 "No database selected"：
+--   mysql -h<host> -P<port> -u<user> -p<pwd> -D<dbname> < seatunnel_server_mysql.sql
+-- 推荐使用同目录 init_sql.sh，目标库由 seatunnel_server_env.sh 的 DATABASE 指定。
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -37,8 +39,13 @@ CREATE TABLE `role`  (
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `seatunnel`.`role`(`type`,`role_name`,`description`) values (0, 'ADMIN_ROLE', 'Admin User');
-INSERT INTO `seatunnel`.`role`(`type`,`role_name`,`description`) values (1, 'NORMAL_ROLE', 'Normal User');
+-- 幂等：role_name / username / workspace_name 均无唯一键，裸 INSERT 每执行一次就多一份
+INSERT INTO `role`(`type`,`role_name`,`description`)
+SELECT 0, 'ADMIN_ROLE', 'Admin User' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM (SELECT 1 FROM `role` WHERE `role_name` = 'ADMIN_ROLE' LIMIT 1) `t`);
+INSERT INTO `role`(`type`,`role_name`,`description`)
+SELECT 1, 'NORMAL_ROLE', 'Normal User' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM (SELECT 1 FROM `role` WHERE `role_name` = 'NORMAL_ROLE' LIMIT 1) `t`);
 
 -- ----------------------------
 -- Table structure for role_user_relation
@@ -268,13 +275,16 @@ CREATE TABLE `user_login_log`  (
 -- Records of user_login_log
 -- ----------------------------
 
-INSERT INTO `seatunnel`.`user`(`username`,`password`,`status`,`type`) values ('admin', '7f97da8846fed829bb8d1fd9f8030f3b', 0, 0);
+INSERT INTO `user`(`username`,`password`,`status`,`type`)
+SELECT 'admin', '7f97da8846fed829bb8d1fd9f8030f3b', 0, 0 FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM (SELECT 1 FROM `user` WHERE `username` = 'admin' LIMIT 1) `t`);
 
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ----------------------------
 -- Workspace related tables
 -- ----------------------------
+DROP TABLE IF EXISTS `workspace`;
 CREATE TABLE `workspace`  (
                          `id` bigint(20) NOT NULL AUTO_INCREMENT,
                          `workspace_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -284,7 +294,9 @@ CREATE TABLE `workspace`  (
                          PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
-INSERT INTO `seatunnel`.`workspace`(`workspace_name`,`description`) values ('default', 'default workspace');
+INSERT INTO `workspace`(`workspace_name`,`description`)
+SELECT 'default', 'default workspace' FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM (SELECT 1 FROM `workspace` WHERE `workspace_name` = 'default' LIMIT 1) `t`);
 
 
 DROP TABLE IF EXISTS `t_st_job_metrics_history`;

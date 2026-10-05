@@ -19,3 +19,5 @@ export HOSTNAME="127.0.0.1"
 export PORT="3306"
 export USERNAME="root"
 export PASSWORD="123456"
+# 初始化脚本的目标库。SQL 内不再写死库名，必须由此显式指定，否则会报 No database selected。
+export DATABASE="seatunnel"

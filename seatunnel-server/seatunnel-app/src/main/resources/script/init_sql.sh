@@ -28,4 +28,5 @@ if [[ ! -n "${HOSTNAME}" ]]  || [[ ! -n "${PORT}" ]] || [[ ! -n "${USERNAME}" ]]
     exit 1
 fi
 
-mysql -h${HOSTNAME} -P${PORT} -u${USERNAME} -p${PASSWORD} < ${workDir}/seatunnel_server_mysql.sql
+# SQL 内不再写死库名，目标库必须在此显式指定；未配置 DATABASE 的旧版 env 文件回落为 seatunnel
+mysql -h${HOSTNAME} -P${PORT} -u${USERNAME} -p${PASSWORD} -D${DATABASE:-seatunnel} < ${workDir}/seatunnel_server_mysql.sql

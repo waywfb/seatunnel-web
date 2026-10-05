@@ -54,13 +54,14 @@ SeaTunnel是下一代超高性能、分布式、海量数据集成工具。它�
 * 运行`cd apache-seatunnel-2.3.11 & sh bin/seatunnel-cluster.sh -d`运行SeaTunnel Zeta Engine Server。
 #### 2.2 初始化数据库
 
-1. 编辑 `seatunnel-server/seatunnel-app/src/main/resources/script/seatunnel_server_env.sh` 文件, 填写已安装的数据库 address, port, username, and password. 下面是一个例子:
+1. 编辑 `seatunnel-server/seatunnel-app/src/main/resources/script/seatunnel_server_env.sh` 文件, 填写已安装的数据库 address, port, username, password, 以及 database 名称. 下面是一个例子:
 
     ```
     export HOSTNAME="localhost"
     export PORT="3306"
     export USERNAME="root"
     export PASSWORD="123456"
+    export DATABASE="seatunnel"
     ```
 2. 执行命令 `sh seatunnel-server/seatunnel-app/src/main/resources/script/init_sql.sh` 如果运行过程中没有错误，则说明初始化成功。
 
@@ -158,13 +159,14 @@ tar -zxvf apache-seatunnel-web-${project.version}.tar.gz
 
 #### 3.4 初始化数据库
 
-1. 编辑 `apache-seatunnel-web-${project.version}/script/seatunnel_server_env.sh` 文件, 填写已安装的数据库 address, port, username, and password. 例如:
+1. 编辑 `apache-seatunnel-web-${project.version}/script/seatunnel_server_env.sh` 文件, 填写已安装的数据库 address, port, username, password, 以及 database 名称. 例如:
 
     ```
     export HOSTNAME="localhost"
     export PORT="3306"
     export USERNAME="root"
     export PASSWORD="123456"
+    export DATABASE="seatunnel"
     ```
 2. 运行初始化脚本 `sh apache-seatunnel-web-${project.version}/script/init_sql.sh` 如果操作过程中没有错误,表示初始化成功。
 
